@@ -2,8 +2,11 @@
 #include "date.h"
 #include "clay_settings.h"
 #include "theme.h"
+#include "dotted_text_layer.h"
 
 static ClaySettings *s_settings;
+
+static DottedTextLayer *s_dotted_text_layer;
 
 // Date TextLayer
 static TextLayer *s_date_layer;
@@ -35,7 +38,7 @@ void create_date_layer(Window *window) {
   int width = bounds.size.w;
   int height = 50;
   int offsetX = (bounds.size.w - width) / 2;
-  int offsetY = (bounds.size.h) / 2 + 5;
+  int offsetY = (bounds.size.h) / 2 + 20;
   
   GRect layer_bounds = GRect(offsetX, offsetY, width, height);
   
@@ -49,13 +52,19 @@ void create_date_layer(Window *window) {
   text_layer_set_font(s_date_layer, theme_get_theme()->DateFont);
   text_layer_set_text_alignment(s_date_layer, GTextAlignmentCenter);
   
+  s_dotted_text_layer = dotted_text_layer_create(layer_bounds);
+  dotted_text_layer_set_text(s_dotted_text_layer, "123");
+  dotted_text_layer_set_color(s_dotted_text_layer, GColorBlack);
+  
   update_date();
 
   // Add it as a child layer to the Window's root layer
   layer_add_child(window_layer, text_layer_get_layer(s_date_layer));
+  layer_add_child(window_layer, s_dotted_text_layer);
 }
 
 // destroys the date layer
 void destroy_date_layer() {
   text_layer_destroy(s_date_layer);
+  dotted_text_layer_destroy(s_dotted_text_layer);
 }

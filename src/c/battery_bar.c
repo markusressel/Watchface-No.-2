@@ -20,7 +20,7 @@ static Animation *charging_animation;
 // battery charging animation durations
 static int s_battery_charging_animation_duration = 2000;
 // delay between a full battery charging animation cycle
-static int s_battery_charging_animation_delay = 0;
+static int s_battery_charging_animation_delay = 200;
 static const int s_battery_charging_animation_repeat_count = ANIMATION_DURATION_INFINITE;
 
 // layer dimensions and positioning
@@ -50,14 +50,14 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
   
   int scaleFactor = 3;
   
-  int leftMargin = 5;
-  int rightMargin = 10;
+  int leftMargin = 0;
+  int rightMargin = 0;
   
-  bool alignRight = true;
+  bool inverted = false;
   
   int rightToLeftOffset;
   int rightToLeftOffsetFactor;
-  if (alignRight) {
+  if (inverted) {
     rightToLeftOffset = rightMargin;
     rightToLeftOffsetFactor = 0;
   } else {
@@ -70,7 +70,10 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
   graphics_context_set_fill_color(ctx, theme_get_theme()->BatteryOutlineColor);
   
   // calculate how much dots would fit the screen
-  int widthDotsCount = (bounds.size.w - leftMargin - rightMargin) / 2 / scaleFactor;
+  int first = ((bounds.size.w - leftMargin - rightMargin) / scaleFactor) / 2;
+  int second = ((bounds.size.w - leftMargin - rightMargin) / scaleFactor - 1) / 2;
+  
+  int widthDotsCount = (first == second) ? first + 1: first;
   
   // upper row
   int x; // dot x position;
@@ -79,8 +82,9 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
   for (int row = 0; row < 5; row++) {
     y = row * 2 * scaleFactor;
     
+    // single dot at the tip (representing +pole)
     if (row == 2) {
-      x = (widthDotsCount * 2 * scaleFactor);
+      x = ((widthDotsCount - 1) * 2 * scaleFactor);
       currentDotBorder = GRect(
           bounds.size.w - (rightToLeftOffset - rightToLeftOffsetFactor * x) - x,
           y,
@@ -89,8 +93,9 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
       graphics_fill_rect(ctx, currentDotBorder, 0, GCornerNone);
     }
     
+    // upper and lower row
     if (row == 0 || row == 4) {
-      for (int column = 0; column < widthDotsCount; column++) {
+      for (int column = 0; column < widthDotsCount - 1; column++) {
         x = (column * 2 * scaleFactor);
         currentDotBorder = GRect(
             bounds.size.w - (rightToLeftOffset - rightToLeftOffsetFactor * x) - x,
@@ -100,7 +105,9 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
         graphics_fill_rect(ctx, currentDotBorder, 0, GCornerNone);
       }
     } else {
-      x = ((widthDotsCount - 1) * 2 * scaleFactor);
+      // single dot at beginning and end of the battery (left and right borders)
+      
+      x = ((widthDotsCount - 2) * 2 * scaleFactor);
       currentDotBorder = GRect(
           bounds.size.w - (rightToLeftOffset - rightToLeftOffsetFactor * x) - x,
           y,
@@ -119,7 +126,11 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
   }
   
   // Draw the bar inside
-  int fillDotsCount = (s_current_battery_level * (widthDotsCount - 4)) / 100;
+  graphics_context_set_fill_color(ctx, theme_get_theme()->BatteryFillColor);
+  
+  int fillDotsCount = (s_current_battery_level * (widthDotsCount - 5)) / 100;
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "widthDotsCount: %d, batteryLevel: %d, fillDotsCount: %d",
+          widthDotsCount, s_current_battery_level, fillDotsCount);
   
   int row = 2;
   for (int column = 0; column < fillDotsCount; column++) {
@@ -186,10 +197,11 @@ void create_battery_bar_layer(Window *window) {
   s_settings = clay_get_settings();
   
   // Create battery meter Layer
-  layer_width = bounds.size.w - 40;
-  height = 50;
+  layer_width = 87;
+  height = 27;
   offsetX = (bounds.size.w - layer_width) / 2; // centered
-  offsetY = 5;
+  offsetX = 0; // centered
+  offsetY = 0;
   GRect layer_bounds = GRect(offsetX, offsetY, layer_width, height);
   
   s_battery_bar_layer = layer_create(layer_bounds);
