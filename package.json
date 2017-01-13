@@ -1,0 +1,31 @@
+{
+    "author": "mail@markusressel.de",
+    "dependencies": {},
+    "keywords": [],
+    "name": "watchface-no.-2",
+    "pebble": {
+        "capabilities": [
+            "location",
+            "configurable",
+            "health"
+        ],
+        "displayName": "Watchface No. 2",
+        "enableMultiJS": true,
+        "messageKeys": [],
+        "projectType": "native",
+        "resources": {
+            "media": []
+        },
+        "sdkVersion": "3",
+        "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "diorite"
+        ],
+        "uuid": "05d35149-74f5-476e-86c7-bfb236a2ab16",
+        "watchapp": {
+            "watchface": true
+        }
+    },
+    "version": "1.0.0"
+}
