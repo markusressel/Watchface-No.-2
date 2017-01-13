@@ -53,12 +53,12 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
   int leftMargin = 0;
   int rightMargin = 0;
   
-  bool inverted = false;
+  bool inverted = true;
   
   int rightToLeftOffset;
   int rightToLeftOffsetFactor;
   if (inverted) {
-    rightToLeftOffset = rightMargin;
+    rightToLeftOffset = rightMargin + scaleFactor;
     rightToLeftOffsetFactor = 0;
   } else {
     rightToLeftOffset = bounds.size.w - leftMargin;
