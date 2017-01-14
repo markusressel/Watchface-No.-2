@@ -33,7 +33,7 @@ void create_date_layer(Window *window) {
   
   s_settings = clay_get_settings();
   
-  int width = bounds.size.w - 5;
+  int width = bounds.size.w - 3;
   int height = 27;
   int offsetX = 0;
   // int offsetX = (bounds.size.w - width); // right aligned

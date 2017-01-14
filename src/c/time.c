@@ -41,7 +41,8 @@ void create_time_layer(Window *window) {
   
   int width = bounds.size.w;
   int height = 50;
-  int offsetX = (bounds.size.w - width) / 2;
+  //int offsetX = (bounds.size.w - width) / 2;
+  int offsetX = 0;
   int offsetY = (bounds.size.h - height) / 2 - 2;
   
   GRect layer_bounds = GRect(offsetX, offsetY, width, height);
@@ -53,7 +54,7 @@ void create_time_layer(Window *window) {
   text_layer_set_background_color(s_time_layer, GColorClear);
   text_layer_set_text_color(s_time_layer, theme_get_theme()->TimeTextColor);
   text_layer_set_font(s_time_layer, theme_get_theme()->TimeFont);
-  text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
+  text_layer_set_text_alignment(s_time_layer, GTextAlignmentRight);
   
   // update time value before rendering so it is shown right from the beginning
   update_time();

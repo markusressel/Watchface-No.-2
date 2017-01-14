@@ -96,7 +96,7 @@ void create_weather_layer(Window *window){
   restore_saved_weather_data();
   
   // set bounds and offset for text layer
-  int width = bounds.size.w - 5;
+  int width = bounds.size.w - 3;
   int height = 27;
   int offsetX = 0;
   int offsetY = 5;
