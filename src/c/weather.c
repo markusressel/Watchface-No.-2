@@ -81,7 +81,7 @@ void update_weather(){
   save_current_weather_data();
   
   // Write the current temperature into a buffer
-  snprintf(s_buffer, sizeof(s_buffer), "%d|%d|%d", weatherData.CurrentTemperature, weatherData.MinTemperature, weatherData.MaxTemperature);
+  snprintf(s_buffer, sizeof(s_buffer), "%d|%d", weatherData.MaxTemperature, weatherData.MinTemperature);
   // update text layer
   dotted_text_layer_set_text(s_dotted_text_layer, s_buffer);
 }

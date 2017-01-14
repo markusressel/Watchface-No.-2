@@ -22,7 +22,7 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
   int dot_width = 3;
   int dot_height = 3;
   
-  int gap_size_horizontal = 2;
+  int gap_size_horizontal = 3;
   int gap_size_vertical = 3;
   
   int current_start_x;
