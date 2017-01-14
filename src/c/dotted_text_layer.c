@@ -1,4 +1,5 @@
 #include "dotted_text_layer.h"
+#include "pixel_matrix_drawer.h"
 
 
 static DottedTextLayerData* get_layer_data(DottedTextLayer* dotted_text_layer) {
@@ -13,49 +14,34 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
   
   // set the fill color
   graphics_context_set_fill_color(ctx, data->text_color);
+  
+  for(unsigned int i = 0; i < strlen(data->text); i++) {
+    char current_character = data->text[i];
+    
+    int scale_factor = 3;
+    
+    bool (*matrix)[] = (bool(*)[5]) pixel_matrix_drawer_get_matrix(current_character);
+    pixel_matrix_drawer_draw_matrix(ctx, GPoint(i * 12 * scale_factor, 0), matrix, scale_factor);
+  }
+  
   // fill layer completely (for now)
-  graphics_fill_rect(ctx, bounds, 0, GCornerNone);
+  // graphics_fill_rect(ctx, bounds, 0, GCornerNone);
 }
 
 DottedTextLayer* dotted_text_layer_create(GRect bounds) {
   // create the layer with an additional data section
   DottedTextLayer* dotted_text_layer = layer_create_with_data(bounds, sizeof(DottedTextLayerData));
+  // connect with update method
   layer_set_update_proc(dotted_text_layer, update_proc);
   
   return dotted_text_layer;
 }
-
-// Is included by type definition
-/*
-Layer dotted_text_layer_get_layer(DottedTextLayer* dotted_text_layer) {
-  DottedTextLayerData ProgressData *data = (ProgressData *)layer_get_data(bar);
-  
-  if (!dotted_text_layer) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "DottedTextLayer is NULL!");
-    return NULL;
-  }
-  
-  return dotted_text_layer->layer;
-}
-*/
 
 void dotted_text_layer_set_text(DottedTextLayer* dotted_text_layer, char* text) {
   if (!dotted_text_layer) {
     APP_LOG(APP_LOG_LEVEL_ERROR, "DottedTextLayer is NULL!");
     return;
   }
-  
-  /*
-  // free any existing old text
-  if (dotted_text_layer->text) {
-    free(dotted_text_layer->text);
-  }
-  
-  // allocate memory for text
-  dotted_text_layer->text = malloc(sizeof(char) * strlen(text) + 1);
-  // copy passed in text to struct
-  strcpy(dotted_text_layer->text, text);
-  */
   
   // get data associated with layer
   DottedTextLayerData *data = get_layer_data(dotted_text_layer);

@@ -36,9 +36,9 @@ void create_date_layer(Window *window) {
   s_settings = clay_get_settings();
   
   int width = bounds.size.w;
-  int height = 50;
+  int height = 27;
   int offsetX = (bounds.size.w - width) / 2;
-  int offsetY = (bounds.size.h) / 2 + 20;
+  int offsetY = (bounds.size.h) / 2 + height ;
   
   GRect layer_bounds = GRect(offsetX, offsetY, width, height);
   
@@ -53,13 +53,13 @@ void create_date_layer(Window *window) {
   text_layer_set_text_alignment(s_date_layer, GTextAlignmentCenter);
   
   s_dotted_text_layer = dotted_text_layer_create(layer_bounds);
-  dotted_text_layer_set_text(s_dotted_text_layer, "123");
+  dotted_text_layer_set_text(s_dotted_text_layer, "12345");
   dotted_text_layer_set_color(s_dotted_text_layer, GColorBlack);
   
   update_date();
 
   // Add it as a child layer to the Window's root layer
-  layer_add_child(window_layer, text_layer_get_layer(s_date_layer));
+  //layer_add_child(window_layer, text_layer_get_layer(s_date_layer));
   layer_add_child(window_layer, s_dotted_text_layer);
 }
 
