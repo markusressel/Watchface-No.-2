@@ -132,12 +132,18 @@ static bool s_character_pipe[5][5] = {
 static bool s_character_minus[5][5] = {
   {false, false, false, false, false},
   {false, false, false, false, false},
-  {true, true, true, false, false},
+  {true, true, true, true, true},
   {false, false, false, false, false},
   {false, false, false, false, false}
 };
 
-int pixel_matrix_drawer_draw_char(GContext* ctx, GPoint point_zero, char character, int dot_width, int dot_height, bool align_right) {
+int pixel_matrix_drawer_draw_char(
+  GContext* ctx, 
+  GPoint point_zero, 
+  char character, 
+  int dot_width, int dot_height, 
+  int gap_size_horizontal, int gap_size_vertical,
+  bool align_right) {
   if (!character) {
     APP_LOG(APP_LOG_LEVEL_ERROR, "character is NULL!");
     return 0;
@@ -211,7 +217,7 @@ int pixel_matrix_drawer_draw_char(GContext* ctx, GPoint point_zero, char charact
       break;
     case '-':
       character_pixel_matrix = s_character_minus;
-      column_count = 3;
+      column_count = 2;
       break;
     default:
       character_pixel_matrix = s_default_character;
@@ -239,11 +245,11 @@ int pixel_matrix_drawer_draw_char(GContext* ctx, GPoint point_zero, char charact
       int y;
       
       if (align_right) {
-        x = point_zero.x + column * dot_width * 2 - column_count * dot_width * 2;
-        y = point_zero.y + row * dot_height * 2;
+        x = point_zero.x + column * dot_width + column * gap_size_horizontal - (column_count * dot_width + (column_count - 1) * gap_size_horizontal);
+        y = point_zero.y + row * dot_height + row * gap_size_vertical;
       } else {
-        x = point_zero.x + column * dot_width * 2;
-        y = point_zero.y + row * dot_height * 2;
+        x = point_zero.x + column * dot_width + column * gap_size_horizontal;
+        y = point_zero.y + row * dot_height + row * gap_size_vertical;
       }
       
       // draw pixel
