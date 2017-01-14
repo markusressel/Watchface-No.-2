@@ -42,7 +42,7 @@ void create_time_layer(Window *window) {
   int width = bounds.size.w;
   int height = 50;
   int offsetX = (bounds.size.w - width) / 2;
-  int offsetY = (bounds.size.h - height) / 2;
+  int offsetY = (bounds.size.h - height) / 2 - 2;
   
   GRect layer_bounds = GRect(offsetX, offsetY, width, height);
   

@@ -31,7 +31,7 @@ void create_stepcount_layer(Window *window) {
   int height = 27;
   int offsetX = 0;
   // int offsetX = (bounds.size.w - width); // right aligned
-  int offsetY = bounds.size.w - 27 - 5 - 5;
+  int offsetY = bounds.size.w - 27 - 5 - 5 - 2;
   
   GRect layer_bounds = GRect(offsetX, offsetY, width, height);
   

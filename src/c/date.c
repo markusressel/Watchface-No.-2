@@ -18,7 +18,7 @@ void update_date() {
   static char s_buffer[16];
   strftime(s_buffer, 
            sizeof(s_buffer),
-          "%d.%m",
+          "%d.%m.%y",
            tick_time);
 
   // Display this date on the DottedTextLayer

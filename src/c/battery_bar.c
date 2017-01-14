@@ -196,7 +196,8 @@ void create_battery_bar_layer(Window *window) {
   s_settings = clay_get_settings();
   
   // Create battery meter Layer
-  layer_width = 87;
+  //layer_width = 87; // exactly 10 "charge dots"
+  layer_width = bounds.size.w - 10; // full width, except margin
   layer_height = 27;
   layer_offsetX = (bounds.size.w - layer_width) - 5; // right with margin
   layer_offsetY = bounds.size.h - layer_height - 5;
