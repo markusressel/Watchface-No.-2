@@ -3,6 +3,21 @@ A dot styled watchface for the Pebble platform
 
 <img src="/framed_light.png" width="">
 
+# Components
+Currently the components of this watchface can not be changed in order without coding and recompiling.
+These are the current components in their top to bottom order:
+
+* Weather
+  * Maximum Temp for the day | Minimum temp for the day
+* Date
+  * day of the month . month number
+* Time
+  * hours:minutes(:seconds)
+* Step count for the day
+* Battery bar
+  * with charging animation
+
+
 # Theme
 Colors can be changed for each component individually through the build in Settings screen, accessible in the Pebble app.
 After saving your modified settings, the watchface needs to be restarted to reload the changed settings.
