@@ -6,6 +6,8 @@
 #include "date.h"
 #include "battery_bar.h"
 #include "battery_listener.h"
+#include "weather.h"
+#include "app_messaging.h"
 
 
 // Main Window
@@ -23,6 +25,8 @@ static void main_window_load(Window *window) {
   create_date_layer(window);
   APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing battery bar layer");
   create_battery_bar_layer(window);
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing weather layer");
+  create_weather_layer(window);
   
   /*
   
@@ -31,8 +35,7 @@ static void main_window_load(Window *window) {
   create_battery_text_layer(window);
   APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing phone connection layer");
   create_phone_connection_indicator_layer(window);
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing weather layer");
-  create_weather_layer(window);
+  
   APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing heartrate layer");
   create_heartrate_layer(window);
   
@@ -43,7 +46,7 @@ static void main_window_load(Window *window) {
   // Register health event listener
   register_health_event_listener();
   
-  initialize_app_messaging();
+  
   */
   
   // Register for tick events (time)
@@ -52,6 +55,8 @@ static void main_window_load(Window *window) {
   register_battery_listener();
   // Ensure battery level is displayed from the start
   force_battery_update();
+  
+  initialize_app_messaging();
 }
 
 // destroys all components of the main window
@@ -67,16 +72,15 @@ static void main_window_unload(Window *window) {
   
   // destroy layers
   destroy_heartrate_layer();
-  destroy_weather_layer();
   destroy_phone_connection_indicator_layer();
   destroy_battery_text_layer();
-  
   
   */
   
   destroy_battery_bar_layer();
   destroy_date_layer();
   destroy_time_layer();
+  destroy_weather_layer();
 }
 
 // initializes the watchface

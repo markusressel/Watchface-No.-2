@@ -1,6 +1,8 @@
 {
     "author": "mail@markusressel.de",
-    "dependencies": {},
+    "dependencies": {
+        "pebble-clay": "^1.0.3"
+    },
     "keywords": [],
     "name": "watchface-no.-2",
     "pebble": {
@@ -11,7 +13,21 @@
         ],
         "displayName": "Watchface No. 2",
         "enableMultiJS": true,
-        "messageKeys": [],
+        "messageKeys": [
+            "RequestData",
+            "WEATHER_TEMPERATURE_CURRENT",
+            "WEATHER_CONDITION",
+            "WEATHER_TEMPERATURE_MAX",
+            "WEATHER_TEMPERATURE_MIN",
+            "WeatherTextColor",
+            "BackgroundColor",
+            "TimeTextColor",
+            "DateTextColor",
+            "BatteryFrameColor",
+            "BatteryFillColor",
+            "ShowSeconds",
+            "Theme"
+        ],
         "projectType": "native",
         "resources": {
             "media": []

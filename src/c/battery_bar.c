@@ -199,7 +199,7 @@ void create_battery_bar_layer(Window *window) {
   layer_width = 87;
   layer_height = 27;
   layer_offsetX = (bounds.size.w - layer_width) - 5; // right with margin
-  layer_offsetY = 5;
+  layer_offsetY = bounds.size.h - layer_height - 5;
   GRect layer_bounds = GRect(layer_offsetX, layer_offsetY, layer_width, layer_height);
   
   s_battery_bar_layer = layer_create(layer_bounds);

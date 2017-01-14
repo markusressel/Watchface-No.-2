@@ -37,7 +37,7 @@ void create_date_layer(Window *window) {
   int height = 27;
   int offsetX = 15;
   // int offsetX = (bounds.size.w - width); // right aligned
-  int offsetY = (bounds.size.h) / 2 + height ;
+  int offsetY = 27 + 5 + 5;
   
   GRect layer_bounds = GRect(offsetX, offsetY, width, height);
   

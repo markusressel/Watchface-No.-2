@@ -75,10 +75,10 @@ static bool s_number_6[5][5] = {
 
 static bool s_number_7[5][5] = {
   {true, true, true, true, true},
-  {false,false,false, true, false},
-  {false, false, true, false, false},
-  {false, true, false, false, false},
-  {true, false, false, false, false}
+  {false,false,false, false, true},
+  {false, false, false, false, true},
+  {false, false, false, false, true},
+  {false, false, false, false, true}
 };
 
 static bool s_number_8[5][5] = {
@@ -97,16 +97,39 @@ static bool s_number_9[5][5] = {
   {true, true, true, true, true}
 };
 
-static int get_array_element_count(bool* a) {
-  if (!a) {
-    return 0;
-  }
-  
-  return sizeof(a) / sizeof(a[0]);
-}
+static bool s_character_degree[5][5] = {
+  {true, true, true, false, false},
+  {true, false, true, false, false},
+  {true, true, true, false, false},
+  {false, false, false, false, false},
+  {false, false, false, false, false}
+};
 
+static bool s_character_c[5][5] = {
+  {true, true, true, true, true},
+  {true, false, false, false, false},
+  {true, false, false, false, false},
+  {true, false, false, false, false},
+  {true, true, true, true, true}
+};
 
-int pixel_matrix_drawer_draw_char(GContext* ctx, GPoint point_zero, char character, int scale_factor) {
+static bool s_character_slash[5][5] = {
+  {false, false, true, false, false},
+  {false, true, false, false, false},
+  {false, true, false, false, false},
+  {true, false, false, false, false},
+  {true, false, false, false, false}
+};
+
+static bool s_character_minus[5][5] = {
+  {false, false, false, false, false},
+  {false, false, false, false, false},
+  {true, true, true, false, false},
+  {false, false, false, false, false},
+  {false, false, false, false, false}
+};
+
+int pixel_matrix_drawer_draw_char(GContext* ctx, GPoint point_zero, char character, int dot_width, int dot_height) {
   if (!character) {
     APP_LOG(APP_LOG_LEVEL_ERROR, "character is NULL!");
     return 0;
@@ -162,13 +185,29 @@ int pixel_matrix_drawer_draw_char(GContext* ctx, GPoint point_zero, char charact
       character_pixel_matrix = s_number_9;
       column_count = 5;
       break;
+    case 'o':
+      character_pixel_matrix = s_character_degree;
+      column_count = 3;
+      break;
+    case 'C':
+      character_pixel_matrix = s_character_c;
+      column_count = 5;
+      break;
+    case '/':
+      character_pixel_matrix = s_character_slash;
+      column_count = 3;
+      break;
+    case '-':
+      character_pixel_matrix = s_character_minus;
+      column_count = 3;
+      break;
     default:
       character_pixel_matrix = s_default_character;
       column_count = 5;
       break;
   }
   
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "matrix assigned");
+  // APP_LOG(APP_LOG_LEVEL_DEBUG, "matrix assigned");
   
   for(int row = 0; row < row_count; row++) {
     for(int column = 0; column < column_count; column++) {
@@ -177,19 +216,19 @@ int pixel_matrix_drawer_draw_char(GContext* ctx, GPoint point_zero, char charact
       
       // skip pixel if not defined in matrix
       if (!character_pixel_matrix[row][column]) {
-        APP_LOG(APP_LOG_LEVEL_DEBUG, "skipping pixel");
+        // APP_LOG(APP_LOG_LEVEL_DEBUG, "skipping pixel");
         
         continue;
       }
       
-      APP_LOG(APP_LOG_LEVEL_DEBUG, "drawing pixel");
+      // APP_LOG(APP_LOG_LEVEL_DEBUG, "drawing pixel");
       
       // draw pixel
       GRect dot_bounds = GRect(
-        point_zero.x + column * scale_factor * 2,
-        point_zero.y + row * scale_factor * 2,
-        scale_factor,
-        scale_factor);
+        point_zero.x + column * dot_width * 2,
+        point_zero.y + row * dot_height * 2,
+        dot_width,
+        dot_height);
       
       graphics_fill_rect(ctx, dot_bounds, 0, GCornerNone);
     }
