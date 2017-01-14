@@ -121,6 +121,14 @@ static bool s_character_slash[5][5] = {
   {true, false, false, false, false}
 };
 
+static bool s_character_pipe[5][5] = {
+  {false, true, false, false, false},
+  {false, true, false, false, false},
+  {false, true, false, false, false},
+  {false, true, false, false, false},
+  {false, true, false, false, false}
+};
+
 static bool s_character_minus[5][5] = {
   {false, false, false, false, false},
   {false, false, false, false, false},
@@ -129,7 +137,7 @@ static bool s_character_minus[5][5] = {
   {false, false, false, false, false}
 };
 
-int pixel_matrix_drawer_draw_char(GContext* ctx, GPoint point_zero, char character, int dot_width, int dot_height) {
+int pixel_matrix_drawer_draw_char(GContext* ctx, GPoint point_zero, char character, int dot_width, int dot_height, bool align_right) {
   if (!character) {
     APP_LOG(APP_LOG_LEVEL_ERROR, "character is NULL!");
     return 0;
@@ -197,6 +205,10 @@ int pixel_matrix_drawer_draw_char(GContext* ctx, GPoint point_zero, char charact
       character_pixel_matrix = s_character_slash;
       column_count = 3;
       break;
+    case '|':
+      character_pixel_matrix = s_character_pipe;
+      column_count = 3;
+      break;
     case '-':
       character_pixel_matrix = s_character_minus;
       column_count = 3;
@@ -223,10 +235,21 @@ int pixel_matrix_drawer_draw_char(GContext* ctx, GPoint point_zero, char charact
       
       // APP_LOG(APP_LOG_LEVEL_DEBUG, "drawing pixel");
       
+      int x;
+      int y;
+      
+      if (align_right) {
+        x = point_zero.x + column * dot_width * 2 - column_count * dot_width * 2;
+        y = point_zero.y + row * dot_height * 2;
+      } else {
+        x = point_zero.x + column * dot_width * 2;
+        y = point_zero.y + row * dot_height * 2;
+      }
+      
       // draw pixel
       GRect dot_bounds = GRect(
-        point_zero.x + column * dot_width * 2,
-        point_zero.y + row * dot_height * 2,
+        x,
+        y,
         dot_width,
         dot_height);
       

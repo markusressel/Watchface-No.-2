@@ -10,6 +10,7 @@
 // @param dot_height           The height of a single dot
 // @param horizontal_gap_size  The size of horizontally empty space between two dots
 // @param vertical_gap_size    The size of vertically empty space between two dots
+// @param align_right          Draws the characters from right to left instead of left to right
 //
 // @return  width of the drawn matrix (for width in pixel this has to be multiplied by scale_factor)
-int pixel_matrix_drawer_draw_char(GContext* ctx, GPoint point_zero, char character, int dot_wigth, int dot_height);
+int pixel_matrix_drawer_draw_char(GContext* ctx, GPoint point_zero, char character, int dot_wigth, int dot_height, bool align_right);

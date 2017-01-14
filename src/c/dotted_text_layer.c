@@ -22,17 +22,32 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
   int dot_width = 2;
   int dot_height = 3;
   
-  int current_start_x = 0;
-  for(unsigned int i = 0; i < strlen(data->text); i++) {
-    char current_character = data->text[i];
+  int current_start_x;
+  if (data->align_right) {
+    current_start_x = bounds.size.w;
+  } else {
+    current_start_x = 0;
+  }
+  unsigned int length = strlen(data->text);
+  for(unsigned int i = 0; i < length; i++) {
+    char current_character;
+    if (data->align_right) {
+      current_character = data->text[length - 1 - i];
+    } else {
+      current_character = data->text[i];
+    }
     
     // APP_LOG(APP_LOG_LEVEL_DEBUG, "drawing char: %c", current_character);
     
-    int pixelated_char_width = pixel_matrix_drawer_draw_char(ctx, GPoint(current_start_x, 0), current_character, dot_width, dot_height);
+    int pixelated_char_width = pixel_matrix_drawer_draw_char(ctx, GPoint(current_start_x, 0), current_character, dot_width, dot_height, data->align_right);
     
     // APP_LOG(APP_LOG_LEVEL_DEBUG, "pxelated char width: %d", pixelated_char_width);
     
-    current_start_x += pixelated_char_width * 2 * dot_width + character_offset;
+    if (data->align_right) {
+      current_start_x -= pixelated_char_width * 2 * dot_width + character_offset;
+    } else {
+      current_start_x += pixelated_char_width * 2 * dot_width + character_offset;
+    }
   }
 }
 
@@ -61,6 +76,20 @@ void dotted_text_layer_set_text(DottedTextLayer* dotted_text_layer, char* text) 
   data->text = malloc(sizeof(char) * strlen(text) + 1);
   // copy passed in text to struct
   strcpy(data->text, text);
+  
+  // mark dirty to trigger redraw
+  layer_mark_dirty(dotted_text_layer);
+}
+
+void dotted_text_layer_set_align_right(DottedTextLayer* dotted_text_layer, bool align_right) {
+  if (!dotted_text_layer) {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "DottedTextLayer is NULL!");
+    return;
+  }
+  
+  // get data associated with layer
+  DottedTextLayerData *data = get_layer_data(dotted_text_layer);
+  data->align_right = align_right;
   
   // mark dirty to trigger redraw
   layer_mark_dirty(dotted_text_layer);

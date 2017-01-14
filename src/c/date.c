@@ -33,9 +33,9 @@ void create_date_layer(Window *window) {
   
   s_settings = clay_get_settings();
   
-  int width = bounds.size.w;
+  int width = bounds.size.w - 5;
   int height = 27;
-  int offsetX = 15;
+  int offsetX = 0;
   // int offsetX = (bounds.size.w - width); // right aligned
   int offsetY = 27 + 5 + 5;
   
@@ -44,7 +44,7 @@ void create_date_layer(Window *window) {
   s_dotted_text_layer = dotted_text_layer_create(layer_bounds);
   //dotted_text_layer_set_text(s_dotted_text_layer, "14.01.17");
   dotted_text_layer_set_color(s_dotted_text_layer, GColorBlack);
-  //dotted_text_layer_set_text_alignment(s_date_layer, GTextAlignmentCenter);
+  dotted_text_layer_set_align_right(s_dotted_text_layer, true);
   
   update_date();
 

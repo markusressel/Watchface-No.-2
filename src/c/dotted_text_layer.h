@@ -8,6 +8,7 @@ typedef Layer DottedTextLayer;
 
 typedef struct DottedTextLayerData {
   char* text;
+  bool align_right;
   int scale_factor;
   GColor text_color;
 } __attribute__((__packed__)) DottedTextLayerData;
@@ -41,6 +42,10 @@ void dotted_text_layer_set_text(DottedTextLayer* dotted_text_layer, char* text);
 // @param color              the color to set
 void dotted_text_layer_set_color(DottedTextLayer* dotted_text_layer, GColor color);
 
+// Use this method to draw characters from the right instead of the left
+//
+// @param align_right  align to right if true, false otherwise
+void dotted_text_layer_set_align_right(DottedTextLayer* dotted_text_layer, bool align_right);
 
 // Use this method to set the scale factor for the layer
 // A scale factor of 1 means 1x1 pixel drawn, 1x1 pixel not drawn and so on

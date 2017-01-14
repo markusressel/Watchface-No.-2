@@ -81,7 +81,7 @@ void update_weather(){
   save_current_weather_data();
   
   // Write the current temperature into a buffer
-  snprintf(s_buffer, sizeof(s_buffer), "%d/%d/%d", weatherData.CurrentTemperature, weatherData.MinTemperature, weatherData.MaxTemperature);
+  snprintf(s_buffer, sizeof(s_buffer), "%d|%d|%d", weatherData.CurrentTemperature, weatherData.MinTemperature, weatherData.MaxTemperature);
   // update text layer
   dotted_text_layer_set_text(s_dotted_text_layer, s_buffer);
 }
@@ -91,16 +91,14 @@ void create_weather_layer(Window *window){
   Layer *window_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(window_layer);
   
-  GRect icon_bounds = GRect(5, bounds.size.h - 30 - 5, 30, 30);
-  
   s_settings = clay_get_settings();
   
   restore_saved_weather_data();
   
   // set bounds and offset for text layer
-  int width = bounds.size.w;
+  int width = bounds.size.w - 5;
   int height = 27;
-  int offsetX = 15;
+  int offsetX = 0;
   int offsetY = 5;
   
   GRect layer_bounds = GRect(offsetX, offsetY, width, height);
@@ -108,6 +106,7 @@ void create_weather_layer(Window *window){
   s_dotted_text_layer = dotted_text_layer_create(layer_bounds);
   dotted_text_layer_set_color(s_dotted_text_layer, theme_get_theme()->WeatherTextColor);
   dotted_text_layer_set_text(s_dotted_text_layer, "---");
+  dotted_text_layer_set_align_right(s_dotted_text_layer, true);
   
   update_weather();
   
