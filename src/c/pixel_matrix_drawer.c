@@ -14,7 +14,7 @@ static bool s_character_dot[5][5] = {
   {false, false, false, false, false},
   {false, false, false, false, false},
   {false, false, false, false, false},
-  {false, false, true, false, false}
+  {true, false, false, false, false}
 };
 
 static bool s_number_0[5][5] = {
@@ -26,11 +26,11 @@ static bool s_number_0[5][5] = {
 };
 
 static bool s_number_1[5][5] = {
-  {false, false, false, true, true},
-  {false, false, false, false, true},
-  {false, false, false, false, true},
-  {false, false, false, false, true},
-  {false, false, false, false, true}
+  {true, true, false, false, false},
+  {false, true, false, false, false},
+  {false, true, false, false, false},
+  {false, true, false, false, false},
+  {false, true, false, false, false}
 };
 
 static bool s_number_2[5][5] = {
@@ -97,7 +97,7 @@ static bool s_number_9[5][5] = {
   {true, true, true, true, true}
 };
 
-static int get_array_element_count(bool a[]) {
+static int get_array_element_count(bool* a) {
   if (!a) {
     return 0;
   }
@@ -106,67 +106,83 @@ static int get_array_element_count(bool a[]) {
 }
 
 
-void* pixel_matrix_drawer_get_matrix(char c) {
-  switch (c) {
+int pixel_matrix_drawer_draw_char(GContext* ctx, GPoint point_zero, char character, int scale_factor) {
+  if (!character) {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "character is NULL!");
+    return 0;
+  }
+  
+  // find matrix for character
+  bool (*character_pixel_matrix)[5];
+  int row_count = 5;
+  int column_count;
+  
+  switch (character) {
     case '.':
-      return *s_character_dot;
+      character_pixel_matrix = s_character_dot;
+      column_count = 1;
+      break;
     case '0':
-      return *s_number_0;
+      character_pixel_matrix = s_number_0;
+      column_count = 5;
+      break;
     case '1':
-      return *s_number_1;
+      character_pixel_matrix = s_number_1;
+      column_count = 2;
+      break;
     case '2':
-      return *s_number_2;
+      character_pixel_matrix = s_number_2;
+      column_count = 5;
+      break;
     case '3':
-      return *s_number_3;
+      character_pixel_matrix = s_number_3;
+      column_count = 5;
+      break;
     case '4':
-      return *s_number_4;
+      character_pixel_matrix = s_number_4;
+      column_count = 5;
+      break;
     case '5':
-      return *s_number_5;
+      character_pixel_matrix = s_number_5;
+      column_count = 5;
+      break;
     case '6':
-      return *s_number_6;
+      character_pixel_matrix = s_number_6;
+      column_count = 5;
+      break;
     case '7':
-      return *s_number_7;
+      character_pixel_matrix = s_number_7;
+      column_count = 5;
+      break;
     case '8':
-      return *s_number_8;
+      character_pixel_matrix = s_number_8;
+      column_count = 5;
+      break;
     case '9':
-      return *s_number_9;
+      character_pixel_matrix = s_number_9;
+      column_count = 5;
+      break;
     default:
-      return *s_default_character;
-    break;
+      character_pixel_matrix = s_default_character;
+      column_count = 5;
+      break;
   }
   
-  return *s_default_character;
-}
-
-void pixel_matrix_drawer_draw_matrix(GContext* ctx, GPoint point_zero, bool matrix[][5], int scale_factor) {
-  if (!matrix) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "matrix is NULL!");
-    return;
-  }
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "matrix assigned");
   
-  // Should be implicit through method parameter definition
-  /*
-  if (get_array_element_count(matrix) != 5)) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "invalid row count: %d", get_array_element_count(matrix));
-    return;
-  }
-  
-  for(int row = 0; row < ; row++) {
-    if (get_array_element_count(matrix[row]) != 5) {
-      APP_LOG(APP_LOG_LEVEL_ERROR, "invalid column count in row %d: %d", get_array_element_count(matrix[row]));
-    }
-  }
-  */
-  
-  for(int row = 0; row < 5; row++) {
-    for(int column = 0; column < 5; column++) {
+  for(int row = 0; row < row_count; row++) {
+    for(int column = 0; column < column_count; column++) {
       // get matrix value at current loop position
-      bool draw = matrix[row][column];
+      // bool draw = character_pixel_matrix[(row + column) * sizeof(bool)];
       
       // skip pixel if not defined in matrix
-      if (!matrix[row][column]) {
+      if (!character_pixel_matrix[row][column]) {
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "skipping pixel");
+        
         continue;
       }
+      
+      APP_LOG(APP_LOG_LEVEL_DEBUG, "drawing pixel");
       
       // draw pixel
       GRect dot_bounds = GRect(
@@ -178,4 +194,6 @@ void pixel_matrix_drawer_draw_matrix(GContext* ctx, GPoint point_zero, bool matr
       graphics_fill_rect(ctx, dot_bounds, 0, GCornerNone);
     }
   }
+  
+  return column_count;
 }

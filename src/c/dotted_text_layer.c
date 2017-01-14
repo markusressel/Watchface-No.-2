@@ -15,17 +15,23 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
   // set the fill color
   graphics_context_set_fill_color(ctx, data->text_color);
   
+  // size scale factor
+  int scale_factor = 2;
+  // offset in pixel between two characters
+  int character_offset = 2;
+  
+  int current_start_x = 0;
   for(unsigned int i = 0; i < strlen(data->text); i++) {
     char current_character = data->text[i];
     
-    int scale_factor = 3;
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "drawing char: %c", current_character);
     
-    bool (*matrix)[] = (bool(*)[5]) pixel_matrix_drawer_get_matrix(current_character);
-    pixel_matrix_drawer_draw_matrix(ctx, GPoint(i * 12 * scale_factor, 0), matrix, scale_factor);
+    int pixelated_char_width = pixel_matrix_drawer_draw_char(ctx, GPoint(current_start_x, 0), current_character, scale_factor);
+    
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "pxelated char width: %d", pixelated_char_width);
+    
+    current_start_x += pixelated_char_width * 2 * scale_factor + character_offset;
   }
-  
-  // fill layer completely (for now)
-  // graphics_fill_rect(ctx, bounds, 0, GCornerNone);
 }
 
 DottedTextLayer* dotted_text_layer_create(GRect bounds) {
