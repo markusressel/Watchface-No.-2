@@ -8,7 +8,8 @@
 #include "battery_listener.h"
 #include "weather.h"
 #include "app_messaging.h"
-
+#include "stepcount.h"
+#include "health_listener.h"
 
 // Main Window
 static Window *s_main_window;
@@ -27,6 +28,8 @@ static void main_window_load(Window *window) {
   create_battery_bar_layer(window);
   APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing weather layer");
   create_weather_layer(window);
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing stepcount layer");
+  create_stepcount_layer(window);
   
   /*
   
@@ -43,10 +46,6 @@ static void main_window_load(Window *window) {
   
   // Register system event handler
   register_system_event_listener();
-  // Register health event listener
-  register_health_event_listener();
-  
-  
   */
   
   // Register for tick events (time)
@@ -55,6 +54,9 @@ static void main_window_load(Window *window) {
   register_battery_listener();
   // Ensure battery level is displayed from the start
   force_battery_update();
+  
+  // Register health event listener
+  register_health_event_listener();
   
   initialize_app_messaging();
 }
@@ -65,18 +67,18 @@ static void main_window_unload(Window *window) {
  
   unregister_tick_listener();
   unregister_battery_listener();
-  /*
-  
-  unregister_system_event_listener();
   unregister_health_event_listener();
+  
+  /*
+  unregister_system_event_listener();
   
   // destroy layers
   destroy_heartrate_layer();
   destroy_phone_connection_indicator_layer();
   destroy_battery_text_layer();
-  
   */
   
+  destroy_stepcount_layer();
   destroy_battery_bar_layer();
   destroy_date_layer();
   destroy_time_layer();
