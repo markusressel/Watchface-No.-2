@@ -43,7 +43,7 @@ void create_date_layer(Window *window) {
   
   s_dotted_text_layer = dotted_text_layer_create(layer_bounds);
   //dotted_text_layer_set_text(s_dotted_text_layer, "14.01.17");
-  dotted_text_layer_set_color(s_dotted_text_layer, GColorBlack);
+  dotted_text_layer_set_color(s_dotted_text_layer, theme_get_theme()->DateTextColor);
   dotted_text_layer_set_align_right(s_dotted_text_layer, true);
   
   update_date();

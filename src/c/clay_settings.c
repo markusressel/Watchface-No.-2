@@ -7,31 +7,23 @@ static ClaySettings settings;
 // Initialize the default settings
 static void clay_default_settings() {
   settings.BackgroundColor = GColorWhite;
-  settings.ForegroundColor = GColorBlack;
-  settings.TextColor = GColorBlack;
+  GColor foregroundColor = GColorBlack;
+  GColor textColor = GColorBlack;
   
   // Time Layer
-  settings.TimeTextColor = settings.TextColor;
+  settings.TimeTextColor = textColor;
   // Date Layer
-  settings.DateTextColor = settings.TextColor;
+  settings.DateTextColor = textColor;
   
   // Battery Bar Layer
-  settings.BatteryFrameColor = settings.ForegroundColor;
-  settings.BatteryFillColor = settings.ForegroundColor;
+  settings.BatteryFrameColor = foregroundColor;
+  settings.BatteryFillColor = foregroundColor;
   
   // Weather Layer
-  //settings.WeatherIconColor = settings.ForegroundColor;
-  settings.WeatherTextColor = settings.TextColor;
+  settings.WeatherTextColor = textColor;
   
-  /*
-  // Heartrate layer
-  #ifdef PBL_COLOR
-    settings.HeartIconColor = GColorRed;
-  #else
-    settings.HeartIconColor = settings.ForegroundColor;
-  #endif
-    settings.HeartrateTextColor = settings.TextColor;
-  */
+  // Stepcount layer
+  settings.StepcountTextColor = textColor;
   
   settings.ShowSeconds = false;
   strcpy(settings.ThemeValue, "LIGHT");

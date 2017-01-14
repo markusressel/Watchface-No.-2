@@ -37,7 +37,7 @@ void create_stepcount_layer(Window *window) {
   
   s_dotted_text_layer = dotted_text_layer_create(layer_bounds);
   //dotted_text_layer_set_text(s_dotted_text_layer, "10000");
-  dotted_text_layer_set_color(s_dotted_text_layer, GColorBlack);
+  dotted_text_layer_set_color(s_dotted_text_layer, theme_get_theme()->StepcountTextColor);
   dotted_text_layer_set_align_right(s_dotted_text_layer, true);
   
   s_step_count = (int) health_service_sum_today(HealthMetricStepCount);

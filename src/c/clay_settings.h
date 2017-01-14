@@ -6,9 +6,7 @@
 // Define our settings struct
 typedef struct ClaySettings {
   GColor BackgroundColor;
-  GColor ForegroundColor;
-  GColor TextColor;
-  
+
   // Time Layer
   GColor TimeTextColor;
   
@@ -22,9 +20,8 @@ typedef struct ClaySettings {
   // Weather Layer
   GColor WeatherTextColor;
   
-  // Heartrate Layer
-  // GColor HeartIconColor;
-  // GColor HeartrateTextColor;
+  // Stepcount Layer
+  GColor StepcountTextColor;
   
   char ThemeValue[10];
   

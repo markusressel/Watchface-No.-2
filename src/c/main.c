@@ -126,28 +126,21 @@ static void init() {
     APP_LOG(APP_LOG_LEVEL_DEBUG, "init custom theme");
     Theme custom_theme;
     custom_theme.BackgroundColor = s_settings->BackgroundColor;
-    custom_theme.ForegroundColor = s_settings->ForegroundColor;
-    custom_theme.TextColor = s_settings->TextColor;
     
     // Time Layer
     custom_theme.TimeTextColor = s_settings->TimeTextColor;
     // Date Layer
     custom_theme.DateTextColor = s_settings->DateTextColor;
     
-    // Connection Layer
-    // custom_theme.ConnectionIconColor = s_settings->ConnectionIconColor;
-    
     // Battery Bar Layer
     custom_theme.BatteryOutlineColor = s_settings->BatteryFrameColor;
     custom_theme.BatteryFillColor = s_settings->BatteryFillColor;
     
     // Weather Layer
-    //custom_theme.WeatherIconColor = s_settings->WeatherIconColor;
     custom_theme.WeatherTextColor = s_settings->WeatherTextColor;
     
-    // Heartrate Layer
-    //custom_theme.HeartIconColor = s_settings->HeartIconColor;
-    //custom_theme.HeartrateTextColor = s_settings->HeartrateTextColor;
+    // Stepcount Layer
+    custom_theme.StepcountTextColor = s_settings->StepcountTextColor;
     
     init_custom_theme(custom_theme, s_settings->ShowSeconds);
   } else {

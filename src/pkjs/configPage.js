@@ -18,15 +18,15 @@ module.exports = [
         "type": "radiogroup",
         "messageKey": "Theme",
         "label": "Theme",
-        "defaultValue": "DARK",
+        "defaultValue": "LIGHT",
         "options": [
-          { 
-            "label": "Dark", 
-            "value": "DARK" 
-          },
           { 
             "label": "Light", 
             "value": "LIGHT" 
+          },
+          { 
+            "label": "Dark", 
+            "value": "DARK" 
           },
           { 
             "label": "Custom", 
@@ -58,18 +58,6 @@ module.exports = [
         "label": "Background Color"
       },
       {
-        "type": "color",
-        "messageKey": "ForegroundColor",
-        "defaultValue": "0xFFFFFF",
-        "label": "Foreground Color"
-      },
-      {
-        "type": "color",
-        "messageKey": "TextColor",
-        "defaultValue": "0xFFFFFF",
-        "label": "Text Color"
-      },
-      {
         "type": "text",
         "defaultValue": "Time & Date"
       },
@@ -84,16 +72,6 @@ module.exports = [
         "messageKey": "DateTextColor",
         "defaultValue": "0xFFFFFF",
         "label": "Date Color"
-      },
-      {
-        "type": "text",
-        "defaultValue": "Connection Indicator"
-      },
-      {
-        "type": "color",
-        "messageKey": "ConnectionIconColor",
-        "defaultValue": "0xFFFFFF",
-        "label": "Connection Icon Color"
       },
       {
         "type": "text",
@@ -112,20 +90,8 @@ module.exports = [
         "label": "Battery Fill Color"
       },
       {
-        "type": "color",
-        "messageKey": "BatteryTextColor",
-        "defaultValue": "0xFFFFFF",
-        "label": "Battery Text Color"
-      },
-      {
         "type": "text",
         "defaultValue": "Weather"
-      },
-      {
-        "type": "color",
-        "messageKey": "WeatherIconColor",
-        "defaultValue": "0xFFFFFF",
-        "label": "Weather Icon Color"
       },
       {
         "type": "color",
@@ -135,19 +101,13 @@ module.exports = [
       },
       {
         "type": "text",
-        "defaultValue": "Heartrate"
+        "defaultValue": "Stepcount"
       },
       {
         "type": "color",
-        "messageKey": "HeartColor",
-        "defaultValue": "0xFF0000",
-        "label": "Heart Color"
-      },
-      {
-        "type": "color",
-        "messageKey": "HeartrateTextColor",
+        "messageKey": "StepcountTextColor",
         "defaultValue": "0xFFFFFF",
-        "label": "BPM Text Color"
+        "label": "Stepcount Text Color"
       }
     ]
   },

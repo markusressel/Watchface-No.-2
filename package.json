@@ -26,7 +26,8 @@
             "BatteryFrameColor",
             "BatteryFillColor",
             "ShowSeconds",
-            "Theme"
+            "Theme",
+            "StepcountTextColor"
         ],
         "projectType": "native",
         "resources": {

@@ -13,38 +13,24 @@ typedef struct Theme {
   
   // General Colors
   GColor BackgroundColor;
-  GColor ForegroundColor;
-  GColor TextColor;
   
   // Time Layer
   GColor TimeTextColor;
   // Date Layer
   GColor DateTextColor;
-  
-  // Connection Layer
-  GColor ConnectionIconColor;
     
   // Battery Bar Layer
   GColor BatteryOutlineColor;
   GColor BatteryFillColor;
   
-  // Battery Text Layer
-  GColor BatteryTextColor;
-  
   // Weather Layer
-  GColor WeatherIconColor;
   GColor WeatherTextColor;
   
-  // Heartrate layer
-  GColor HeartIconColor;
-  GColor HeartrateTextColor;
+  // Stepcount layer
+  GColor StepcountTextColor;
   
   // Fonts
   GFont TimeFont;
-  GFont DateFont;
-  GFont BatteryFont;
-  GFont HeartrateFont;
-  GFont WeatherFont;
 } __attribute__((__packed__)) Theme;
 
 // Get current Theme struct
