@@ -58,6 +58,13 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     GColor weather_text_color = GColorFromHEX(weather_text_color_t->value->int32);
     s_settings->WeatherTextColor = weather_text_color;
   }
+  
+  // Stepcount Layer Colors
+  Tuple *stepcount_text_color_t = dict_find(iterator, MESSAGE_KEY_StepcountTextColor);
+  if(stepcount_text_color_t) {
+    GColor stepcount_text_color = GColorFromHEX(stepcount_text_color_t->value->int32);
+    s_settings->StepcountTextColor = stepcount_text_color;
+  }
 
   // Read boolean preferences
   Tuple *show_seconds_t = dict_find(iterator, MESSAGE_KEY_ShowSeconds);
