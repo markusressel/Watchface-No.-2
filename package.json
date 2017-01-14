@@ -4,7 +4,7 @@
         "pebble-clay": "^1.0.3"
     },
     "keywords": [],
-    "name": "watchface-no.-2",
+    "name": "watchf.-no.-2",
     "pebble": {
         "capabilities": [
             "location",
