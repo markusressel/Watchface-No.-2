@@ -120,8 +120,20 @@ module.exports = [
       },
       {
         "type": "toggle",
+        "messageKey": "ShowYear",
+        "label": "Show Year",
+        "defaultValue": false
+      },
+      {
+        "type": "toggle",
         "messageKey": "ShowSeconds",
         "label": "Enable Seconds",
+        "defaultValue": false
+      },
+      {
+        "type": "toggle",
+        "messageKey": "SmallerDigits",
+        "label": "Smaller Digits (4 not 5 Dots wide)",
         "defaultValue": false
       }
     ]

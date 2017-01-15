@@ -25,7 +25,9 @@ typedef struct ClaySettings {
   
   char ThemeValue[10];
   
+  bool ShowYear;
   bool ShowSeconds;
+  bool SmallerDigits;
 } __attribute__((__packed__)) ClaySettings;
 
 

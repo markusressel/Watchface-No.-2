@@ -27,7 +27,9 @@
             "BatteryFillColor",
             "ShowSeconds",
             "Theme",
-            "StepcountTextColor"
+            "StepcountTextColor",
+            "SmallerDigits",
+            "ShowYear"
         ],
         "projectType": "native",
         "resources": {

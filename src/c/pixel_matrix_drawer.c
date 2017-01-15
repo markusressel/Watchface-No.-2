@@ -303,7 +303,7 @@ int pixel_matrix_drawer_draw_char(
         column_count = 5;
       } else {
         character_pixel_matrix = s_number_7_small;
-        column_count = 5;
+        column_count = 4;
       }
       
       break;

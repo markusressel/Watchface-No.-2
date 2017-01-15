@@ -1,6 +1,6 @@
 #include "dotted_text_layer.h"
 #include "pixel_matrix_drawer.h"
-
+#include "clay_settings.h"
 
 static DottedTextLayerData* get_layer_data(DottedTextLayer* dotted_text_layer) {
   return (DottedTextLayerData*) layer_get_data(dotted_text_layer);
@@ -49,7 +49,7 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
       dot_width, dot_height, 
       gap_size_horizontal, gap_size_vertical,
       data->align_right,
-      true);
+      clay_get_settings()->SmallerDigits);
     
     // APP_LOG(APP_LOG_LEVEL_DEBUG, "pxelated char width: %d", pixelated_char_width);
     

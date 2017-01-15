@@ -9,6 +9,8 @@ static ClaySettings *s_settings;
 // Date DottedTextLayer
 static DottedTextLayer *s_dotted_text_layer;
 
+static char *s_date_format;
+
 void update_date() {
   // Get a tm structure
   time_t temp = time(NULL);
@@ -18,7 +20,7 @@ void update_date() {
   static char s_buffer[16];
   strftime(s_buffer, 
            sizeof(s_buffer),
-          "%d.%m",
+           s_date_format,
            tick_time);
 
   // Display this date on the DottedTextLayer
@@ -32,6 +34,8 @@ void create_date_layer(Window *window) {
   GRect bounds = layer_get_bounds(window_layer);
   
   s_settings = clay_get_settings();
+  
+  s_date_format = s_settings->ShowYear ? "%d.%m.%y" : "%d.%m";
   
   int width = bounds.size.w - 3;
   int height = 27;

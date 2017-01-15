@@ -67,10 +67,22 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   }
 
   // Read boolean preferences
+  Tuple *show_year_t = dict_find(iterator, MESSAGE_KEY_ShowYear);
+  if(show_year_t) {
+    bool show_year = show_year_t->value->int32 == 1;
+    s_settings->ShowYear = show_year;
+  }
+  
   Tuple *show_seconds_t = dict_find(iterator, MESSAGE_KEY_ShowSeconds);
   if(show_seconds_t) {
     bool show_seconds = show_seconds_t->value->int32 == 1;
     s_settings->ShowSeconds = show_seconds;
+  }
+  
+  Tuple *smaller_digits_t = dict_find(iterator, MESSAGE_KEY_SmallerDigits);
+  if(show_seconds_t) {
+    bool smaller_digits = smaller_digits_t->value->int32 == 1;
+    s_settings->SmallerDigits = smaller_digits;
   }
   
   // Read weather data

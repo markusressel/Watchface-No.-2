@@ -25,7 +25,9 @@ static void clay_default_settings() {
   // Stepcount layer
   settings.StepcountTextColor = textColor;
   
+  settings.ShowYear = false;
   settings.ShowSeconds = false;
+  settings.SmallerDigits = false;
   strcpy(settings.ThemeValue, "LIGHT");
 }
 
