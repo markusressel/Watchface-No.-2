@@ -19,4 +19,5 @@ int pixel_matrix_drawer_draw_char(
   char character, 
   int dot_wigth, int dot_height, 
   int gap_size_horizontal, int gap_size_vertical,
-  bool align_right);
+  bool align_right,
+  bool four_dots_width);

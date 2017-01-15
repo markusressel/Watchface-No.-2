@@ -25,6 +25,14 @@ static bool s_number_0[5][5] = {
   {true, true, true, true, true}
 };
 
+static bool s_number_0_small[5][5] = {
+  {true, true, true, true, false},
+  {true, false, false, true, false},
+  {true, false, false, true, false},
+  {true, false, false, true, false},
+  {true, true, true, true, false}
+};
+
 static bool s_number_1[5][5] = {
   {true, true, false, false, false},
   {false, true, false, false, false},
@@ -41,12 +49,28 @@ static bool s_number_2[5][5] = {
   {true, true, true, true, true}
 };
 
+static bool s_number_2_small[5][5] = {
+  {true, true, true, true, false},
+  {false, false, false, true, false},
+  {true, true, true, true, false},
+  {true, false, false, false, false},
+  {true, true, true, true, false}
+};
+
 static bool s_number_3[5][5] = {
   {true, true, true, true, true},
   {false, false, false, false, true},
   {false, true, true, true, true},
   {false, false, false, false, true},
   {true, true, true, true, true}
+};
+
+static bool s_number_3_small[5][5] = {
+  {true, true, true, true, false},
+  {false, false, false, true, false},
+  {false, true, true, true, false},
+  {false, false, false, true, false},
+  {true, true, true, true, false}
 };
 
 static bool s_number_4[5][5] = {
@@ -57,12 +81,28 @@ static bool s_number_4[5][5] = {
   {false, false, false, false, true}
 };
 
+static bool s_number_4_small[5][5] = {
+  {true, false, false, true, false},
+  {true, false, false, true, false},
+  {true, true, true, true, false},
+  {false, false, false, true, false},
+  {false, false, false, true, false}
+};
+
 static bool s_number_5[5][5] = {
   {true, true, true, true, true},
   {true, false, false, false, false},
   {true, true, true, true, true},
   {false, false, false, false, true},
   {true, true, true, true, true}
+};
+
+static bool s_number_5_small[5][5] = {
+  {true, true, true, true, false},
+  {true, false, false, false, false},
+  {true, true, true, true, false},
+  {false, false, false, true, false},
+  {true, true, true, true, false}
 };
 
 static bool s_number_6[5][5] = {
@@ -73,12 +113,28 @@ static bool s_number_6[5][5] = {
   {true, true, true, true, true}
 };
 
+static bool s_number_6_small[5][5] = {
+  {true, true, true, true, false},
+  {true, false, false, false, false},
+  {true, true, true, true, false},
+  {true, false, false, true, false},
+  {true, true, true, true, false}
+};
+
 static bool s_number_7[5][5] = {
   {true, true, true, true, true},
   {false,false,false, false, true},
   {false, false, false, false, true},
   {false, false, false, false, true},
   {false, false, false, false, true}
+};
+
+static bool s_number_7_small[5][5] = {
+  {true, true, true, true, false},
+  {false,false,false, true, false},
+  {false, false, false, true, false},
+  {false, false, false, true, false},
+  {false, false, false, true, false}
 };
 
 static bool s_number_8[5][5] = {
@@ -89,6 +145,14 @@ static bool s_number_8[5][5] = {
   {true, true, true, true, true}
 };
 
+static bool s_number_8_small[5][5] = {
+  {true, true, true, true, false},
+  {true, false, false, true, false},
+  {true, true, true, true, false},
+  {true, false, false, true, false},
+  {true, true, true, true, false}
+};
+
 static bool s_number_9[5][5] = {
   {true, true, true, true, true},
   {true, false, false, false, true},
@@ -96,6 +160,15 @@ static bool s_number_9[5][5] = {
   {false, false, false, false, true},
   {true, true, true, true, true}
 };
+
+static bool s_number_9_small[5][5] = {
+  {true, true, true, true, false},
+  {true, false, false, true, false},
+  {true, true, true, true, false},
+  {false, false, false, true, false},
+  {true, true, true, true, false}
+};
+
 
 static bool s_character_degree[5][5] = {
   {true, true, true, false, false},
@@ -143,7 +216,8 @@ int pixel_matrix_drawer_draw_char(
   char character, 
   int dot_width, int dot_height, 
   int gap_size_horizontal, int gap_size_vertical,
-  bool align_right) {
+  bool align_right,
+  bool four_dots_width) {
   if (!character) {
     APP_LOG(APP_LOG_LEVEL_ERROR, "character is NULL!");
     return 0;
@@ -160,44 +234,98 @@ int pixel_matrix_drawer_draw_char(
       column_count = 1;
       break;
     case '0':
-      character_pixel_matrix = s_number_0;
-      column_count = 5;
+      if (!four_dots_width) {
+        character_pixel_matrix = s_number_0;
+        column_count = 5;
+      } else {
+        character_pixel_matrix = s_number_0_small;
+        column_count = 4;
+      }
+      
       break;
     case '1':
       character_pixel_matrix = s_number_1;
       column_count = 2;
       break;
     case '2':
-      character_pixel_matrix = s_number_2;
-      column_count = 5;
+      if (!four_dots_width) {
+        character_pixel_matrix = s_number_2;
+        column_count = 5;
+      } else {
+        character_pixel_matrix = s_number_2_small;
+        column_count = 4;
+      }
+      
       break;
     case '3':
-      character_pixel_matrix = s_number_3;
-      column_count = 5;
+      if (!four_dots_width) {
+        character_pixel_matrix = s_number_3;
+        column_count = 5;
+      } else {
+        character_pixel_matrix = s_number_3_small;
+        column_count = 4;
+      }
+      
       break;
     case '4':
-      character_pixel_matrix = s_number_4;
-      column_count = 5;
+      if (!four_dots_width) {
+        character_pixel_matrix = s_number_4;
+        column_count = 5;
+      } else {
+        character_pixel_matrix = s_number_4_small;
+        column_count = 4;
+      }
+      
       break;
     case '5':
-      character_pixel_matrix = s_number_5;
-      column_count = 5;
+      if (!four_dots_width) {
+        character_pixel_matrix = s_number_5;
+        column_count = 5;
+      } else {
+        character_pixel_matrix = s_number_5_small;
+        column_count = 4;
+      }
+     
       break;
     case '6':
-      character_pixel_matrix = s_number_6;
-      column_count = 5;
+      if (!four_dots_width) {
+        character_pixel_matrix = s_number_6;
+        column_count = 5;
+      } else {
+        character_pixel_matrix = s_number_6_small;
+        column_count = 4;
+      }
+      
       break;
     case '7':
-      character_pixel_matrix = s_number_7;
-      column_count = 5;
+      if (!four_dots_width) {
+        character_pixel_matrix = s_number_7;
+        column_count = 5;
+      } else {
+        character_pixel_matrix = s_number_7_small;
+        column_count = 5;
+      }
+      
       break;
     case '8':
-      character_pixel_matrix = s_number_8;
-      column_count = 5;
+      if (!four_dots_width) {
+        character_pixel_matrix = s_number_8;
+        column_count = 5;
+      } else {
+        character_pixel_matrix = s_number_8_small;
+        column_count = 4;
+      }
+      
       break;
     case '9':
-      character_pixel_matrix = s_number_9;
-      column_count = 5;
+      if (!four_dots_width) {
+        character_pixel_matrix = s_number_9;
+        column_count = 5;
+      } else {
+        character_pixel_matrix = s_number_9_small;
+        column_count = 4;
+      }
+      
       break;
     case 'o':
       character_pixel_matrix = s_character_degree;
@@ -221,7 +349,12 @@ int pixel_matrix_drawer_draw_char(
       break;
     default:
       character_pixel_matrix = s_default_character;
-      column_count = 5;
+      if (!four_dots_width) {
+        column_count = 5;
+      } else {
+        column_count = 4;
+      }
+      
       break;
   }
   
