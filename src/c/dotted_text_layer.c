@@ -49,7 +49,7 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
       dot_width, dot_height, 
       gap_size_horizontal, gap_size_vertical,
       data->align_right,
-      clay_get_settings()->SmallerDigits);
+      clay_get_settings()->DigitWidth);
     
     // APP_LOG(APP_LOG_LEVEL_DEBUG, "pxelated char width: %d", pixelated_char_width);
     

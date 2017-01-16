@@ -67,6 +67,12 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   }
   
   // Read Slider preferences
+  Tuple *dot_count_t = dict_find(iterator, MESSAGE_KEY_SliderDigitWidth);
+  if(dot_count_t) {
+    int dot_count = dot_count_t->value->int32;
+    s_settings->DigitWidth = dot_count;
+  }
+  
   Tuple *dot_width_t = dict_find(iterator, MESSAGE_KEY_SliderDotWidth);
   if(dot_width_t) {
     int dot_width = dot_width_t->value->int32;
@@ -103,12 +109,6 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   if(show_seconds_t) {
     bool show_seconds = show_seconds_t->value->int32 == 1;
     s_settings->ShowSeconds = show_seconds;
-  }
-  
-  Tuple *smaller_digits_t = dict_find(iterator, MESSAGE_KEY_SmallerDigits);
-  if(show_seconds_t) {
-    bool smaller_digits = smaller_digits_t->value->int32 == 1;
-    s_settings->SmallerDigits = smaller_digits;
   }
   
   // Read weather data

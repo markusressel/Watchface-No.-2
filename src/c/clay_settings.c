@@ -27,8 +27,9 @@ static void clay_default_settings() {
   
   settings.ShowYear = false;
   settings.ShowSeconds = false;
-  settings.SmallerDigits = false;
   strcpy(settings.ThemeValue, "LIGHT");
+  
+  settings.DigitWidth = 5;
   
   settings.DotWidth = 3;
   settings.DotHeight = 3;

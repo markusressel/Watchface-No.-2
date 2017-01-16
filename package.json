@@ -28,12 +28,12 @@
             "ShowSeconds",
             "Theme",
             "StepcountTextColor",
-            "SmallerDigits",
             "ShowYear",
             "SliderDotWidth",
             "SliderDotHeight",
             "SliderDotHorizontalGap",
-            "SliderDotVerticalGap"
+            "SliderDotVerticalGap",
+            "SliderDigitWidth"
         ],
         "projectType": "native",
         "resources": {

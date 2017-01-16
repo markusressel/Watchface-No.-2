@@ -27,10 +27,10 @@ typedef struct ClaySettings {
   
   bool ShowYear;
   bool ShowSeconds;
-  bool SmallerDigits;
-  
   
   // Dotted Font
+  int DigitWidth;
+  
   int DotWidth;
   int DotHeight;
   int DotHorizontalGap;

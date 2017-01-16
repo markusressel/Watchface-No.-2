@@ -25,12 +25,20 @@ static bool s_number_0[5][5] = {
   {true, true, true, true, true}
 };
 
-static bool s_number_0_small[5][5] = {
+static bool s_number_0_size_4[5][5] = {
   {true, true, true, true, false},
   {true, false, false, true, false},
   {true, false, false, true, false},
   {true, false, false, true, false},
   {true, true, true, true, false}
+};
+
+static bool s_number_0_size_3[5][5] = {
+  {true, true, true, false, false},
+  {true, false, true, false, false},
+  {true, false, true, false, false},
+  {true, false, true, false, false},
+  {true, true, true, false, false}
 };
 
 static bool s_number_1[5][5] = {
@@ -49,12 +57,20 @@ static bool s_number_2[5][5] = {
   {true, true, true, true, true}
 };
 
-static bool s_number_2_small[5][5] = {
+static bool s_number_2_size_4[5][5] = {
   {true, true, true, true, false},
   {false, false, false, true, false},
   {true, true, true, true, false},
   {true, false, false, false, false},
   {true, true, true, true, false}
+};
+
+static bool s_number_2_size_3[5][5] = {
+  {true, true, true, false, false},
+  {false, false, true, false, false},
+  {true, true, true, false, false},
+  {true, false, false, false, false},
+  {true, true, true, false, false}
 };
 
 static bool s_number_3[5][5] = {
@@ -65,12 +81,20 @@ static bool s_number_3[5][5] = {
   {true, true, true, true, true}
 };
 
-static bool s_number_3_small[5][5] = {
+static bool s_number_3_size_4[5][5] = {
   {true, true, true, true, false},
   {false, false, false, true, false},
   {false, true, true, true, false},
   {false, false, false, true, false},
   {true, true, true, true, false}
+};
+
+static bool s_number_3_size_3[5][5] = {
+  {true, true, true, false, false},
+  {false, false, true, false, false},
+  {false, true, true, false, false},
+  {false, false, true, false, false},
+  {true, true, true, false, false}
 };
 
 static bool s_number_4[5][5] = {
@@ -81,12 +105,20 @@ static bool s_number_4[5][5] = {
   {false, false, false, false, true}
 };
 
-static bool s_number_4_small[5][5] = {
+static bool s_number_4_size_4[5][5] = {
   {true, false, false, true, false},
   {true, false, false, true, false},
   {true, true, true, true, false},
   {false, false, false, true, false},
   {false, false, false, true, false}
+};
+
+static bool s_number_4_size_3[5][5] = {
+  {true, false, true, false, false},
+  {true, false, true, false, false},
+  {true, true, true, false, false},
+  {false, false, true, false, false},
+  {false, false, true, false, false}
 };
 
 static bool s_number_5[5][5] = {
@@ -97,12 +129,20 @@ static bool s_number_5[5][5] = {
   {true, true, true, true, true}
 };
 
-static bool s_number_5_small[5][5] = {
+static bool s_number_5_size_4[5][5] = {
   {true, true, true, true, false},
   {true, false, false, false, false},
   {true, true, true, true, false},
   {false, false, false, true, false},
   {true, true, true, true, false}
+};
+
+static bool s_number_5_size_3[5][5] = {
+  {true, true, true, false, false},
+  {true, false, false, false, false},
+  {true, true, true, false, false},
+  {false, false, true, false, false},
+  {true, true, true, false, false}
 };
 
 static bool s_number_6[5][5] = {
@@ -113,12 +153,20 @@ static bool s_number_6[5][5] = {
   {true, true, true, true, true}
 };
 
-static bool s_number_6_small[5][5] = {
+static bool s_number_6_size_4[5][5] = {
   {true, true, true, true, false},
   {true, false, false, false, false},
   {true, true, true, true, false},
   {true, false, false, true, false},
   {true, true, true, true, false}
+};
+
+static bool s_number_6_size_3[5][5] = {
+  {true, true, true, false, false},
+  {true, false, false, false, false},
+  {true, true, true, false, false},
+  {true, false, true, false, false},
+  {true, true, true, false, false}
 };
 
 static bool s_number_7[5][5] = {
@@ -129,12 +177,20 @@ static bool s_number_7[5][5] = {
   {false, false, false, false, true}
 };
 
-static bool s_number_7_small[5][5] = {
+static bool s_number_7_size_4[5][5] = {
   {true, true, true, true, false},
   {false,false,false, true, false},
   {false, false, false, true, false},
   {false, false, false, true, false},
   {false, false, false, true, false}
+};
+
+static bool s_number_7_size_3[5][5] = {
+  {true, true, true, false, false},
+  {false,false, true, false, false},
+  {false, false, true, false, false},
+  {false, false, true, false, false},
+  {false, false, true, false, false}
 };
 
 static bool s_number_8[5][5] = {
@@ -145,12 +201,20 @@ static bool s_number_8[5][5] = {
   {true, true, true, true, true}
 };
 
-static bool s_number_8_small[5][5] = {
+static bool s_number_8_size_4[5][5] = {
   {true, true, true, true, false},
   {true, false, false, true, false},
   {true, true, true, true, false},
   {true, false, false, true, false},
   {true, true, true, true, false}
+};
+
+static bool s_number_8_size_3[5][5] = {
+  {true, true, true, false, false},
+  {true, false, true, false, false},
+  {true, true, true, false, false},
+  {true, false, true, false, false},
+  {true, true, true, false, false}
 };
 
 static bool s_number_9[5][5] = {
@@ -161,12 +225,20 @@ static bool s_number_9[5][5] = {
   {true, true, true, true, true}
 };
 
-static bool s_number_9_small[5][5] = {
+static bool s_number_9_size_4[5][5] = {
   {true, true, true, true, false},
   {true, false, false, true, false},
   {true, true, true, true, false},
   {false, false, false, true, false},
   {true, true, true, true, false}
+};
+
+static bool s_number_9_size_3[5][5] = {
+  {true, true, true, false, false},
+  {true, false, true, false, false},
+  {true, true, true, false, false},
+  {false, false, true, false, false},
+  {true, true, true, false, false}
 };
 
 
@@ -217,16 +289,18 @@ int pixel_matrix_drawer_draw_char(
   int dot_width, int dot_height, 
   int gap_size_horizontal, int gap_size_vertical,
   bool align_right,
-  bool four_dots_width) {
+  int digit_size) {
   if (!character) {
     APP_LOG(APP_LOG_LEVEL_ERROR, "character is NULL!");
     return 0;
   }
   
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "digit_size: %d", digit_size);
+  
   // find matrix for character
   bool (*character_pixel_matrix)[5];
   int row_count = 5;
-  int column_count;
+  int column_count = digit_size;
   
   switch (character) {
     case '.':
@@ -234,12 +308,12 @@ int pixel_matrix_drawer_draw_char(
       column_count = 1;
       break;
     case '0':
-      if (!four_dots_width) {
+      if (digit_size == 5) {
         character_pixel_matrix = s_number_0;
-        column_count = 5;
+      } else if (digit_size == 4) {
+        character_pixel_matrix = s_number_0_size_4;
       } else {
-        character_pixel_matrix = s_number_0_small;
-        column_count = 4;
+        character_pixel_matrix = s_number_0_size_3;
       }
       
       break;
@@ -248,82 +322,82 @@ int pixel_matrix_drawer_draw_char(
       column_count = 2;
       break;
     case '2':
-      if (!four_dots_width) {
+      if (digit_size == 5) {
         character_pixel_matrix = s_number_2;
-        column_count = 5;
+      } else if (digit_size == 4) {
+        character_pixel_matrix = s_number_2_size_4;
       } else {
-        character_pixel_matrix = s_number_2_small;
-        column_count = 4;
+        character_pixel_matrix = s_number_2_size_3;
       }
       
       break;
     case '3':
-      if (!four_dots_width) {
+      if (digit_size == 5) {
         character_pixel_matrix = s_number_3;
-        column_count = 5;
+      } else if (digit_size == 4) {
+        character_pixel_matrix = s_number_3_size_4;
       } else {
-        character_pixel_matrix = s_number_3_small;
-        column_count = 4;
+        character_pixel_matrix = s_number_3_size_3;
       }
       
       break;
     case '4':
-      if (!four_dots_width) {
+      if (digit_size == 5) {
         character_pixel_matrix = s_number_4;
-        column_count = 5;
+      } else if (digit_size == 4) {
+        character_pixel_matrix = s_number_4_size_4;
       } else {
-        character_pixel_matrix = s_number_4_small;
-        column_count = 4;
+        character_pixel_matrix = s_number_4_size_3;
       }
       
       break;
     case '5':
-      if (!four_dots_width) {
+      if (digit_size == 5) {
         character_pixel_matrix = s_number_5;
-        column_count = 5;
+      } else if (digit_size == 4) {
+        character_pixel_matrix = s_number_5_size_4;
       } else {
-        character_pixel_matrix = s_number_5_small;
-        column_count = 4;
+        character_pixel_matrix = s_number_5_size_3;
       }
      
       break;
     case '6':
-      if (!four_dots_width) {
+      if (digit_size == 5) {
         character_pixel_matrix = s_number_6;
-        column_count = 5;
+      } else if (digit_size == 4) {
+        character_pixel_matrix = s_number_6_size_4;
       } else {
-        character_pixel_matrix = s_number_6_small;
-        column_count = 4;
+        character_pixel_matrix = s_number_6_size_3;
       }
       
       break;
     case '7':
-      if (!four_dots_width) {
+      if (digit_size == 5) {
         character_pixel_matrix = s_number_7;
-        column_count = 5;
+      } else if (digit_size == 4) {
+        character_pixel_matrix = s_number_7_size_4;
       } else {
-        character_pixel_matrix = s_number_7_small;
-        column_count = 4;
+        character_pixel_matrix = s_number_7_size_3;
       }
       
       break;
     case '8':
-      if (!four_dots_width) {
+      if (digit_size == 5) {
         character_pixel_matrix = s_number_8;
-        column_count = 5;
+      } else if (digit_size == 4) {
+        character_pixel_matrix = s_number_8_size_4;
       } else {
-        character_pixel_matrix = s_number_8_small;
-        column_count = 4;
+        character_pixel_matrix = s_number_8_size_3;
       }
       
       break;
     case '9':
-      if (!four_dots_width) {
+      if (digit_size == 5) {
         character_pixel_matrix = s_number_9;
-        column_count = 5;
+      } else if (digit_size == 4) {
+        character_pixel_matrix = s_number_9_size_4;
       } else {
-        character_pixel_matrix = s_number_9_small;
-        column_count = 4;
+        character_pixel_matrix = s_number_9_size_3;
       }
       
       break;
@@ -333,7 +407,6 @@ int pixel_matrix_drawer_draw_char(
       break;
     case 'C':
       character_pixel_matrix = s_character_c;
-      column_count = 5;
       break;
     case '/':
       character_pixel_matrix = s_character_slash;
@@ -349,12 +422,6 @@ int pixel_matrix_drawer_draw_char(
       break;
     default:
       character_pixel_matrix = s_default_character;
-      if (!four_dots_width) {
-        column_count = 5;
-      } else {
-        column_count = 4;
-      }
-      
       break;
   }
   

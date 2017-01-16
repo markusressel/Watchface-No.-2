@@ -120,6 +120,16 @@ module.exports = [
       },
       {
         "type": "slider",
+        "messageKey": "SliderDigitWidth",
+        "defaultValue": 5,
+        "label": "Digit Width",
+        "description": "Amount of dots used to display digits",
+        "min": 3,
+        "max": 5,
+        "step": 1
+      },
+      {
+        "type": "slider",
         "messageKey": "SliderDotWidth",
         "defaultValue": 3,
         "label": "Dot Width",
@@ -177,12 +187,6 @@ module.exports = [
         "type": "toggle",
         "messageKey": "ShowSeconds",
         "label": "Enable Seconds",
-        "defaultValue": false
-      },
-      {
-        "type": "toggle",
-        "messageKey": "SmallerDigits",
-        "label": "Smaller Digits (4 not 5 Dots wide)",
         "defaultValue": false
       }
     ]
