@@ -24,8 +24,10 @@ void update_date() {
            tick_time);
 
   // Remove the third character of weekday abbreviation
-  int idxToDel = 2; 
-  memmove(&s_buffer[idxToDel], &s_buffer[idxToDel + 1], strlen(s_buffer) - idxToDel);
+  if (s_settings->ShowWeekdayAbbreviation) {
+    int idxToDel = 2; 
+    memmove(&s_buffer[idxToDel], &s_buffer[idxToDel + 1], strlen(s_buffer) - idxToDel);
+  }
   
   // Display this date on the DottedTextLayer
   dotted_text_layer_set_text(s_dotted_text_layer, s_buffer);

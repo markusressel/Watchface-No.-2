@@ -399,7 +399,7 @@ int pixel_matrix_drawer_draw_char(
     return 0;
   }
   
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "digit_size: %d", digit_size);
+  // APP_LOG(APP_LOG_LEVEL_DEBUG, "digit_size: %d", digit_size);
   
   // find matrix for character
   bool (*character_pixel_matrix)[5];
