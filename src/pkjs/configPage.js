@@ -111,6 +111,55 @@ module.exports = [
       }
     ]
   },
+  { 
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Dotted Font Settings"
+      },
+      {
+        "type": "slider",
+        "messageKey": "SliderDotWidth",
+        "defaultValue": 3,
+        "label": "Dot Width",
+        "description": "Width in Pixel for a single dot",
+        "min": 1,
+        "max": 5,
+        "step": 1
+      },
+      {
+        "type": "slider",
+        "messageKey": "SliderDotHeight",
+        "defaultValue": 3,
+        "label": "Dot Height",
+        "description": "Height in Pixel for a single dot",
+        "min": 1,
+        "max": 5,
+        "step": 1
+      },
+      {
+        "type": "slider",
+        "messageKey": "SliderDotHorizontalGap",
+        "defaultValue": 3,
+        "label": "Dot Horizontal Gap",
+        "description": "Horizontal gap in pixels between two dots",
+        "min": 1,
+        "max": 5,
+        "step": 1
+      },
+      {
+        "type": "slider",
+        "messageKey": "SliderDotVerticalGap",
+        "defaultValue": 3,
+        "label": "Dot Vertical Gap",
+        "description": "Vertical gap in pixels between two dots",
+        "min": 1,
+        "max": 5,
+        "step": 1
+      }
+    ]
+  },
   {
     "type": "section",
     "items": [

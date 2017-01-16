@@ -65,6 +65,32 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     GColor stepcount_text_color = GColorFromHEX(stepcount_text_color_t->value->int32);
     s_settings->StepcountTextColor = stepcount_text_color;
   }
+  
+  // Read Slider preferences
+  Tuple *dot_width_t = dict_find(iterator, MESSAGE_KEY_SliderDotWidth);
+  if(dot_width_t) {
+    int dot_width = dot_width_t->value->int32;
+    s_settings->DotWidth = dot_width;
+  }
+  
+  Tuple *dot_height_t = dict_find(iterator, MESSAGE_KEY_SliderDotHeight);
+  if(dot_height_t) {
+    int dot_height = dot_height_t->value->int32;
+    s_settings->DotHeight = dot_height;
+  }
+  
+  Tuple *dot_horizontal_gap_t = dict_find(iterator, MESSAGE_KEY_SliderDotHorizontalGap);
+  if(dot_horizontal_gap_t) {
+    int dot_horizontal_gap = dot_horizontal_gap_t->value->int32;
+    s_settings->DotHorizontalGap = dot_horizontal_gap;
+  }
+  
+  Tuple *dot_vertical_gap_t = dict_find(iterator, MESSAGE_KEY_SliderDotVerticalGap);
+  if(dot_vertical_gap_t) {
+    int dot_vertical_gap = dot_vertical_gap_t->value->int32;
+    s_settings->DotVerticalGap = dot_vertical_gap;
+  }
+  
 
   // Read boolean preferences
   Tuple *show_year_t = dict_find(iterator, MESSAGE_KEY_ShowYear);

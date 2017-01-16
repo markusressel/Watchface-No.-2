@@ -29,6 +29,11 @@ static void clay_default_settings() {
   settings.ShowSeconds = false;
   settings.SmallerDigits = false;
   strcpy(settings.ThemeValue, "LIGHT");
+  
+  settings.DotWidth = 3;
+  settings.DotHeight = 3;
+  settings.DotHorizontalGap = 3;
+  settings.DotVerticalGap = 3;
 }
 
 ClaySettings* clay_get_settings() {

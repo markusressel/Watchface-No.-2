@@ -29,7 +29,11 @@
             "Theme",
             "StepcountTextColor",
             "SmallerDigits",
-            "ShowYear"
+            "ShowYear",
+            "SliderDotWidth",
+            "SliderDotHeight",
+            "SliderDotHorizontalGap",
+            "SliderDotVerticalGap"
         ],
         "projectType": "native",
         "resources": {

@@ -28,6 +28,14 @@ typedef struct ClaySettings {
   bool ShowYear;
   bool ShowSeconds;
   bool SmallerDigits;
+  
+  
+  // Dotted Font
+  int DotWidth;
+  int DotHeight;
+  int DotHorizontalGap;
+  int DotVerticalGap;
+  
 } __attribute__((__packed__)) ClaySettings;
 
 

@@ -19,11 +19,11 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
   int character_offset = 2;
   
   // dot size
-  int dot_width = 3;
-  int dot_height = 3;
+  int dot_width = clay_get_settings()->DotWidth;
+  int dot_height = clay_get_settings()->DotHeight;
   
-  int gap_size_horizontal = 3;
-  int gap_size_vertical = 3;
+  int gap_size_horizontal = clay_get_settings()->DotHorizontalGap;
+  int gap_size_vertical = clay_get_settings()->DotVerticalGap;
   
   int current_start_x;
   if (data->align_right) {
