@@ -37,6 +37,8 @@ typedef struct ClaySettings {
   int DotHorizontalGap;
   int DotVerticalGap;
   
+  bool WeekdayAbbreviationUppercase;
+  
 } __attribute__((__packed__)) ClaySettings;
 
 

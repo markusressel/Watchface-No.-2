@@ -11,6 +11,14 @@ static DottedTextLayer *s_dotted_text_layer;
 
 static char *s_date_format;
 
+// get the uppercase version if the char
+static char upper(char c){
+	if( c>='a' && c<='z')
+	return (c = c +'A' - 'a');
+		else
+	return c;
+}
+
 void update_date() {
   // Get a tm structure
   time_t temp = time(NULL);
@@ -27,6 +35,13 @@ void update_date() {
   if (s_settings->ShowWeekdayAbbreviation) {
     int idxToDel = 2; 
     memmove(&s_buffer[idxToDel], &s_buffer[idxToDel + 1], strlen(s_buffer) - idxToDel);
+    
+    // Convert to uppercase (if enabled)
+    if (s_settings->WeekdayAbbreviationUppercase) {
+      for(int i = 0; i < 2; i++) {
+        s_buffer[i] = upper(s_buffer[i]);
+      }
+    }
   }
   
   // Display this date on the DottedTextLayer

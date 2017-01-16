@@ -117,6 +117,12 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     s_settings->ShowWeekdayAbbreviation = show_weekday;
   }
   
+  Tuple *weekday_uppercase_t = dict_find(iterator, MESSAGE_KEY_WeekdayAbbreviationUppercase);
+  if(weekday_uppercase_t) {
+    bool weekday_uppercase = weekday_uppercase_t->value->int32 == 1;
+    s_settings->WeekdayAbbreviationUppercase = weekday_uppercase;
+  }
+  
   // Read weather data
   
   // Read tuples for data

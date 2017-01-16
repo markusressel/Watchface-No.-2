@@ -28,6 +28,7 @@ static void clay_default_settings() {
   settings.ShowYear = false;
   settings.ShowSeconds = false;
   settings.ShowWeekdayAbbreviation = false;
+  settings.WeekdayAbbreviationUppercase = false;
   strcpy(settings.ThemeValue, "LIGHT");
   
   settings.DigitWidth = 5;

@@ -194,6 +194,12 @@ module.exports = [
         "messageKey": "ShowWeekdayAbbreviation",
         "label": "Enable Weekday",
         "defaultValue": false
+      },
+      {
+        "type": "toggle",
+        "messageKey": "WeekdayAbbreviationUppercase",
+        "label": "Weekday in uppercase",
+        "defaultValue": false
       }
     ]
   },

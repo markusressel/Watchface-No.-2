@@ -306,12 +306,28 @@ static bool s_character_M[5][5] = {
   {true, false, true, false, false}
 };
 
+static bool s_character_O[5][5] = {
+  {true, true, true, false, false},
+  {true, false, true, false, false},
+  {true, false, true, false, false},
+  {true, false, true, false, false},
+  {true, true, true, false, false}
+};
+
 static bool s_character_o[5][5] = {
   {false, false, false, false, false},
   {false, false, false, false, false},
   {true, true, true, false, false},
   {true, false, true, false, false},
   {true, true, true, false, false}
+};
+
+static bool s_character_I[5][5] = {
+  {true, false, false, false, false},
+  {true, false, false, false, false},
+  {true, false, false, false, false},
+  {true, false, false, false, false},
+  {true, false, false, false, false}
 };
 
 static bool s_character_i[5][5] = {
@@ -338,6 +354,14 @@ static bool s_character_T[5][5] = {
   {false, true, false, false, false}
 };
 
+static bool s_character_H[5][5] = {
+  {true, false, true, false, false},
+  {true, false, true, false, false},
+  {true, true, true, false, false},
+  {true, false, true, false, false},
+  {true, false, true, false, false}
+};
+
 static bool s_character_h[5][5] = {
   {true, false, false, false, false},
   {true, false, false, false, false},
@@ -352,6 +376,14 @@ static bool s_character_F[5][5] = {
   {true, true, true, false, false},
   {true, false, false, false, false},
   {true, false, false, false, false}
+};
+
+static bool s_character_R[5][5] = {
+  {true, true, true, false, false},
+  {true, false, true, false, false},
+  {true, true, true, false, false},
+  {true, true, false, false, false},
+  {true, false, true, false, false}
 };
 
 static bool s_character_r[5][5] = {
@@ -370,10 +402,26 @@ static bool s_character_S[5][5] = {
   {true, true, true, false, false}
 };
 
+static bool s_character_A[5][5] = {
+  {true, true, true, false, false},
+  {true, false, true, false, false},
+  {true, true, true, false, false},
+  {true, false, true, false, false},
+  {true, false, true, false, false}
+};
+
 static bool s_character_a[5][5] = {
   {false, false, false, false, false},
   {false, false, false, false, false},
   {false, true, true, false, false},
+  {true, false, true, false, false},
+  {true, true, true, false, false}
+};
+
+static bool s_character_U[5][5] = {
+  {true, false, true, false, false},
+  {true, false, true, false, false},
+  {true, false, true, false, false},
   {true, false, true, false, false},
   {true, true, true, false, false}
 };
@@ -383,6 +431,30 @@ static bool s_character_u[5][5] = {
   {false, false, false, false, false},
   {true, false, true, false, false},
   {true, false, true, false, false},
+  {true, true, true, false, false}
+};
+
+static bool s_character_W[5][5] = {
+  {true, false, true, false, false},
+  {true, false, true, false, false},
+  {true, false, true, false, false},
+  {true, true, true, false, false},
+  {true, false, true, false, false}
+};
+
+static bool s_character_E[5][5] = {
+  {true, true, true, false, false},
+  {true, false, false, false, false},
+  {true, true, true, false, false},
+  {true, false, false, false, false},
+  {true, true, true, false, false}
+};
+
+static bool s_character_e[5][5] = {
+  {false, false, false, false, false},
+  {true, true, true, false, false},
+  {true, true, true, false, false},
+  {true, false, false, false, false},
   {true, true, true, false, false}
 };
 
@@ -516,8 +588,16 @@ int pixel_matrix_drawer_draw_char(
       character_pixel_matrix = s_character_M;
       column_count = 3;
       break;
+    case 'O':
+      character_pixel_matrix = s_character_O;
+      column_count = 3;
+      break;
     case 'o':
       character_pixel_matrix = s_character_o;
+      column_count = 3;
+      break;
+    case 'I':
+      character_pixel_matrix = s_character_I;
       column_count = 3;
       break;
     case 'i':
@@ -532,6 +612,10 @@ int pixel_matrix_drawer_draw_char(
       character_pixel_matrix = s_character_F;
       column_count = 3;
       break;
+    case 'R':
+      character_pixel_matrix = s_character_R;
+      column_count = 3;
+      break;
     case 'r':
       character_pixel_matrix = s_character_r;
       column_count = 2;
@@ -540,8 +624,16 @@ int pixel_matrix_drawer_draw_char(
       character_pixel_matrix = s_character_S;
       column_count = 3;
       break;
+    case 'A':
+      character_pixel_matrix = s_character_A;
+      column_count = 3;
+      break;
     case 'a':
       character_pixel_matrix = s_character_a;
+      column_count = 3;
+      break;
+    case 'U':
+      character_pixel_matrix = s_character_U;
       column_count = 3;
       break;
     case 'u':
@@ -552,8 +644,24 @@ int pixel_matrix_drawer_draw_char(
       character_pixel_matrix = s_character_T;
       column_count = 3;
       break;
+    case 'H':
+      character_pixel_matrix = s_character_H;
+      column_count = 3;
+      break;
     case 'h':
       character_pixel_matrix = s_character_h;
+      column_count = 3;
+      break;
+     case 'W':
+      character_pixel_matrix = s_character_W;
+      column_count = 3;
+      break;
+    case 'E':
+      character_pixel_matrix = s_character_E;
+      column_count = 3;
+      break;
+    case 'e':
+      character_pixel_matrix = s_character_e;
       column_count = 3;
       break;
     case '/':
