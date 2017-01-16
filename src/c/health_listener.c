@@ -31,8 +31,6 @@ static void health_handler(HealthEventType event, void *context) {
       break;
     case HealthEventHeartRateUpdate:
       APP_LOG(APP_LOG_LEVEL_INFO, "New HealthService HealthEventHeartRateUpdate event");
-      s_heartrate_bpm = health_service_peek_current_value(HealthMetricHeartRateBPM);
-      update_stepcount();
       break;
     case HealthEventMetricAlert:
       APP_LOG(APP_LOG_LEVEL_INFO, "New HealthService HealthEventMetricAlert event");
