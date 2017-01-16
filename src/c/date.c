@@ -23,6 +23,10 @@ void update_date() {
            s_date_format,
            tick_time);
 
+  // Remove the third character of weekday abbreviation
+  int idxToDel = 2; 
+  memmove(&s_buffer[idxToDel], &s_buffer[idxToDel + 1], strlen(s_buffer) - idxToDel);
+  
   // Display this date on the DottedTextLayer
   dotted_text_layer_set_text(s_dotted_text_layer, s_buffer);
 }
@@ -35,7 +39,7 @@ void create_date_layer(Window *window) {
   
   s_settings = clay_get_settings();
   
-  s_date_format = s_settings->ShowYear ? "%d.%m.%y" : "%d.%m";
+  s_date_format = s_settings->ShowYear ? "%a.%d.%m.%y" : "%a.%d.%m";
   
   int width = bounds.size.w - 3;
   int height = 27;
