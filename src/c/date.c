@@ -39,7 +39,17 @@ void create_date_layer(Window *window) {
   
   s_settings = clay_get_settings();
   
-  s_date_format = s_settings->ShowYear ? "%a.%d.%m.%y" : "%a.%d.%m";
+  if (s_settings->ShowWeekdayAbbreviation) {
+    s_date_format = "%a ";
+  } else {
+    s_date_format = "";
+  }
+  
+  strcat(s_date_format, "%d.%m");
+  
+  if (s_settings->ShowYear) {
+    strcat(s_date_format, ".%y");
+  }
   
   int width = bounds.size.w - 3;
   int height = 27;

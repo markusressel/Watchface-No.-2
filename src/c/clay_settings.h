@@ -27,6 +27,7 @@ typedef struct ClaySettings {
   
   bool ShowYear;
   bool ShowSeconds;
+  bool ShowWeekdayAbbreviation;
   
   // Dotted Font
   int DigitWidth;

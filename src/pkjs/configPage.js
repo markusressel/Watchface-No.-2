@@ -188,6 +188,12 @@ module.exports = [
         "messageKey": "ShowSeconds",
         "label": "Enable Seconds",
         "defaultValue": false
+      },
+      {
+        "type": "toggle",
+        "messageKey": "ShowWeekdayAbbreviation",
+        "label": "Enable Weekday",
+        "defaultValue": false
       }
     ]
   },

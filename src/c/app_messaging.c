@@ -111,6 +111,12 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     s_settings->ShowSeconds = show_seconds;
   }
   
+  Tuple *show_weekday_t = dict_find(iterator, MESSAGE_KEY_ShowWeekdayAbbreviation);
+  if(show_weekday_t) {
+    bool show_weekday = show_weekday_t->value->int32 == 1;
+    s_settings->ShowWeekdayAbbreviation = show_weekday;
+  }
+  
   // Read weather data
   
   // Read tuples for data

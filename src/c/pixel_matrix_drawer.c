@@ -290,6 +290,14 @@ static bool s_character_minus[5][5] = {
   {false, false, false, false, false}
 };
 
+static bool s_character_space[5][5] = {
+  {false, false, false, false, false},
+  {false, false, false, false, false},
+  {false, false, false, false, false},
+  {false, false, false, false, false},
+  {false, false, false, false, false}
+};
+
 static bool s_character_M[5][5] = {
   {true, false, true, false, false},
   {true, true, true, false, false},
@@ -559,6 +567,10 @@ int pixel_matrix_drawer_draw_char(
     case '-':
       character_pixel_matrix = s_character_minus;
       column_count = 2;
+      break;
+    case ' ':
+      character_pixel_matrix = s_character_space;
+      column_count = 1;
       break;
     default:
       character_pixel_matrix = s_default_character;

@@ -33,7 +33,8 @@
             "SliderDotHeight",
             "SliderDotHorizontalGap",
             "SliderDotVerticalGap",
-            "SliderDigitWidth"
+            "SliderDigitWidth",
+            "ShowWeekdayAbbreviation"
         ],
         "projectType": "native",
         "resources": {
