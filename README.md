@@ -1,7 +1,7 @@
 # Watchface No. 2
 A dot styled watchface for the Pebble platform
 
-<img src="/framed_light.png" width="">
+<img src="/framed_light.png" width=""><img src="/framed_dark_small.png" width="">
 
 # Components
 Currently the components of this watchface can not be changed in order without coding and recompiling.
@@ -26,6 +26,10 @@ To do this you can open the Pebble main menu and close it right after. The watch
 Here are the two main themes and a variation for the custom variant:
 
 <img src="/framed_light.png" width=""><img src="/framed_dark.png" width=""><img src="/framed_color.png" width="">
+
+# Settings
+
+<img src="/Settings1.png" width="300"><img src="/Settings2.png" width="306">
 
 # Behind the scenes
 The "dotted font" in this watchface actually isn't a font. Each character (0-9.|/o) is matched with 5x5 bool matrix that specifies which pixel should be drawn. Between these pixels gaps are interpolated to create the pattern effect.
