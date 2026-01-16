@@ -31,3 +31,8 @@
 # Debug files
 *.dSYM/
 *.su
+
+build
+node_modules
+
+*.lock-*
