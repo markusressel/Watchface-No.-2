@@ -1,17 +1,16 @@
-.PHONY: build emulator deploy clean
+.PHONY: build emulator kill wipe deploy clean
 
 setup:
-	uv tool install pebble-tool --python 3.13
-	pebble sdk install latest
+	just setup
 
 build:
-	pebble build
+	just build
 
 emulator: build
-	pebble install --emulator basalt
+	just emulator
 
 deploy: build
-	pebble install --phone 192.168.2.159
+	just install
 
 clean:
-	pebble clean
+	just clean
