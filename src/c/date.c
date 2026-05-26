@@ -9,7 +9,7 @@ static ClaySettings *s_settings;
 // Date DottedTextLayer
 static DottedTextLayer *s_dotted_text_layer;
 
-static char *s_date_format;
+static char s_date_format[32];
 
 // get the uppercase version if the char
 static char upper(char c){
@@ -56,10 +56,9 @@ void create_date_layer(Window *window) {
   
   s_settings = clay_get_settings();
   
+  strcpy(s_date_format, "");
   if (s_settings->ShowWeekdayAbbreviation) {
-    s_date_format = "%a ";
-  } else {
-    s_date_format = "";
+    strcat(s_date_format, "%a ");
   }
   
   strcat(s_date_format, "%d.%m");
