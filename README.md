@@ -38,7 +38,7 @@ If you want to take a deeper look at how I've done this check out the ```dotted_
 
 # Attributions
 
-This watchface is heavily in inspired by the [TXTTMM](https://apps.getpebble.com/en_US/application/57f8d77298b2fc725d00006a) watchface. If you like this watchface please consider supporting the [TXTTMM](https://apps.getpebble.com/en_US/application/57f8d77298b2fc725d00006a) watchface makers for their great work by buing their watchface (just a dollar).
+This watchface is heavily in inspired by the [TXTTMM](https://apps.repebble.com/684087b4212f070009e2488a) watchface. If you like this watchface please consider supporting the [TXTTMM](https://apps.repebble.com/684087b4212f070009e2488a) watchface makers for their great work by buing their watchface (just a dollar).
 
 # License
 
