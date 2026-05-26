@@ -250,13 +250,14 @@ static bool s_number_9_size_3[5][5] = {
 };
 
 
-static bool s_character_degree[5][5] = {
-  {true, true, true, false, false},
-  {true, false, true, false, false},
-  {true, true, true, false, false},
-  {false, false, false, false, false},
-  {false, false, false, false, false}
-};
+// Unused - degree character matrix removed as it's not used in any case statement
+// static bool s_character_degree[5][5] = {
+//   {true, true, true, false, false},
+//   {true, false, true, false, false},
+//   {true, true, true, false, false},
+//   {false, false, false, false, false},
+//   {false, false, false, false, false}
+// };
 
 static bool s_character_c[5][5] = {
   {true, true, true, true, true},
