@@ -1,5 +1,3 @@
-.PHONY: build emulator deploy clean
-
 setup:
 	uv tool install pebble-tool --python 3.13
 	pebble sdk install latest
