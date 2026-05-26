@@ -121,7 +121,7 @@ module.exports = [
       {
         "type": "slider",
         "messageKey": "SliderDigitWidth",
-        "defaultValue": 5,
+        "defaultValue": 4,
         "label": "Digit Width",
         "description": "Amount of dots used to display digits",
         "min": 3,
