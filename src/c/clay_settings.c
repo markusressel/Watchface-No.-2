@@ -5,6 +5,7 @@
 static ClaySettings settings;
 
 // Initialize the default settings
+// Note: Defaults are also set in the configPage.json, keep them in sync!
 static void clay_default_settings() {
   settings.BackgroundColor = GColorWhite;
   GColor foregroundColor = GColorBlack;
@@ -31,7 +32,7 @@ static void clay_default_settings() {
   settings.WeekdayAbbreviationUppercase = false;
   strcpy(settings.ThemeValue, "LIGHT");
   
-  settings.DigitWidth = 5;
+  settings.DigitWidth = 4;
   
   settings.DotWidth = 3;
   settings.DotHeight = 3;
