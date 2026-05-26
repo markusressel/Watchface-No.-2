@@ -93,7 +93,8 @@ static void init() {
   s_settings = clay_get_settings();
   
   // map clay configuration value to ThemeEnum
-  if (!s_settings->ThemeValue) {
+  // Check if ThemeValue is empty (first character is null)
+  if (s_settings->ThemeValue[0] == '\0') {
     strcpy(s_settings->ThemeValue, "LIGHT");
   }
   
