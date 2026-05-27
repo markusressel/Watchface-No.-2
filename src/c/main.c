@@ -100,27 +100,7 @@ static void main_window_unload(Window *window) {
     }
 }
 
-// Rebuild layout from settings and reload all layers.
-// Call this when row layout settings change at runtime.
-void main_reload_layout() {
-    // APP_LOG(APP_LOG_LEVEL_DEBUG, "main_reload_layout");
-    main_window_unload(s_main_window);
-    build_layout_from_settings();
-    main_window_load(s_main_window);
-}
-
-// initializes the watchface
-static void init() {
-    // APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing settings");
-    // load clay configuration
-    clay_load_settings();
-    s_settings = clay_get_settings();
-
-    // Build the row layout from user settings
-    build_layout_from_settings();
-
-    // map clay configuration value to ThemeEnum
-    // Check if ThemeValue is empty (first character is null)
+static void apply_theme_from_settings() {
     if (s_settings->ThemeValue[0] == '\0') {
         strcpy(s_settings->ThemeValue, "LIGHT");
     }
@@ -134,26 +114,14 @@ static void init() {
         theme = LIGHT;
     }
 
-    //APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing theme");
-    // initialize theme based on ThemeEnum
     if (theme == CUSTOM) {
-        //APP_LOG(APP_LOG_LEVEL_DEBUG, "init custom theme");
         Theme custom_theme;
         custom_theme.BackgroundColor = s_settings->BackgroundColor;
-
-        // Time Layer
         custom_theme.TimeTextColor = s_settings->TimeTextColor;
-        // Date Layer
         custom_theme.DateTextColor = s_settings->DateTextColor;
-
-        // Battery Bar Layer
         custom_theme.BatteryOutlineColor = s_settings->BatteryFrameColor;
         custom_theme.BatteryFillColor = s_settings->BatteryFillColor;
-
-        // Weather Layer
         custom_theme.WeatherTextColor = s_settings->WeatherTextColor;
-
-        // Stepcount Layer
         custom_theme.StepcountTextColor = s_settings->StepcountTextColor;
 
         init_custom_theme(custom_theme, s_settings->ShowSeconds);
@@ -161,12 +129,33 @@ static void init() {
         init_theme(theme, s_settings->ShowSeconds);
     }
 
-    // Create main Window element and assign to pointer
+    // Safely update the window background if the window exists
+    if (s_main_window) {
+        window_set_background_color(s_main_window, theme_get_theme()->BackgroundColor);
+    }
+}
+
+// Rebuild layout from settings and reload all layers.
+// Call this when row layout settings change at runtime.
+void main_reload_layout() {
+    // APP_LOG(APP_LOG_LEVEL_DEBUG, "main_reload_layout");
+    main_window_unload(s_main_window);
+    apply_theme_from_settings();
+    build_layout_from_settings();
+    main_window_load(s_main_window);
+}
+
+// initializes the watchface
+static void init() {
+    clay_load_settings();
+    s_settings = clay_get_settings();
+
+    // Create main Window element first
     s_main_window = window_create();
 
-    //APP_LOG(APP_LOG_LEVEL_DEBUG, "applying window background");
-    // Apply theme
-    window_set_background_color(s_main_window, theme_get_theme()->BackgroundColor);
+    // Apply the theme and build the layout
+    apply_theme_from_settings();
+    build_layout_from_settings();
 
     // Set handler to manage the elements inside the Window
     window_set_window_handlers(s_main_window, (WindowHandlers){
