@@ -17,23 +17,23 @@ static void set_fonts(bool showSeconds) {
 static void set_colors() {
   GColor mainTextColor;
   GColor foregroundColor;
-  
+
   switch (currentTheme) {
     case LIGHT:
       mainTextColor = GColorBlack;
       foregroundColor = GColorBlack;
-    
+
       s_theme.BackgroundColor = GColorWhite;
       break;
     case DARK:
     default:
       mainTextColor = GColorWhite;
       foregroundColor = GColorWhite;
-    
+
       s_theme.BackgroundColor = GColorBlack;
       break;
   }
-  
+
   // Time Layer
   s_theme.TimeTextColor = mainTextColor;
   // Date Layer
@@ -50,23 +50,23 @@ static void set_colors() {
   s_theme.StepcountTextColor = mainTextColor;
 }
 
-Theme* theme_get_theme(){
+Theme *theme_get_theme() {
   return &s_theme;
 }
 
 void init_theme(enum ThemeEnum themeEnum, bool showSeconds) {
   s_theme.CurrentThemeEnum = themeEnum;
   currentTheme = themeEnum;
-  
+
   set_colors();
   set_fonts(showSeconds);
 }
 
 void init_custom_theme(Theme theme, bool showSeconds) {
   s_theme = theme;
-  
+
   s_theme.CurrentThemeEnum = CUSTOM;
   currentTheme = CUSTOM;
-  
+
   set_fonts(showSeconds);
 }

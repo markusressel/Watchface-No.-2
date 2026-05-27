@@ -7,17 +7,20 @@ typedef Layer DottedTextLayer;
 
 
 typedef struct DottedTextLayerData {
-  char* text;
-  bool align_right;
-  int scale_factor;
-  GColor text_color;
-} __attribute__((__packed__)) DottedTextLayerData;
+    char *text;
+    bool align_right;
+    int scale_factor;
+    GColor text_color;
+} __attribute__((__packed__)
+
+)
+DottedTextLayerData;
 
 
 // Use this method to create a DottedTextLayer
 //
 // @param bounds  The boundaries for the created layer
-DottedTextLayer* dotted_text_layer_create(GRect bounds);
+DottedTextLayer *dotted_text_layer_create(GRect bounds);
 
 
 // Use this method to get the base layer of the given DottedTextLayer
@@ -33,19 +36,19 @@ DottedTextLayer* dotted_text_layer_create(GRect bounds);
 //
 // @param dotted_text_layer  the layer you want to set the text to
 // @param text               the text to set
-void dotted_text_layer_set_text(DottedTextLayer* dotted_text_layer, char* text);
+void dotted_text_layer_set_text(DottedTextLayer *dotted_text_layer, char *text);
 
 
 // Use this method to set the text color for the layer
 // 
 // @param dotted_text_layer  the layer you want to set the color to
 // @param color              the color to set
-void dotted_text_layer_set_color(DottedTextLayer* dotted_text_layer, GColor color);
+void dotted_text_layer_set_color(DottedTextLayer *dotted_text_layer, GColor color);
 
 // Use this method to draw characters from the right instead of the left
 //
 // @param align_right  align to right if true, false otherwise
-void dotted_text_layer_set_align_right(DottedTextLayer* dotted_text_layer, bool align_right);
+void dotted_text_layer_set_align_right(DottedTextLayer *dotted_text_layer, bool align_right);
 
 // Use this method to set the scale factor for the layer
 // A scale factor of 1 means 1x1 pixel drawn, 1x1 pixel not drawn and so on
@@ -55,10 +58,10 @@ void dotted_text_layer_set_align_right(DottedTextLayer* dotted_text_layer, bool 
 // 
 // @param dotted_text_layer  the layer you want to set the color to
 // @param scale              the scale factor to set (>= 1)
-void dotted_text_layer_set_scale_factor(DottedTextLayer* dotted_text_layer, int scale);
+void dotted_text_layer_set_scale_factor(DottedTextLayer *dotted_text_layer, int scale);
 
 
 // Use this method to destroy a DottedTextLayer
 //
 // @param dotted_text_layer  The layer to destroy
-void dotted_text_layer_destroy(DottedTextLayer* dotted_text_layer);
+void dotted_text_layer_destroy(DottedTextLayer *dotted_text_layer);

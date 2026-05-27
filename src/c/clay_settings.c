@@ -10,37 +10,37 @@ static void clay_default_settings() {
   settings.BackgroundColor = GColorWhite;
   GColor foregroundColor = GColorBlack;
   GColor textColor = GColorBlack;
-  
+
   // Time Layer
   settings.TimeTextColor = textColor;
   // Date Layer
   settings.DateTextColor = textColor;
-  
+
   // Battery Bar Layer
   settings.BatteryFrameColor = foregroundColor;
   settings.BatteryFillColor = foregroundColor;
-  
+
   // Weather Layer
   settings.WeatherTextColor = textColor;
-  
+
   // Stepcount layer
   settings.StepcountTextColor = textColor;
-  
+
   settings.ShowYear = false;
   settings.ShowSeconds = false;
   settings.ShowWeekdayAbbreviation = false;
   settings.WeekdayAbbreviationUppercase = false;
   strcpy(settings.ThemeValue, "LIGHT");
-  
+
   settings.DigitWidth = 4;
-  
+
   settings.DotWidth = 3;
   settings.DotHeight = 3;
   settings.DotHorizontalGap = 3;
   settings.DotVerticalGap = 3;
 }
 
-ClaySettings* clay_get_settings() {
+ClaySettings *clay_get_settings() {
   return &settings;
 }
 

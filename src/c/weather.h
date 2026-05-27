@@ -11,13 +11,19 @@ typedef struct WeatherData {
   char CurrentConditions[32];
 } __attribute__((__packed__)) WeatherData;
 
-WeatherData* weather_get_data();
+WeatherData *weather_get_data();
 
 // update layer information
 void update_weather();
 
 // create the layer
-void create_weather_layer(Window *window);
+void create_weather_layer(
+  const Window *window,
+  Layer *window_layer,
+  GRect window_bounds,
+  int offsetX,
+  int offsetY
+);
 
 // destroy the layer
 void destroy_weather_layer();

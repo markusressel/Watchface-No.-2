@@ -179,7 +179,7 @@ static bool s_number_6_size_3[5][5] = {
 
 static bool s_number_7[5][5] = {
   {true, true, true, true, true},
-  {false,false,false, false, true},
+  {false, false, false, false, true},
   {false, false, false, false, true},
   {false, false, false, false, true},
   {false, false, false, false, true}
@@ -187,7 +187,7 @@ static bool s_number_7[5][5] = {
 
 static bool s_number_7_size_4[5][5] = {
   {true, true, true, true, false},
-  {false,false,false, true, false},
+  {false, false, false, true, false},
   {false, false, false, true, false},
   {false, false, false, true, false},
   {false, false, false, true, false}
@@ -195,7 +195,7 @@ static bool s_number_7_size_4[5][5] = {
 
 static bool s_number_7_size_3[5][5] = {
   {true, true, true, false, false},
-  {false,false, true, false, false},
+  {false, false, true, false, false},
   {false, false, true, false, false},
   {false, false, true, false, false},
   {false, false, true, false, false}
@@ -460,10 +460,10 @@ static bool s_character_e[5][5] = {
 };
 
 int pixel_matrix_drawer_draw_char(
-  GContext* ctx, 
-  GPoint point_zero, 
-  char character, 
-  int dot_width, int dot_height, 
+  GContext *ctx,
+  GPoint point_zero,
+  char character,
+  int dot_width, int dot_height,
   int gap_size_horizontal, int gap_size_vertical,
   bool align_right,
   int digit_size) {
@@ -471,14 +471,14 @@ int pixel_matrix_drawer_draw_char(
     APP_LOG(APP_LOG_LEVEL_ERROR, "character is NULL!");
     return 0;
   }
-  
+
   // APP_LOG(APP_LOG_LEVEL_DEBUG, "digit_size: %d", digit_size);
-  
+
   // find matrix for character
   bool (*character_pixel_matrix)[5];
   int row_count = 5;
   int column_count = digit_size;
-  
+
   switch (character) {
     case '.':
       character_pixel_matrix = s_character_dot;
@@ -496,7 +496,7 @@ int pixel_matrix_drawer_draw_char(
       } else {
         character_pixel_matrix = s_number_0_size_3;
       }
-      
+
       break;
     case '1':
       character_pixel_matrix = s_number_1;
@@ -510,7 +510,7 @@ int pixel_matrix_drawer_draw_char(
       } else {
         character_pixel_matrix = s_number_2_size_3;
       }
-      
+
       break;
     case '3':
       if (digit_size == 5) {
@@ -520,7 +520,7 @@ int pixel_matrix_drawer_draw_char(
       } else {
         character_pixel_matrix = s_number_3_size_3;
       }
-      
+
       break;
     case '4':
       if (digit_size == 5) {
@@ -530,7 +530,7 @@ int pixel_matrix_drawer_draw_char(
       } else {
         character_pixel_matrix = s_number_4_size_3;
       }
-      
+
       break;
     case '5':
       if (digit_size == 5) {
@@ -540,7 +540,7 @@ int pixel_matrix_drawer_draw_char(
       } else {
         character_pixel_matrix = s_number_5_size_3;
       }
-     
+
       break;
     case '6':
       if (digit_size == 5) {
@@ -550,7 +550,7 @@ int pixel_matrix_drawer_draw_char(
       } else {
         character_pixel_matrix = s_number_6_size_3;
       }
-      
+
       break;
     case '7':
       if (digit_size == 5) {
@@ -560,7 +560,7 @@ int pixel_matrix_drawer_draw_char(
       } else {
         character_pixel_matrix = s_number_7_size_3;
       }
-      
+
       break;
     case '8':
       if (digit_size == 5) {
@@ -570,7 +570,7 @@ int pixel_matrix_drawer_draw_char(
       } else {
         character_pixel_matrix = s_number_8_size_3;
       }
-      
+
       break;
     case '9':
       if (digit_size == 5) {
@@ -580,7 +580,7 @@ int pixel_matrix_drawer_draw_char(
       } else {
         character_pixel_matrix = s_number_9_size_3;
       }
-      
+
       break;
     case 'C':
       character_pixel_matrix = s_character_c;
@@ -653,7 +653,7 @@ int pixel_matrix_drawer_draw_char(
       character_pixel_matrix = s_character_h;
       column_count = 3;
       break;
-     case 'W':
+    case 'W':
       character_pixel_matrix = s_character_W;
       column_count = 3;
       break;
@@ -685,26 +685,26 @@ int pixel_matrix_drawer_draw_char(
       character_pixel_matrix = s_default_character;
       break;
   }
-  
+
   // APP_LOG(APP_LOG_LEVEL_DEBUG, "matrix assigned");
-  
-  for(int row = 0; row < row_count; row++) {
-    for(int column = 0; column < column_count; column++) {
+
+  for (int row = 0; row < row_count; row++) {
+    for (int column = 0; column < column_count; column++) {
       // get matrix value at current loop position
       // bool draw = character_pixel_matrix[(row + column) * sizeof(bool)];
-      
+
       // skip pixel if not defined in matrix
       if (!character_pixel_matrix[row][column]) {
         // APP_LOG(APP_LOG_LEVEL_DEBUG, "skipping pixel");
-        
+
         continue;
       }
-      
+
       // APP_LOG(APP_LOG_LEVEL_DEBUG, "drawing pixel");
-      
+
       int x;
       int y;
-      
+
       if (align_right) {
         x = point_zero.x + column * dot_width + column * gap_size_horizontal - (column_count * dot_width + (column_count - 1) * gap_size_horizontal);
         y = point_zero.y + row * dot_height + row * gap_size_vertical;
@@ -712,17 +712,17 @@ int pixel_matrix_drawer_draw_char(
         x = point_zero.x + column * dot_width + column * gap_size_horizontal;
         y = point_zero.y + row * dot_height + row * gap_size_vertical;
       }
-      
+
       // draw pixel
       GRect dot_bounds = GRect(
         x,
         y,
         dot_width,
         dot_height);
-      
+
       graphics_fill_rect(ctx, dot_bounds, 0, GCornerNone);
     }
   }
-  
+
   return column_count;
 }

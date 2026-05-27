@@ -10,31 +10,31 @@ enum ThemeEnum {
 
 typedef struct Theme {
   enum ThemeEnum CurrentThemeEnum;
-  
+
   // General Colors
   GColor BackgroundColor;
-  
+
   // Time Layer
   GColor TimeTextColor;
   // Date Layer
   GColor DateTextColor;
-    
+
   // Battery Bar Layer
   GColor BatteryOutlineColor;
   GColor BatteryFillColor;
-  
+
   // Weather Layer
   GColor WeatherTextColor;
-  
+
   // Stepcount layer
   GColor StepcountTextColor;
-  
+
   // Fonts
   GFont TimeFont;
 } __attribute__((__packed__)) Theme;
 
 // Get current Theme struct
-Theme* theme_get_theme();
+Theme *theme_get_theme();
 
 // method to set application theme
 // @param theme        one of the ThemeEnum values DARK, LIGHT

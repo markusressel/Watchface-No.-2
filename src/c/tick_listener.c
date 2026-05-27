@@ -17,23 +17,23 @@ void register_tick_listener() {
   if (registered) {
     APP_LOG(APP_LOG_LEVEL_DEBUG, "ignoring register tick listener");
     return;
-  } 
-  
+  }
+
   APP_LOG(APP_LOG_LEVEL_DEBUG, "registering tick listener");
   // Register with TickTimerService
-  
+
   if (clay_get_settings()->ShowSeconds) {
     tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
   } else {
     tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
   }
-  
+
   registered = true;
 }
 
 void unregister_tick_listener() {
   APP_LOG(APP_LOG_LEVEL_DEBUG, "unregistering tick listener");
-  
+
   // Unregister from TickTimerService
   tick_timer_service_unsubscribe();
   registered = false;
