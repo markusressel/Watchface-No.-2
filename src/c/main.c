@@ -1,3 +1,5 @@
+#include "main.h"
+
 #include <pebble.h>
 #include "theme.h"
 #include "clay_settings.h"
@@ -25,14 +27,14 @@ static WatchLayout s_layout;
 static Layer *s_row_layers[5] = {NULL};
 
 static void build_layout_from_settings() {
-    s_layout = (WatchLayout) {
+    s_layout = (WatchLayout){
         .row_count = 5,
         .rows = {
-            [0] = { .widget = (WidgetId) s_settings->Row0Widget },
-            [1] = { .widget = (WidgetId) s_settings->Row1Widget },
-            [2] = { .widget = WIDGET_TIME },
-            [3] = { .widget = (WidgetId) s_settings->Row3Widget },
-            [4] = { .widget = (WidgetId) s_settings->Row4Widget },
+            [0] = {.widget = (WidgetId) s_settings->Row0Widget},
+            [1] = {.widget = (WidgetId) s_settings->Row1Widget},
+            [2] = {.widget = WIDGET_TIME},
+            [3] = {.widget = (WidgetId) s_settings->Row3Widget},
+            [4] = {.widget = (WidgetId) s_settings->Row4Widget},
         },
     };
 }
@@ -45,11 +47,16 @@ static void main_window_load(Window *window) {
     for (int i = 0; i < s_layout.row_count; i++) {
         LayerBuilder builder = watch_layout_make_builder(&s_layout, window_layer, i);
         switch (s_layout.rows[i].widget) {
-            case WIDGET_TIME:        s_row_layers[i] = create_time_layer(builder);        break;
-            case WIDGET_DATE:        s_row_layers[i] = create_date_layer(builder);        break;
-            case WIDGET_WEATHER:     s_row_layers[i] = create_weather_layer(builder);     break;
-            case WIDGET_STEPCOUNT:   s_row_layers[i] = create_stepcount_layer(builder);   break;
-            case WIDGET_BATTERY_BAR: s_row_layers[i] = create_battery_bar_layer(builder); break;
+            case WIDGET_TIME: s_row_layers[i] = create_time_layer(builder);
+                break;
+            case WIDGET_DATE: s_row_layers[i] = create_date_layer(builder);
+                break;
+            case WIDGET_WEATHER: s_row_layers[i] = create_weather_layer(builder);
+                break;
+            case WIDGET_STEPCOUNT: s_row_layers[i] = create_stepcount_layer(builder);
+                break;
+            case WIDGET_BATTERY_BAR: s_row_layers[i] = create_battery_bar_layer(builder);
+                break;
             default: break;
         }
     }
@@ -63,8 +70,6 @@ static void main_window_load(Window *window) {
 
     // Register health event listener
     register_health_event_listener();
-
-    initialize_app_messaging();
 }
 
 // destroys all components of the main window
@@ -78,11 +83,16 @@ static void main_window_unload(Window *window) {
     for (int i = 0; i < s_layout.row_count; i++) {
         if (s_row_layers[i] != NULL) {
             switch (s_layout.rows[i].widget) {
-                case WIDGET_TIME:        destroy_time_layer(s_row_layers[i]);        break;
-                case WIDGET_DATE:        destroy_date_layer(s_row_layers[i]);        break;
-                case WIDGET_WEATHER:     destroy_weather_layer(s_row_layers[i]);     break;
-                case WIDGET_STEPCOUNT:   destroy_stepcount_layer(s_row_layers[i]);   break;
-                case WIDGET_BATTERY_BAR: destroy_battery_bar_layer(s_row_layers[i]); break;
+                case WIDGET_TIME: destroy_time_layer(s_row_layers[i]);
+                    break;
+                case WIDGET_DATE: destroy_date_layer(s_row_layers[i]);
+                    break;
+                case WIDGET_WEATHER: destroy_weather_layer(s_row_layers[i]);
+                    break;
+                case WIDGET_STEPCOUNT: destroy_stepcount_layer(s_row_layers[i]);
+                    break;
+                case WIDGET_BATTERY_BAR: destroy_battery_bar_layer(s_row_layers[i]);
+                    break;
                 default: break;
             }
             s_row_layers[i] = NULL;
@@ -93,14 +103,15 @@ static void main_window_unload(Window *window) {
 // Rebuild layout from settings and reload all layers.
 // Call this when row layout settings change at runtime.
 void main_reload_layout() {
-    build_layout_from_settings();
+    // APP_LOG(APP_LOG_LEVEL_DEBUG, "main_reload_layout");
     main_window_unload(s_main_window);
+    build_layout_from_settings();
     main_window_load(s_main_window);
 }
 
 // initializes the watchface
 static void init() {
-    //APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing settings");
+    // APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing settings");
     // load clay configuration
     clay_load_settings();
     s_settings = clay_get_settings();
@@ -176,6 +187,7 @@ static void deinit() {
 // watchface lifecycle
 int main(void) {
     init();
+    initialize_app_messaging();
     app_event_loop();
     deinit();
 }

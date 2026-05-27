@@ -129,7 +129,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
   Tuple *row0_t = dict_find(iterator, MESSAGE_KEY_Row0Widget);
   if (row0_t) {
-    int value = row0_t->value->int32;
+    // Read as a string and convert to integer
+    int value = atoi(row0_t->value->cstring);
     if (s_settings->Row0Widget != value) {
       s_settings->Row0Widget = value;
       layout_changed = true;
@@ -138,7 +139,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
   Tuple *row1_t = dict_find(iterator, MESSAGE_KEY_Row1Widget);
   if (row1_t) {
-    int value = row1_t->value->int32;
+    int value = atoi(row1_t->value->cstring);
     if (s_settings->Row1Widget != value) {
       s_settings->Row1Widget = value;
       layout_changed = true;
@@ -147,7 +148,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
   Tuple *row3_t = dict_find(iterator, MESSAGE_KEY_Row3Widget);
   if (row3_t) {
-    int value = row3_t->value->int32;
+    int value = atoi(row3_t->value->cstring);
     if (s_settings->Row3Widget != value) {
       s_settings->Row3Widget = value;
       layout_changed = true;
@@ -156,7 +157,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
   Tuple *row4_t = dict_find(iterator, MESSAGE_KEY_Row4Widget);
   if (row4_t) {
-    int value = row4_t->value->int32;
+    int value = atoi(row4_t->value->cstring);
     if (s_settings->Row4Widget != value) {
       s_settings->Row4Widget = value;
       layout_changed = true;
@@ -214,8 +215,7 @@ void initialize_app_messaging() {
   app_message_register_outbox_failed(outbox_failed_callback);
   app_message_register_outbox_sent(outbox_sent_callback);
 
-  // Open AppMessage
-  const int inbox_size = 512;
-  const int outbox_size = 256;
-  app_message_open(inbox_size, outbox_size);
+  // Open AppMessage with the largest receive buffer the platform supports,
+  // to accommodate all settings including string fields like WeatherApiKey.
+  app_message_open(app_message_inbox_size_maximum(), 256);
 }

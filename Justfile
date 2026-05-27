@@ -17,7 +17,10 @@ wipe: kill
     pebble wipe
 
 deploy: build
-	pebble install --phone 192.168.2.159
+	pebble install --phone 192.168.2.159 --logs
+
+logs:
+    pebble logs --phone 192.168.2.159
 
 clean:
 	pebble clean

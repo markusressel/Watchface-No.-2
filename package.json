@@ -39,7 +39,8 @@
             "Row0Widget",
             "Row1Widget",
             "Row3Widget",
-            "Row4Widget"
+            "Row4Widget",
+            "WeatherApiKey"
         ],
         "projectType": "native",
         "resources": {
