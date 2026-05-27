@@ -13,7 +13,7 @@ Pebble.addEventListener('ready',
       // ==========================================
       // TEMPORARY RESET CODE
       // ==========================================
-      console.log("Wiping Clay settings...");
+      // console.log("Wiping Clay settings...");
       // localStorage.clear();
 
     // Get the initial weather

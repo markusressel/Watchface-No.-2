@@ -38,6 +38,12 @@ typedef struct ClaySettings {
     int DotVerticalGap;
 
     bool WeekdayAbbreviationUppercase;
+
+    // Row layout (WidgetId values; row 2 is always WIDGET_TIME)
+    int Row0Widget;  // row index 0 (top)
+    int Row1Widget;  // row index 1
+    int Row3Widget;  // row index 3
+    int Row4Widget;  // row index 4 (bottom)
 } __attribute__((__packed__)
 
         )

@@ -17,18 +17,22 @@ static Window *s_main_window;
 
 static ClaySettings *s_settings;
 
-// Display order: change the rows array to reorder widgets.
-// Row 0 is at the top; the layout system spaces them evenly across the screen.
-static const WatchLayout s_layout = {
-    .row_count = 5,
-    .rows = {
-        [0] = { .widget = WIDGET_WEATHER     },
-        [1] = { .widget = WIDGET_DATE        },
-        [2] = { .widget = WIDGET_TIME        },
-        [3] = { .widget = WIDGET_STEPCOUNT   },
-        [4] = { .widget = WIDGET_BATTERY_BAR },
-    },
-};
+// Layout is built at runtime from settings (see build_layout_from_settings).
+// Row 2 is always WIDGET_TIME; rows 0, 1, 3, 4 come from the user config.
+static WatchLayout s_layout;
+
+static void build_layout_from_settings() {
+    s_layout = (WatchLayout) {
+        .row_count = 5,
+        .rows = {
+            [0] = { .widget = (WidgetId) s_settings->Row0Widget },
+            [1] = { .widget = (WidgetId) s_settings->Row1Widget },
+            [2] = { .widget = WIDGET_TIME },
+            [3] = { .widget = (WidgetId) s_settings->Row3Widget },
+            [4] = { .widget = (WidgetId) s_settings->Row4Widget },
+        },
+    };
+}
 
 // loads components into the main window
 static void main_window_load(Window *window) {
@@ -63,25 +67,21 @@ static void main_window_load(Window *window) {
 // destroys all components of the main window
 static void main_window_unload(Window *window) {
     // unregister listeners
-
     unregister_tick_listener();
     unregister_battery_listener();
     unregister_health_event_listener();
 
-    /*
-    unregister_system_event_listener();
-
-    // destroy layers
-    destroy_heartrate_layer();
-    destroy_phone_connection_indicator_layer();
-    destroy_battery_text_layer();
-    */
-
-    destroy_stepcount_layer();
-    destroy_battery_bar_layer();
-    destroy_date_layer();
-    destroy_time_layer();
-    destroy_weather_layer();
+    // Destroy only the layers that were created for the current layout
+    for (int i = 0; i < s_layout.row_count; i++) {
+        switch (s_layout.rows[i].widget) {
+            case WIDGET_TIME:        destroy_time_layer();        break;
+            case WIDGET_DATE:        destroy_date_layer();        break;
+            case WIDGET_WEATHER:     destroy_weather_layer();     break;
+            case WIDGET_STEPCOUNT:   destroy_stepcount_layer();   break;
+            case WIDGET_BATTERY_BAR: destroy_battery_bar_layer(); break;
+            default: break;
+        }
+    }
 }
 
 // initializes the watchface
@@ -90,6 +90,9 @@ static void init() {
     // load clay configuration
     clay_load_settings();
     s_settings = clay_get_settings();
+
+    // Build the row layout from user settings
+    build_layout_from_settings();
 
     // map clay configuration value to ThemeEnum
     // Check if ThemeValue is empty (first character is null)

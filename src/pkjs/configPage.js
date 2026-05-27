@@ -204,6 +204,67 @@ module.exports = [
     ]
   },
   {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Row Layout"
+      },
+      {
+        "type": "text",
+        "defaultValue": "The time is always shown in the center row. Choose what to display in the other four rows."
+      },
+      {
+        "type": "select",
+        "messageKey": "Row0Widget",
+        "defaultValue": 0,
+        "label": "Row 1 (top)",
+        "options": [
+          { "label": "Weather",  "value": 0 },
+          { "label": "Date",     "value": 1 },
+          { "label": "Stepcount","value": 3 },
+          { "label": "Battery",  "value": 4 }
+        ]
+      },
+      {
+        "type": "select",
+        "messageKey": "Row1Widget",
+        "defaultValue": 1,
+        "label": "Row 2",
+        "options": [
+          { "label": "Weather",  "value": 0 },
+          { "label": "Date",     "value": 1 },
+          { "label": "Stepcount","value": 3 },
+          { "label": "Battery",  "value": 4 }
+        ]
+      },
+      {
+        "type": "select",
+        "messageKey": "Row3Widget",
+        "defaultValue": 3,
+        "label": "Row 4",
+        "options": [
+          { "label": "Weather",  "value": 0 },
+          { "label": "Date",     "value": 1 },
+          { "label": "Stepcount","value": 3 },
+          { "label": "Battery",  "value": 4 }
+        ]
+      },
+      {
+        "type": "select",
+        "messageKey": "Row4Widget",
+        "defaultValue": 4,
+        "label": "Row 5 (bottom)",
+        "options": [
+          { "label": "Weather",  "value": 0 },
+          { "label": "Date",     "value": 1 },
+          { "label": "Stepcount","value": 3 },
+          { "label": "Battery",  "value": 4 }
+        ]
+      }
+    ]
+  },
+  {
     "type": "submit",
     "defaultValue": "Save Settings"
   }
