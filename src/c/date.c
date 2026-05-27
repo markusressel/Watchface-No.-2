@@ -50,7 +50,7 @@ void update_date() {
 }
 
 // creates the date layer
-void create_date_layer(Layer *window_layer) {
+void create_date_layer(LayerBuilder builder) {
     s_settings = clay_get_settings();
 
     strcpy(s_date_format, "");
@@ -64,12 +64,6 @@ void create_date_layer(Layer *window_layer) {
         strcat(s_date_format, ".%y");
     }
 
-    LayerBuilder builder = layer_builder(window_layer, (LayerLayout){
-                                             .x = 0,
-                                             .y = 27 + 5 + 5,
-                                             .width_margin = 3,
-                                             .height = 27,
-                                         });
     s_dotted_text_layer = layer_factory_create_dotted_text_layer(
         builder,
         theme_get_theme()->DateTextColor,

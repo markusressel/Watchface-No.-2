@@ -1,5 +1,6 @@
 #pragma once
 #include <pebble.h>
+#include "layer_factory.h"
 
 // Persistent storage key
 #define WEATHER_DATA_KEY 2
@@ -17,7 +18,7 @@ WeatherData *weather_get_data();
 void update_weather();
 
 // create the layer
-void create_weather_layer(Layer *window_layer);
+void create_weather_layer(LayerBuilder builder);
 
 // destroy the layer
 void destroy_weather_layer();

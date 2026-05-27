@@ -84,20 +84,14 @@ void update_weather() {
   dotted_text_layer_set_text(s_dotted_text_layer, s_buffer);
 }
 
-void create_weather_layer(Layer *window_layer) {
+void create_weather_layer(LayerBuilder builder) {
   restore_saved_weather_data();
 
-  LayerBuilder builder = layer_builder(window_layer, (LayerLayout){
-                                         .x = 0,
-                                         .y = 5,
-                                         .width_margin = 3,
-                                         .height = 27,
-                                       });
   s_dotted_text_layer = layer_factory_create_dotted_text_layer(
-    builder,
-    theme_get_theme()->WeatherTextColor,
-    true,
-    "---"
+      builder,
+      theme_get_theme()->WeatherTextColor,
+      true,
+      "---"
   );
 
   update_weather();

@@ -1,6 +1,7 @@
 #include <pebble.h>
 #include "theme.h"
 #include "clay_settings.h"
+#include "watch_layout.h"
 #include "time.h"
 #include "tick_listener.h"
 #include "date.h"
@@ -16,40 +17,35 @@ static Window *s_main_window;
 
 static ClaySettings *s_settings;
 
+// Display order: change the rows array to reorder widgets.
+// Row 0 is at the top; the layout system spaces them evenly across the screen.
+static const WatchLayout s_layout = {
+    .row_count = 5,
+    .rows = {
+        [0] = { .widget = WIDGET_WEATHER     },
+        [1] = { .widget = WIDGET_DATE        },
+        [2] = { .widget = WIDGET_TIME        },
+        [3] = { .widget = WIDGET_STEPCOUNT   },
+        [4] = { .widget = WIDGET_BATTERY_BAR },
+    },
+};
+
 // loads components into the main window
 static void main_window_load(Window *window) {
-    // Create layers
-
-    // Get information about the Window
     Layer *window_layer = window_get_root_layer(window);
 
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing time layer");
-    create_time_layer(window_layer);
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing date layer");
-    create_date_layer(window_layer);
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing battery bar layer");
-    create_battery_bar_layer(window_layer);
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing weather layer");
-    create_weather_layer(window_layer);
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing stepcount layer");
-    create_stepcount_layer(window_layer);
-
-    /*
-
-
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing battery text layer");
-    create_battery_text_layer(window);
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing phone connection layer");
-    create_phone_connection_indicator_layer(window);
-
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing heartrate layer");
-    create_heartrate_layer(window);
-
-
-
-    // Register system event handler
-    register_system_event_listener();
-    */
+    // Create each layer in row order.  To reorder, edit s_layout.rows above.
+    for (int i = 0; i < s_layout.row_count; i++) {
+        LayerBuilder builder = watch_layout_make_builder(&s_layout, window_layer, i);
+        switch (s_layout.rows[i].widget) {
+            case WIDGET_TIME:        create_time_layer(builder);        break;
+            case WIDGET_DATE:        create_date_layer(builder);        break;
+            case WIDGET_WEATHER:     create_weather_layer(builder);     break;
+            case WIDGET_STEPCOUNT:   create_stepcount_layer(builder);   break;
+            case WIDGET_BATTERY_BAR: create_battery_bar_layer(builder); break;
+            default: break;
+        }
+    }
 
     // Register for tick events (time)
     register_tick_listener();

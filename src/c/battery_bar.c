@@ -180,23 +180,7 @@ void update_battery_bar() {
     layer_mark_dirty(s_battery_bar_layer);
 }
 
-void create_battery_bar_layer(
-    Layer *window_layer
-) {
-    const GRect window_bounds = layer_get_bounds(window_layer);
-    const int left_margin = 7;
-    const int right_margin = 3;
-    const int layer_height = 27;
-    const int layer_offset_x = left_margin;
-    const int layer_offset_y = window_bounds.size.h - layer_height - 5;
-
-    // A width margin of 10 keeps the original visual spacing.
-    LayerBuilder builder = layer_builder(window_layer, (LayerLayout){
-                                             .x = layer_offset_x,
-                                             .y = layer_offset_y,
-                                             .width_margin = left_margin + right_margin,
-                                             .height = layer_height,
-                                         });
+void create_battery_bar_layer(LayerBuilder builder) {
     s_battery_bar_layer = layer_factory_create_custom_layer(builder, battery_update_proc);
 
     // update on create

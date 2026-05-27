@@ -18,14 +18,7 @@ void update_stepcount() {
 }
 
 // creates the stepcount layer
-void create_stepcount_layer(Layer *window_layer) {
-    const GRect window_bounds = layer_get_bounds(window_layer);
-    LayerBuilder builder = layer_builder(window_layer, (LayerLayout){
-                                             .x = 0,
-                                             .y = window_bounds.size.w - 27 - 5 - 5 - 2,
-                                             .width_margin = 3,
-                                             .height = 27,
-                                         });
+void create_stepcount_layer(LayerBuilder builder) {
     s_dotted_text_layer = layer_factory_create_dotted_text_layer(
         builder,
         theme_get_theme()->StepcountTextColor,

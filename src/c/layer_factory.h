@@ -24,6 +24,10 @@ typedef struct LayerBuilder {
 
 LayerBuilder layer_builder(Layer *parent, LayerLayout layout);
 
+// Construct a LayerBuilder directly from a pre-computed GRect (e.g. from the
+// layout system which already knows the exact screen position).
+LayerBuilder layer_builder_from_rect(Layer *parent, GRect bounds);
+
 TextLayer *layer_factory_create_text_layer(
     LayerBuilder builder,
     TextLayerStyle style

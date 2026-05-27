@@ -13,6 +13,13 @@ LayerBuilder layer_builder(Layer *parent, LayerLayout layout) {
 	};
 }
 
+LayerBuilder layer_builder_from_rect(Layer *parent, GRect bounds) {
+	return (LayerBuilder){
+		.parent = parent,
+		.bounds = bounds,
+	};
+}
+
 TextLayer *layer_factory_create_text_layer(
 	LayerBuilder builder,
 	TextLayerStyle style
