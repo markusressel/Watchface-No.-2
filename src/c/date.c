@@ -3,6 +3,7 @@
 #include "clay_settings.h"
 #include "theme.h"
 #include "dotted_text_layer.h"
+#include "layer_factory.h"
 
 static ClaySettings *s_settings;
 
@@ -49,11 +50,7 @@ void update_date() {
 }
 
 // creates the date layer
-void create_date_layer(
-    const Window *window,
-    Layer *window_layer,
-    const GRect window_bounds
-) {
+void create_date_layer(Layer *window_layer) {
     s_settings = clay_get_settings();
 
     strcpy(s_date_format, "");
@@ -67,23 +64,20 @@ void create_date_layer(
         strcat(s_date_format, ".%y");
     }
 
-    int width = window_bounds.size.w - 3;
-    int height = 27;
-    int offsetX = 0;
-    // int offsetX = (bounds.size.w - width); // right aligned
-    int offsetY = 27 + 5 + 5;
-
-    GRect layer_bounds = GRect(offsetX, offsetY, width, height);
-
-    s_dotted_text_layer = dotted_text_layer_create(layer_bounds);
-    //dotted_text_layer_set_text(s_dotted_text_layer, "14.01.17");
-    dotted_text_layer_set_color(s_dotted_text_layer, theme_get_theme()->DateTextColor);
-    dotted_text_layer_set_align_right(s_dotted_text_layer, true);
+    LayerBuilder builder = layer_builder(window_layer, (LayerLayout){
+                                             .x = 0,
+                                             .y = 27 + 5 + 5,
+                                             .width_margin = 3,
+                                             .height = 27,
+                                         });
+    s_dotted_text_layer = layer_factory_create_dotted_text_layer(
+        builder,
+        theme_get_theme()->DateTextColor,
+        true,
+        NULL
+    );
 
     update_date();
-
-    // Add it as a child layer to the Window's root layer
-    layer_add_child(window_layer, s_dotted_text_layer);
 }
 
 // destroys the date layer

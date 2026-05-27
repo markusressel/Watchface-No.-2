@@ -5,11 +5,7 @@
 void update_battery_bar();
 
 // create the layer
-void create_battery_bar_layer(
-    const Window *window,
-    Layer *window_layer,
-    GRect window_bounds
-);
+void create_battery_bar_layer(Layer *window_layer);
 
 // destroy the layer
 void destroy_battery_bar_layer();

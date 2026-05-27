@@ -5,7 +5,9 @@ setup:
 build:
 	pebble build
 
-emulator: build kill wipe
+clean-emulator: build kill wipe emulator
+
+emulator: build
 	pebble install --emulator basalt
 
 kill:

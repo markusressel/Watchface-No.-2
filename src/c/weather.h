@@ -17,13 +17,7 @@ WeatherData *weather_get_data();
 void update_weather();
 
 // create the layer
-void create_weather_layer(
-  const Window *window,
-  Layer *window_layer,
-  GRect window_bounds,
-  int offsetX,
-  int offsetY
-);
+void create_weather_layer(Layer *window_layer);
 
 // destroy the layer
 void destroy_weather_layer();

@@ -1,13 +1,11 @@
 #include "weather.h"
-#include "clay_settings.h"
 #include "theme.h"
 #include "dotted_text_layer.h"
+#include "layer_factory.h"
 
 static char s_buffer[32];
 
 static WeatherData weatherData;
-
-static ClaySettings *s_settings;
 
 // Timer to update weather after given amount of time
 static int s_weather_update_interval = 1800000;
@@ -86,33 +84,25 @@ void update_weather() {
   dotted_text_layer_set_text(s_dotted_text_layer, s_buffer);
 }
 
-void create_weather_layer(
-  const Window *window,
-  Layer *window_layer,
-  const GRect window_bounds,
-  const int offsetX,
-  const int offsetY
-) {
-  s_settings = clay_get_settings();
-
+void create_weather_layer(Layer *window_layer) {
   restore_saved_weather_data();
 
-  // set bounds and offset for text layer
-  int width = window_bounds.size.w - 3;
-  int height = 27;
-
-  GRect layer_bounds = GRect(offsetX, offsetY, width, height);
-
-  s_dotted_text_layer = dotted_text_layer_create(layer_bounds);
-  dotted_text_layer_set_color(s_dotted_text_layer, theme_get_theme()->WeatherTextColor);
-  dotted_text_layer_set_text(s_dotted_text_layer, "---");
-  dotted_text_layer_set_align_right(s_dotted_text_layer, true);
+  LayerBuilder builder = layer_builder(window_layer, (LayerLayout){
+                                         .x = 0,
+                                         .y = 5,
+                                         .width_margin = 3,
+                                         .height = 27,
+                                       });
+  s_dotted_text_layer = layer_factory_create_dotted_text_layer(
+    builder,
+    theme_get_theme()->WeatherTextColor,
+    true,
+    "---"
+  );
 
   update_weather();
 
   s_update_timer = app_timer_register(s_weather_update_interval, (AppTimerCallback) on_scheduled_update_triggered, NULL);
-
-  layer_add_child(window_layer, s_dotted_text_layer);
 }
 
 void destroy_weather_layer() {

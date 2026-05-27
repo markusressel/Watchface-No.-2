@@ -1,8 +1,8 @@
 #include "battery_bar.h"
 #include "battery.h"
-#include "clay_settings.h"
 #include "battery_listener.h"
 #include "theme.h"
+#include "layer_factory.h"
 
 // battery bar layer
 static Layer *s_battery_bar_layer;
@@ -20,12 +20,6 @@ static int s_battery_charging_animation_duration = 2000;
 // delay between a full battery charging animation cycle
 static int s_battery_charging_animation_delay = 600;
 static const int s_battery_charging_animation_repeat_count = ANIMATION_DURATION_INFINITE;
-
-// layer dimensions and positioning
-static int layer_width;
-static int layer_height;
-static int layer_offsetX;
-static int layer_offsetY;
 
 static void draw_battery_fill(int percent) {
     s_current_battery_level = percent;
@@ -187,23 +181,23 @@ void update_battery_bar() {
 }
 
 void create_battery_bar_layer(
-    const Window *window,
-    Layer *window_layer,
-    const GRect window_bounds
+    Layer *window_layer
 ) {
-    // Create battery meter Layer
-    //layer_width = 87; // exactly 10 "charge dots"
-    layer_width = window_bounds.size.w - 10; // full width, except margin
-    layer_height = 27;
-    layer_offsetX = (window_bounds.size.w - layer_width) - 3; // right with margin
-    layer_offsetY = window_bounds.size.h - layer_height - 5;
-    GRect layer_bounds = GRect(layer_offsetX, layer_offsetY, layer_width, layer_height);
+    const GRect window_bounds = layer_get_bounds(window_layer);
+    const int left_margin = 7;
+    const int right_margin = 3;
+    const int layer_height = 27;
+    const int layer_offset_x = left_margin;
+    const int layer_offset_y = window_bounds.size.h - layer_height - 5;
 
-    s_battery_bar_layer = layer_create(layer_bounds);
-    layer_set_update_proc(s_battery_bar_layer, battery_update_proc);
-
-    // Add to Window
-    layer_add_child(window_layer, s_battery_bar_layer);
+    // A width margin of 10 keeps the original visual spacing.
+    LayerBuilder builder = layer_builder(window_layer, (LayerLayout){
+                                             .x = layer_offset_x,
+                                             .y = layer_offset_y,
+                                             .width_margin = left_margin + right_margin,
+                                             .height = layer_height,
+                                         });
+    s_battery_bar_layer = layer_factory_create_custom_layer(builder, battery_update_proc);
 
     // update on create
     update_battery_bar();

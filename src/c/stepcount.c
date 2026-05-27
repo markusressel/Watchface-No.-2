@@ -1,13 +1,11 @@
 #include <pebble.h>
 #include "stepcount.h"
 #include "health_listener.h"
-#include "clay_settings.h"
 #include "theme.h"
 #include "dotted_text_layer.h"
+#include "layer_factory.h"
 
-static ClaySettings *s_settings;
-
-// Date DottedTextLayer
+// Stepcount DottedTextLayer
 static DottedTextLayer *s_dotted_text_layer;
 
 void update_stepcount() {
@@ -15,38 +13,31 @@ void update_stepcount() {
     static char s_buffer[16];
     snprintf(s_buffer, sizeof(s_buffer), "%d", (int) s_step_count);
 
-    // Display this date on the DottedTextLayer
+    // Display this value on the DottedTextLayer
     dotted_text_layer_set_text(s_dotted_text_layer, s_buffer);
 }
 
-// creates the date layer
-void create_stepcount_layer(
-    const Window *window,
-    Layer *window_layer,
-    GRect window_bounds,
-    const int offsetX,
-    const int offsetY
-) {
-    s_settings = clay_get_settings();
-
-    int width = window_bounds.size.w - 3;
-    int height = 27;
-
-    GRect layer_bounds = GRect(offsetX, offsetY, width, height);
-
-    s_dotted_text_layer = dotted_text_layer_create(layer_bounds);
-    //dotted_text_layer_set_text(s_dotted_text_layer, "10000");
-    dotted_text_layer_set_color(s_dotted_text_layer, theme_get_theme()->StepcountTextColor);
-    dotted_text_layer_set_align_right(s_dotted_text_layer, true);
+// creates the stepcount layer
+void create_stepcount_layer(Layer *window_layer) {
+    const GRect window_bounds = layer_get_bounds(window_layer);
+    LayerBuilder builder = layer_builder(window_layer, (LayerLayout){
+                                             .x = 0,
+                                             .y = window_bounds.size.w - 27 - 5 - 5 - 2,
+                                             .width_margin = 3,
+                                             .height = 27,
+                                         });
+    s_dotted_text_layer = layer_factory_create_dotted_text_layer(
+        builder,
+        theme_get_theme()->StepcountTextColor,
+        true,
+        NULL
+    );
 
     s_step_count = health_service_sum_today(HealthMetricStepCount);
     update_stepcount();
-
-    // Add it as a child layer to the Window's root layer
-    layer_add_child(window_layer, s_dotted_text_layer);
 }
 
-// destroys the date layer
+// destroys the stepcount layer
 void destroy_stepcount_layer() {
     dotted_text_layer_destroy(s_dotted_text_layer);
 }

@@ -1,13 +1,14 @@
 #include "time.h"
 #include "theme.h"
 #include "clay_settings.h"
+#include "layer_factory.h"
 
 // Time TextLayer
 static TextLayer *s_time_layer;
 
 static ClaySettings *s_settings;
 
-static char *s_time_format;
+static char s_time_format[16];
 
 // Method to update the time textbuffer
 void update_time() {
@@ -29,40 +30,31 @@ void update_time() {
 }
 
 // creates the time layer
-void create_time_layer(
-    const Window *window,
-    Layer *window_layer,
-    const GRect window_bounds
-) {
+void create_time_layer(Layer *window_layer) {
     s_settings = clay_get_settings();
+    const GRect window_bounds = layer_get_bounds(window_layer);
 
-    s_time_format = clock_is_24h_style() ? "%H:%M" : "%I:%M";
+    strcpy(s_time_format, clock_is_24h_style() ? "%H:%M" : "%I:%M");
     if (s_settings->ShowSeconds) {
         strcat(s_time_format, ":%S");
     }
 
-    int width = window_bounds.size.w;
-    int height = 50;
-    //int offsetX = (bounds.size.w - width) / 2;
-    int offsetX = 0;
-    int offsetY = (window_bounds.size.h - height) / 2 - 2;
-
-    GRect layer_bounds = GRect(offsetX, offsetY, width, height);
-
-    // Create the TextLayer with specific bounds
-    s_time_layer = text_layer_create(layer_bounds);
-
-    // set styling
-    text_layer_set_background_color(s_time_layer, GColorClear);
-    text_layer_set_text_color(s_time_layer, theme_get_theme()->TimeTextColor);
-    text_layer_set_font(s_time_layer, theme_get_theme()->TimeFont);
-    text_layer_set_text_alignment(s_time_layer, GTextAlignmentRight);
+    const int height = 50;
+    const int offset_y = (window_bounds.size.h - height) / 2 - 2;
+    LayerBuilder builder = layer_builder(window_layer, (LayerLayout){
+                                             .x = 0,
+                                             .y = offset_y,
+                                             .height = height,
+                                         });
+    s_time_layer = layer_factory_create_text_layer(builder, (TextLayerStyle){
+                                                       .background_color = GColorClear,
+                                                       .text_color = theme_get_theme()->TimeTextColor,
+                                                       .font = theme_get_theme()->TimeFont,
+                                                       .alignment = GTextAlignmentRight,
+                                                   });
 
     // update time value before rendering so it is shown right from the beginning
     update_time();
-
-    // Add it as a child layer to the Window's root layer
-    layer_add_child(window_layer, text_layer_get_layer(s_time_layer));
 }
 
 // destroys the time layer

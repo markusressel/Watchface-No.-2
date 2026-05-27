@@ -22,44 +22,17 @@ static void main_window_load(Window *window) {
 
     // Get information about the Window
     Layer *window_layer = window_get_root_layer(window);
-    GRect window_bounds = layer_get_bounds(window_layer);
 
     APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing time layer");
-    create_time_layer(
-        window,
-        window_layer,
-        window_bounds
-    );
+    create_time_layer(window_layer);
     APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing date layer");
-    create_date_layer(
-        window,
-        window_layer,
-        window_bounds
-    );
+    create_date_layer(window_layer);
     APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing battery bar layer");
-    create_battery_bar_layer(
-        window,
-        window_layer,
-        window_bounds
-    );
+    create_battery_bar_layer(window_layer);
     APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing weather layer");
-    create_weather_layer(
-        window,
-        window_layer,
-        window_bounds,
-        0,
-        5
-    );
-
+    create_weather_layer(window_layer);
     APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing stepcount layer");
-    // int offsetX = (bounds.size.w - width); // right aligned
-    create_stepcount_layer(
-        window,
-        window_layer,
-        window_bounds,
-        0,
-        window_bounds.size.w - 27 - 5 - 5 - 2
-    );
+    create_stepcount_layer(window_layer);
 
     /*
 

@@ -6,10 +6,10 @@ setup:
 build:
 	just build
 
-emulator: build
+emulator:
 	just emulator
 
-deploy: build
+deploy:
 	just install
 
 clean:
