@@ -263,9 +263,32 @@ module.exports = [
         ]
       }
     ]
-  },
-  {
-    "type": "submit",
-    "defaultValue": "Save Settings"
-  }
-];
+   },
+   {
+     "type": "section",
+     "items": [
+       {
+         "type": "heading",
+         "defaultValue": "API Settings"
+       },
+       {
+         "type": "text",
+         "defaultValue": "Get your free API key from openweathermap.org"
+       },
+       {
+         "type": "input",
+         "messageKey": "WeatherApiKey",
+         "defaultValue": "",
+         "label": "OpenWeatherMap API Key",
+         "attributes": {
+           "placeholder": "Enter your API key here",
+           "limit": 256
+         }
+       }
+     ]
+   },
+   {
+     "type": "submit",
+     "defaultValue": "Save Settings"
+   }
+ ];

@@ -1,5 +1,6 @@
 #include <pebble.h>
 #include "app_messaging.h"
+#include "main.h"
 #include "weather.h"
 #include "clay_settings.h"
 
@@ -123,6 +124,45 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     s_settings->WeekdayAbbreviationUppercase = weekday_uppercase;
   }
 
+  // Read row layout preferences
+  bool layout_changed = false;
+
+  Tuple *row0_t = dict_find(iterator, MESSAGE_KEY_Row0Widget);
+  if (row0_t) {
+    int value = row0_t->value->int32;
+    if (s_settings->Row0Widget != value) {
+      s_settings->Row0Widget = value;
+      layout_changed = true;
+    }
+  }
+
+  Tuple *row1_t = dict_find(iterator, MESSAGE_KEY_Row1Widget);
+  if (row1_t) {
+    int value = row1_t->value->int32;
+    if (s_settings->Row1Widget != value) {
+      s_settings->Row1Widget = value;
+      layout_changed = true;
+    }
+  }
+
+  Tuple *row3_t = dict_find(iterator, MESSAGE_KEY_Row3Widget);
+  if (row3_t) {
+    int value = row3_t->value->int32;
+    if (s_settings->Row3Widget != value) {
+      s_settings->Row3Widget = value;
+      layout_changed = true;
+    }
+  }
+
+  Tuple *row4_t = dict_find(iterator, MESSAGE_KEY_Row4Widget);
+  if (row4_t) {
+    int value = row4_t->value->int32;
+    if (s_settings->Row4Widget != value) {
+      s_settings->Row4Widget = value;
+      layout_changed = true;
+    }
+  }
+
   // Read weather data
 
   // Read tuples for data
@@ -147,6 +187,12 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
   // persist data
   clay_save_settings();
+
+  // Rebuild the layer tree if the row layout changed
+  if (layout_changed) {
+    APP_LOG(APP_LOG_LEVEL_INFO, "Row layout changed, reloading layers");
+    main_reload_layout();
+  }
 }
 
 static void inbox_dropped_callback(AppMessageResult reason, void *context) {
@@ -169,7 +215,7 @@ void initialize_app_messaging() {
   app_message_register_outbox_sent(outbox_sent_callback);
 
   // Open AppMessage
-  const int inbox_size = 256;
+  const int inbox_size = 512;
   const int outbox_size = 256;
   app_message_open(inbox_size, outbox_size);
 }

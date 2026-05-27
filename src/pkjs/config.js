@@ -1,8 +1,11 @@
-// Weather API key
-var myWeatherAPIKey = '6b2c9265c23d825e4bb44871127d1158';
-
 function getWeatherApiKey() {
-  return myWeatherAPIKey;
+  // Clay stores all settings in 'clay-settings' as a JSON blob
+  try {
+    var claySettings = JSON.parse(localStorage.getItem('clay-settings')) || {};
+    return claySettings.WeatherApiKey || '';
+  } catch (e) {
+    return '';
+  }
 }
 
 module.exports.getWeatherApiKey = getWeatherApiKey;

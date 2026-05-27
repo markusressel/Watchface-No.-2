@@ -90,6 +90,14 @@ static void main_window_unload(Window *window) {
     }
 }
 
+// Rebuild layout from settings and reload all layers.
+// Call this when row layout settings change at runtime.
+void main_reload_layout() {
+    build_layout_from_settings();
+    main_window_unload(s_main_window);
+    main_window_load(s_main_window);
+}
+
 // initializes the watchface
 static void init() {
     //APP_LOG(APP_LOG_LEVEL_DEBUG, "initializing settings");

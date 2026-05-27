@@ -60,6 +60,32 @@ function locationError(err) {
 }
 
 function getWeather() {
+  var apiKey = config.getWeatherApiKey();
+  
+  // If no API key is configured, clear any stale weather data
+  if (!apiKey || apiKey.length === 0) {
+    console.log("No OpenWeatherMap API key configured. Clearing weather data.");
+    
+    // Send empty weather data to clear the display on the watchface
+    var clearDictionary = {
+      "WEATHER_TEMPERATURE_CURRENT": 0,
+      "WEATHER_TEMPERATURE_MIN": 0,
+      "WEATHER_TEMPERATURE_MAX": 0,
+      "WEATHER_CONDITION": ""
+    };
+    
+    Pebble.sendAppMessage(clearDictionary,
+      function(e) {
+        console.log("Weather data cleared successfully!");
+      },
+      function(e) {
+        console.log("Error clearing weather data!");
+      }
+    );
+    
+    return;
+  }
+  
   navigator.geolocation.getCurrentPosition(
     locationSuccess,
     locationError,
