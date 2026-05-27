@@ -40,7 +40,7 @@ typedef struct ClaySettings {
     bool WeekdayAbbreviationUppercase;
 } __attribute__((__packed__)
 
-)
+        )
 ClaySettings;
 
 

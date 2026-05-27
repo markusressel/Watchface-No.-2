@@ -2,7 +2,7 @@
 #include "pixel_matrix_drawer.h"
 #include "clay_settings.h"
 
-static DottedTextLayerData *get_layer_data(DottedTextLayer *dotted_text_layer) {
+static DottedTextLayerData *get_layer_data(const DottedTextLayer *dotted_text_layer) {
     return (DottedTextLayerData *) layer_get_data(dotted_text_layer);
 }
 

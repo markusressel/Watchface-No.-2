@@ -10,6 +10,12 @@ Pebble.addEventListener('ready',
   function(e) {
     console.log("PebbleKit JS ready!");
 
+      // ==========================================
+      // TEMPORARY RESET CODE
+      // ==========================================
+      console.log("Wiping Clay settings...");
+      // localStorage.clear();
+
     // Get the initial weather
     weather.getWeather();
   }

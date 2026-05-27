@@ -33,7 +33,7 @@ static void draw_battery_fill(int percent) {
 }
 
 // update battery charging animation
-static void batteryChargingAnimUpdate(struct Animation *animation, const AnimationProgress progress) {
+static void batteryChargingAnimUpdate(Animation *animation, const AnimationProgress progress) {
     int progressPercent = (progress * 100 / ANIMATION_NORMALIZED_MAX);
     // calculate animation fill rate
     int fillPercent = s_battery_level + (progressPercent * (100 - s_battery_level) / 100);
@@ -44,7 +44,7 @@ static void batteryChargingAnimUpdate(struct Animation *animation, const Animati
 
 // draw the battery layer
 static void battery_update_proc(Layer *layer, GContext *ctx) {
-    GRect bounds = layer_get_bounds(layer);
+    const GRect bounds = layer_get_bounds(layer);
 
     int dotSizeInPixel = 3;
 
@@ -129,7 +129,7 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
     //APP_LOG(APP_LOG_LEVEL_DEBUG, "widthDotsCount: %d, batteryLevel: %d, fillDotsCount: %d",
     //        widthDotsCount, s_current_battery_level, fillDotsCount);
 
-    int row = 2;
+    const int row = 2;
     for (int column = 0; column < fillDotsCount; column++) {
         x = ((column + 2) * 2 * dotSizeInPixel);
         y = row * 2 * dotSizeInPixel;

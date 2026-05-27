@@ -11,7 +11,7 @@ static void health_handler(HealthEventType event, void *context) {
         case HealthEventSignificantUpdate:
             APP_LOG(APP_LOG_LEVEL_INFO, "New HealthService HealthEventSignificantUpdate event");
             s_heartrate_bpm = health_service_peek_current_value(HealthMetricHeartRateBPM);
-            s_step_count = (int) health_service_sum_today(HealthMetricStepCount);
+            s_step_count = health_service_sum_today(HealthMetricStepCount);
 
             APP_LOG(APP_LOG_LEVEL_DEBUG, "stepcount: %d", s_step_count);
 
@@ -20,7 +20,7 @@ static void health_handler(HealthEventType event, void *context) {
         case HealthEventMovementUpdate:
             APP_LOG(APP_LOG_LEVEL_INFO, "New HealthService HealthEventMovementUpdate event");
 
-            s_step_count = (int) health_service_sum_today(HealthMetricStepCount);
+            s_step_count = health_service_sum_today(HealthMetricStepCount);
 
             APP_LOG(APP_LOG_LEVEL_DEBUG, "stepcount: %d", s_step_count);
 
@@ -34,7 +34,7 @@ static void health_handler(HealthEventType event, void *context) {
             break;
         case HealthEventMetricAlert:
             APP_LOG(APP_LOG_LEVEL_INFO, "New HealthService HealthEventMetricAlert event");
-            s_step_count = (int) health_service_sum_today(HealthMetricStepCount);
+            s_step_count = health_service_sum_today(HealthMetricStepCount);
 
             APP_LOG(APP_LOG_LEVEL_DEBUG, "stepcount: %d", s_step_count);
 

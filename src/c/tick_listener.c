@@ -7,7 +7,7 @@
 static bool registered = false;
 
 // Method to react to tickHandler events (time changes)
-static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
+static void tick_handler(tm *tick_time, TimeUnits units_changed) {
   APP_LOG(APP_LOG_LEVEL_DEBUG, "updating time & date");
   update_date();
   update_time();
