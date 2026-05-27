@@ -3,6 +3,8 @@
 #include "dotted_text_layer.h"
 #include "layer_factory.h"
 
+#define MAX_WEATHER_LAYERS 5
+
 static char s_buffer[32];
 
 static WeatherData weatherData;
@@ -12,13 +14,19 @@ static int s_weather_update_interval = 1800000;
 //static int s_weather_update_interval = 30000;
 static AppTimer *s_update_timer;
 
-// Weather DottedTextLayer
-static DottedTextLayer *s_dotted_text_layer;
+// Registry of all created weather layers
+typedef struct {
+    DottedTextLayer *dotted_text_layer;
+} WeatherLayerInstance;
+
+static WeatherLayerInstance s_weather_layers[MAX_WEATHER_LAYERS];
+static int s_weather_layer_count = 0;
 
 WeatherData *weather_get_data() {
   return &weatherData;
 }
 
+// ...existing code...
 static void restore_saved_weather_data() {
   // Read settings from persistent storage, if they exist
   persist_read_data(WEATHER_DATA_KEY, &weatherData, sizeof(weatherData));
@@ -72,38 +80,77 @@ static void on_scheduled_update_triggered() {
   s_update_timer = app_timer_register(s_weather_update_interval, (AppTimerCallback) on_scheduled_update_triggered, NULL);
 }
 
-void update_weather() {
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "updating weather with new data");
-
+// Update all weather layer instances
+static void update_all_weather_layers() {
   // persist current data for fast access when opening the watchface
   save_current_weather_data();
 
   // Write the current temperature into a buffer
   snprintf(s_buffer, sizeof(s_buffer), "%d|%d", weatherData.MaxTemperature, weatherData.MinTemperature);
-  // update text layer
-  dotted_text_layer_set_text(s_dotted_text_layer, s_buffer);
+
+  for (int i = 0; i < s_weather_layer_count; i++) {
+    // update text layer
+    dotted_text_layer_set_text(s_weather_layers[i].dotted_text_layer, s_buffer);
+  }
 }
 
-void create_weather_layer(LayerBuilder builder) {
+// Backward compatible wrapper (called by app messaging or other code)
+void update_weather() {
+  update_all_weather_layers();
+}
+
+void update_weather_layer(Layer *layer) {
+  update_all_weather_layers();
+}
+
+Layer *create_weather_layer(LayerBuilder builder) {
   restore_saved_weather_data();
 
-  s_dotted_text_layer = layer_factory_create_dotted_text_layer(
+  if (s_weather_layer_count >= MAX_WEATHER_LAYERS) {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Max weather layers exceeded!");
+    return NULL;
+  }
+
+  WeatherLayerInstance *instance = &s_weather_layers[s_weather_layer_count];
+
+  instance->dotted_text_layer = layer_factory_create_dotted_text_layer(
       builder,
       theme_get_theme()->WeatherTextColor,
       true,
       "---"
   );
 
-  update_weather();
+  s_weather_layer_count++;
+
+  update_all_weather_layers();
 
   s_update_timer = app_timer_register(s_weather_update_interval, (AppTimerCallback) on_scheduled_update_triggered, NULL);
+
+  return (Layer *)instance->dotted_text_layer;
 }
 
-void destroy_weather_layer() {
-  if (s_update_timer) {
-    // cancel weather update timer
-    app_timer_cancel(s_update_timer);
+void destroy_weather_layer(Layer *layer) {
+  DottedTextLayer *dotted_text_layer_to_destroy = (DottedTextLayer *)layer;
+
+  // Find and remove from registry
+  for (int i = 0; i < s_weather_layer_count; i++) {
+    if (s_weather_layers[i].dotted_text_layer == dotted_text_layer_to_destroy) {
+      // Remove from array by shifting remaining elements
+      for (int j = i; j < s_weather_layer_count - 1; j++) {
+        s_weather_layers[j] = s_weather_layers[j + 1];
+      }
+      s_weather_layer_count--;
+      break;
+    }
   }
 
-  dotted_text_layer_destroy(s_dotted_text_layer);
+  if (s_update_timer) {
+    // cancel weather update timer only if this is the last instance
+    if (s_weather_layer_count == 0) {
+      app_timer_cancel(s_update_timer);
+      s_update_timer = NULL;
+    }
+  }
+
+  dotted_text_layer_destroy(dotted_text_layer_to_destroy);
 }

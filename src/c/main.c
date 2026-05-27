@@ -21,6 +21,9 @@ static ClaySettings *s_settings;
 // Row 2 is always WIDGET_TIME; rows 0, 1, 3, 4 come from the user config.
 static WatchLayout s_layout;
 
+// Store created layer instances indexed by row for proper cleanup
+static Layer *s_row_layers[5] = {NULL};
+
 static void build_layout_from_settings() {
     s_layout = (WatchLayout) {
         .row_count = 5,
@@ -42,11 +45,11 @@ static void main_window_load(Window *window) {
     for (int i = 0; i < s_layout.row_count; i++) {
         LayerBuilder builder = watch_layout_make_builder(&s_layout, window_layer, i);
         switch (s_layout.rows[i].widget) {
-            case WIDGET_TIME:        create_time_layer(builder);        break;
-            case WIDGET_DATE:        create_date_layer(builder);        break;
-            case WIDGET_WEATHER:     create_weather_layer(builder);     break;
-            case WIDGET_STEPCOUNT:   create_stepcount_layer(builder);   break;
-            case WIDGET_BATTERY_BAR: create_battery_bar_layer(builder); break;
+            case WIDGET_TIME:        s_row_layers[i] = create_time_layer(builder);        break;
+            case WIDGET_DATE:        s_row_layers[i] = create_date_layer(builder);        break;
+            case WIDGET_WEATHER:     s_row_layers[i] = create_weather_layer(builder);     break;
+            case WIDGET_STEPCOUNT:   s_row_layers[i] = create_stepcount_layer(builder);   break;
+            case WIDGET_BATTERY_BAR: s_row_layers[i] = create_battery_bar_layer(builder); break;
             default: break;
         }
     }
@@ -73,13 +76,16 @@ static void main_window_unload(Window *window) {
 
     // Destroy only the layers that were created for the current layout
     for (int i = 0; i < s_layout.row_count; i++) {
-        switch (s_layout.rows[i].widget) {
-            case WIDGET_TIME:        destroy_time_layer();        break;
-            case WIDGET_DATE:        destroy_date_layer();        break;
-            case WIDGET_WEATHER:     destroy_weather_layer();     break;
-            case WIDGET_STEPCOUNT:   destroy_stepcount_layer();   break;
-            case WIDGET_BATTERY_BAR: destroy_battery_bar_layer(); break;
-            default: break;
+        if (s_row_layers[i] != NULL) {
+            switch (s_layout.rows[i].widget) {
+                case WIDGET_TIME:        destroy_time_layer(s_row_layers[i]);        break;
+                case WIDGET_DATE:        destroy_date_layer(s_row_layers[i]);        break;
+                case WIDGET_WEATHER:     destroy_weather_layer(s_row_layers[i]);     break;
+                case WIDGET_STEPCOUNT:   destroy_stepcount_layer(s_row_layers[i]);   break;
+                case WIDGET_BATTERY_BAR: destroy_battery_bar_layer(s_row_layers[i]); break;
+                default: break;
+            }
+            s_row_layers[i] = NULL;
         }
     }
 }

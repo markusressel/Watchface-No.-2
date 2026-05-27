@@ -14,11 +14,14 @@ typedef struct WeatherData {
 
 WeatherData *weather_get_data();
 
-// update layer information
+// update all weather layer instances (backward compatible wrapper)
 void update_weather();
 
-// create the layer
-void create_weather_layer(LayerBuilder builder);
+// update a specific weather layer instance
+void update_weather_layer(Layer *layer);
+
+// create the layer (returns the created layer)
+Layer *create_weather_layer(LayerBuilder builder);
 
 // destroy the layer
-void destroy_weather_layer();
+void destroy_weather_layer(Layer *layer);

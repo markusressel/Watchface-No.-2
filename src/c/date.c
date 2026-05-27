@@ -5,12 +5,18 @@
 #include "dotted_text_layer.h"
 #include "layer_factory.h"
 
+#define MAX_DATE_LAYERS 5
+
 static ClaySettings *s_settings;
 
-// Date DottedTextLayer
-static DottedTextLayer *s_dotted_text_layer;
+// Registry of all created date layers
+typedef struct {
+    DottedTextLayer *dotted_text_layer;
+    char date_format[32];
+} DateLayerInstance;
 
-static char s_date_format[32];
+static DateLayerInstance s_date_layers[MAX_DATE_LAYERS];
+static int s_date_layer_count = 0;
 
 // get the uppercase version if the char
 static char upper(char c) {
@@ -20,61 +26,98 @@ static char upper(char c) {
         return c;
 }
 
-void update_date() {
+// Helper to update all date layer instances
+static void update_all_date_layers() {
     // Get a tm structure
     time_t temp = time(NULL);
     struct tm *tick_time = localtime(&temp);
 
-    // Write the current day, month and year into a buffer
-    static char s_buffer[16];
-    strftime(s_buffer,
-             sizeof(s_buffer),
-             s_date_format,
-             tick_time);
+    for (int i = 0; i < s_date_layer_count; i++) {
+        // Write the current day, month and year into a buffer
+        static char s_buffer[16];
+        strftime(s_buffer,
+                 sizeof(s_buffer),
+                 s_date_layers[i].date_format,
+                 tick_time);
 
-    // Remove the third character of weekday abbreviation
-    if (s_settings->ShowWeekdayAbbreviation) {
-        int idxToDel = 2;
-        memmove(&s_buffer[idxToDel], &s_buffer[idxToDel + 1], strlen(s_buffer) - idxToDel);
+        // Remove the third character of weekday abbreviation
+        if (s_settings->ShowWeekdayAbbreviation) {
+            int idxToDel = 2;
+            memmove(&s_buffer[idxToDel], &s_buffer[idxToDel + 1], strlen(s_buffer) - idxToDel);
 
-        // Convert to uppercase (if enabled)
-        if (s_settings->WeekdayAbbreviationUppercase) {
-            for (int i = 0; i < 2; i++) {
-                s_buffer[i] = upper(s_buffer[i]);
+            // Convert to uppercase (if enabled)
+            if (s_settings->WeekdayAbbreviationUppercase) {
+                for (int j = 0; j < 2; j++) {
+                    s_buffer[j] = upper(s_buffer[j]);
+                }
             }
         }
-    }
 
-    // Display this date on the DottedTextLayer
-    dotted_text_layer_set_text(s_dotted_text_layer, s_buffer);
+        // Display this date on the DottedTextLayer
+        dotted_text_layer_set_text(s_date_layers[i].dotted_text_layer, s_buffer);
+    }
+}
+
+// Backward compatible wrapper (called by tick listener)
+void update_date() {
+    update_all_date_layers();
+}
+
+void update_date_layer(Layer *layer) {
+    update_all_date_layers();
 }
 
 // creates the date layer
-void create_date_layer(LayerBuilder builder) {
+Layer *create_date_layer(LayerBuilder builder) {
     s_settings = clay_get_settings();
 
-    strcpy(s_date_format, "");
-    if (s_settings->ShowWeekdayAbbreviation) {
-        strcat(s_date_format, "%a ");
+    if (s_date_layer_count >= MAX_DATE_LAYERS) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Max date layers exceeded!");
+        return NULL;
     }
 
-    strcat(s_date_format, "%d.%m");
+    DateLayerInstance *instance = &s_date_layers[s_date_layer_count];
+
+    strcpy(instance->date_format, "");
+    if (s_settings->ShowWeekdayAbbreviation) {
+        strcat(instance->date_format, "%a ");
+    }
+
+    strcat(instance->date_format, "%d.%m");
 
     if (s_settings->ShowYear) {
-        strcat(s_date_format, ".%y");
+        strcat(instance->date_format, ".%y");
     }
 
-    s_dotted_text_layer = layer_factory_create_dotted_text_layer(
+    instance->dotted_text_layer = layer_factory_create_dotted_text_layer(
         builder,
         theme_get_theme()->DateTextColor,
         true,
         NULL
     );
 
-    update_date();
+    s_date_layer_count++;
+
+    update_all_date_layers();
+
+    return (Layer *)instance->dotted_text_layer;
 }
 
 // destroys the date layer
-void destroy_date_layer() {
-    dotted_text_layer_destroy(s_dotted_text_layer);
+void destroy_date_layer(Layer *layer) {
+    DottedTextLayer *dotted_text_layer_to_destroy = (DottedTextLayer *)layer;
+
+    // Find and remove from registry
+    for (int i = 0; i < s_date_layer_count; i++) {
+        if (s_date_layers[i].dotted_text_layer == dotted_text_layer_to_destroy) {
+            // Remove from array by shifting remaining elements
+            for (int j = i; j < s_date_layer_count - 1; j++) {
+                s_date_layers[j] = s_date_layers[j + 1];
+            }
+            s_date_layer_count--;
+            break;
+        }
+    }
+
+    dotted_text_layer_destroy(dotted_text_layer_to_destroy);
 }

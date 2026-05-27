@@ -4,10 +4,18 @@
 #include "theme.h"
 #include "layer_factory.h"
 
-// battery bar layer
-static Layer *s_battery_bar_layer;
+#define MAX_BATTERY_LAYERS 5
 
-// temporary variable used for animation
+// Registry of all created battery bar layers
+typedef struct {
+    Layer *layer;
+    int current_battery_level;
+} BatteryLayerInstance;
+
+static BatteryLayerInstance s_battery_layers[MAX_BATTERY_LAYERS];
+static int s_battery_layer_count = 0;
+
+// temporary variable used for animation (global state - shared by all layers)
 static int s_current_battery_level;
 
 // battery charging animation callbacks
@@ -23,7 +31,10 @@ static const int s_battery_charging_animation_repeat_count = ANIMATION_DURATION_
 
 static void draw_battery_fill(int percent) {
     s_current_battery_level = percent;
-    layer_mark_dirty(s_battery_bar_layer);
+    // Mark all battery layers as dirty
+    for (int i = 0; i < s_battery_layer_count; i++) {
+        layer_mark_dirty(s_battery_layers[i].layer);
+    }
 }
 
 // update battery charging animation
@@ -34,7 +45,6 @@ static void batteryChargingAnimUpdate(Animation *animation, const AnimationProgr
 
     draw_battery_fill(fillPercent);
 }
-
 
 // draw the battery layer
 static void battery_update_proc(Layer *layer, GContext *ctx) {
@@ -160,7 +170,7 @@ static void initialize_battery_charging_animation() {
     animation_schedule(charging_animation);
 }
 
-
+// Backward compatible wrapper (called by battery listener)
 void update_battery_bar() {
     if (s_battery_charging) {
         if (!charging_animation) {
@@ -176,21 +186,55 @@ void update_battery_bar() {
     // update current battery level
     s_current_battery_level = s_battery_level;
 
-    // Update meter (and redraw)
-    layer_mark_dirty(s_battery_bar_layer);
+    // Update all battery layers (and redraw)
+    for (int i = 0; i < s_battery_layer_count; i++) {
+        layer_mark_dirty(s_battery_layers[i].layer);
+    }
 }
 
-void create_battery_bar_layer(LayerBuilder builder) {
-    s_battery_bar_layer = layer_factory_create_custom_layer(builder, battery_update_proc);
-
-    // update on create
+void update_battery_bar_layer(Layer *layer) {
     update_battery_bar();
 }
 
-void destroy_battery_bar_layer() {
-    layer_destroy(s_battery_bar_layer);
-
-    if (charging_animation) {
-        destroy_battery_charging_animation();
+Layer *create_battery_bar_layer(LayerBuilder builder) {
+    if (s_battery_layer_count >= MAX_BATTERY_LAYERS) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Max battery layers exceeded!");
+        return NULL;
     }
+
+    BatteryLayerInstance *instance = &s_battery_layers[s_battery_layer_count];
+
+    instance->layer = layer_factory_create_custom_layer(builder, battery_update_proc);
+    instance->current_battery_level = 0;
+
+    s_battery_layer_count++;
+
+    // update on create
+    update_battery_bar_layer(instance->layer);
+
+    return instance->layer;
 }
+
+void destroy_battery_bar_layer(Layer *layer) {
+    // Find and remove from registry
+    for (int i = 0; i < s_battery_layer_count; i++) {
+        if (s_battery_layers[i].layer == layer) {
+            // Remove from array by shifting remaining elements
+            for (int j = i; j < s_battery_layer_count - 1; j++) {
+                s_battery_layers[j] = s_battery_layers[j + 1];
+            }
+            s_battery_layer_count--;
+            break;
+        }
+    }
+
+    // Only destroy animation if this is the last battery layer
+    if (s_battery_layer_count == 0) {
+        if (charging_animation) {
+            destroy_battery_charging_animation();
+        }
+    }
+
+    layer_destroy(layer);
+}
+
