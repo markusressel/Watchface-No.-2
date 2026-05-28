@@ -608,13 +608,13 @@ int pixel_matrix_drawer_draw_char(
     bool align_right, int digit_size) {
     if (!character) return 0;
 
-    Glyph glyph = {.width = 0};
+    Glyph glyph;
 
     // 1. Look up the character instantly based on its ASCII value
     if (character >= '0' && character <= '9') {
         int size_idx = (digit_size == 5) ? 2 : ((digit_size == 4) ? 1 : 0);
         glyph = s_numbers[size_idx][character - '0'];
-    } else if (character < 128) {
+    } else {
         // Simply check if it's within ASCII range
         glyph = s_chars[(int) character];
     }
