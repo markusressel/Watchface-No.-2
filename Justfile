@@ -16,6 +16,10 @@ clean-emulator platforms: build kill wipe
 run *platforms: build
     ./scripts/run.py {{platforms}}
 
+[arg("platform", pattern="basalt|chalk|diorite|emery|flint")]
+app-config platform:
+    pebble emu-app-config --emulator "{{platform}}"
+
 kill:
     pebble kill
 
