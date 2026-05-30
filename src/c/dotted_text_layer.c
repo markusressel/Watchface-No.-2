@@ -6,11 +6,19 @@ static DottedTextLayerData *get_layer_data(const DottedTextLayer *dotted_text_la
     return layer_get_data(dotted_text_layer);
 }
 
+static int scaled_dimension(int value, float scale_factor) {
+    int scaled = (int) (value * scale_factor + 0.5f);
+    return scaled < 1 ? 1 : scaled;
+}
+
 static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(dotted_text_layer);
 
     // get data associated with current layer
     DottedTextLayerData *data = get_layer_data(dotted_text_layer);
+    if (!data->text) {
+        return;
+    }
 
     // set the fill color
     graphics_context_set_fill_color(ctx, data->text_color);
@@ -18,12 +26,16 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
     // offset in pixel between two characters
     int character_offset = 2;
 
-    // dot size
-    int dot_width = clay_get_settings()->DotWidth;
-    int dot_height = clay_get_settings()->DotHeight;
+    float scale_factor = data->scale_factor;
+    if (scale_factor <= 0.0f) {
+        scale_factor = 1.0f;
+    }
 
-    int gap_size_horizontal = clay_get_settings()->DotHorizontalGap;
-    int gap_size_vertical = clay_get_settings()->DotVerticalGap;
+    ClaySettings *settings = clay_get_settings();
+    int dot_width = scaled_dimension(settings->DotWidth, scale_factor);
+    int dot_height = scaled_dimension(settings->DotHeight, scale_factor);
+    int gap_size_horizontal = scaled_dimension(settings->DotHorizontalGap, scale_factor);
+    int gap_size_vertical = scaled_dimension(settings->DotVerticalGap, scale_factor);
 
     int current_start_x;
     if (data->align_right) {
@@ -69,6 +81,11 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
 DottedTextLayer *dotted_text_layer_create(GRect bounds) {
     // create the layer with an additional data section
     DottedTextLayer *dotted_text_layer = layer_create_with_data(bounds, sizeof(DottedTextLayerData));
+    DottedTextLayerData *data = get_layer_data(dotted_text_layer);
+    data->text = NULL;
+    data->align_right = false;
+    data->scale_factor = 1.0f;
+    data->text_color = GColorBlack;
     // connect with update method
     layer_set_update_proc(dotted_text_layer, update_proc);
 
@@ -126,14 +143,14 @@ void dotted_text_layer_set_color(DottedTextLayer *dotted_text_layer, GColor colo
     layer_mark_dirty(dotted_text_layer);
 }
 
-void dotted_text_layer_set_scale_factor(DottedTextLayer *dotted_text_layer, int scale_factor) {
+void dotted_text_layer_set_scale_factor(DottedTextLayer *dotted_text_layer, float scale_factor) {
     if (!dotted_text_layer) {
         APP_LOG(APP_LOG_LEVEL_ERROR, "DottedTextLayer is NULL!");
         return;
     }
 
-    if (scale_factor < 1) {
-        APP_LOG(APP_LOG_LEVEL_ERROR, "Scale factor needs to be >= 1!");
+    if (scale_factor <= 0.0f) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Scale factor needs to be > 0!");
         return;
     }
 

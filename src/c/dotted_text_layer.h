@@ -9,7 +9,7 @@ typedef Layer DottedTextLayer;
 typedef struct DottedTextLayerData {
     char *text;
     bool align_right;
-    int scale_factor;
+    float scale_factor;
     GColor text_color;
 } __attribute__((__packed__)) DottedTextLayerData;
 
@@ -47,15 +47,12 @@ void dotted_text_layer_set_color(DottedTextLayer *dotted_text_layer, GColor colo
 // @param align_right  align to right if true, false otherwise
 void dotted_text_layer_set_align_right(DottedTextLayer *dotted_text_layer, bool align_right);
 
-// Use this method to set the scale factor for the layer
-// A scale factor of 1 means 1x1 pixel drawn, 1x1 pixel not drawn and so on
-// A scale factor of 2 means 2x2 pixel drawn, 2x2 pixel not drwan and so on
+// Use this method to set the scale factor for the layer.
+// This scales dot size, dot gaps, and spacing between characters.
 //
-// So the scale factor applies to both width and height. Seperate scaling might possible in a future release.
-// 
 // @param dotted_text_layer  the layer you want to set the color to
-// @param scale              the scale factor to set (>= 1)
-void dotted_text_layer_set_scale_factor(DottedTextLayer *dotted_text_layer, int scale);
+// @param scale              the scale factor to set (> 0.0f)
+void dotted_text_layer_set_scale_factor(DottedTextLayer *dotted_text_layer, float scale);
 
 
 // Use this method to destroy a DottedTextLayer
