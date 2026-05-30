@@ -2,13 +2,16 @@ setup:
 	uv tool install pebble-tool --python 3.13
 	pebble sdk install latest
 
+screenshot:
+    pebble screenshot --phone 192.168.2.159
+
 build:
 	pebble build
 
-clean-emulator: build kill wipe emulator
+clean-emulator $hardware: build kill wipe (emulator "hardware")
 
-emulator: build
-	pebble install --emulator basalt
+emulator hardware: build
+	pebble install --emulator {{hardware}} --logs
 
 kill:
     pebble kill
