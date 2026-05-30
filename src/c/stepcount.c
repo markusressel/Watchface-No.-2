@@ -1,5 +1,6 @@
 #include <pebble.h>
 #include "stepcount.h"
+#include "clay_settings.h"
 #include "health_listener.h"
 #include "theme.h"
 #include "dotted_text_layer.h"
@@ -14,6 +15,7 @@ typedef struct {
 
 static StepcountLayerInstance s_stepcount_layers[MAX_STEPCOUNT_LAYERS];
 static int s_stepcount_layer_count = 0;
+static ClaySettings *s_settings;
 
 // Helper to update all stepcount layer instances
 static void update_all_stepcount_layers() {
@@ -38,6 +40,8 @@ void update_stepcount_layer(Layer *layer) {
 
 // creates the stepcount layer
 Layer *create_stepcount_layer(LayerBuilder builder) {
+    s_settings = clay_get_settings();
+
     if (s_stepcount_layer_count >= MAX_STEPCOUNT_LAYERS) {
         APP_LOG(APP_LOG_LEVEL_ERROR, "Max stepcount layers exceeded!");
         return NULL;
@@ -51,6 +55,11 @@ Layer *create_stepcount_layer(LayerBuilder builder) {
         true,
         NULL
     );
+    if (s_settings->DotAutoScale) {
+        dotted_text_layer_set_auto_scale(instance->dotted_text_layer, true);
+    } else {
+        dotted_text_layer_set_scale_factor(instance->dotted_text_layer, s_settings->DotScaleFactor);
+    }
 
     s_stepcount_layer_count++;
 

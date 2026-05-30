@@ -11,24 +11,21 @@ static int scaled_dimension(int value, float scale_factor) {
     return scaled < 1 ? 1 : scaled;
 }
 
-static int required_content_height(float scale_factor) {
-    ClaySettings *settings = clay_get_settings();
-    int dot_height = scaled_dimension(settings->DotHeight, scale_factor);
-    int gap_size_vertical = scaled_dimension(settings->DotVerticalGap, scale_factor);
-    return (5 * dot_height) + (4 * gap_size_vertical);
+static int matrix_base_height(const ClaySettings *settings) {
+    return (5 * settings->DotHeight) + (4 * settings->DotVerticalGap);
 }
 
-static void apply_scaled_frame(DottedTextLayer *dotted_text_layer, float scale_factor) {
-    GRect frame = layer_get_frame(dotted_text_layer);
-    int required_height = required_content_height(scale_factor);
-    if (frame.size.h == required_height) {
-        return;
+static float auto_scale_for_height(const ClaySettings *settings, int available_height) {
+    const int base_height = matrix_base_height(settings);
+    if (base_height <= 0 || available_height <= 0) {
+        return 1.0f;
     }
 
-    int center_y = frame.origin.y + frame.size.h / 2;
-    frame.size.h = required_height;
-    frame.origin.y = center_y - frame.size.h / 2;
-    layer_set_frame(dotted_text_layer, frame);
+    float scale = (float) available_height / (float) base_height;
+    if (scale <= 0.0f) {
+        return 1.0f;
+    }
+    return scale;
 }
 
 static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
@@ -46,12 +43,14 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
     // offset in pixel between two characters
     int character_offset = 2;
 
-    float scale_factor = data->scale_factor;
+    ClaySettings *settings = clay_get_settings();
+    float scale_factor = data->auto_scale
+        ? auto_scale_for_height(settings, bounds.size.h)
+        : data->scale_factor;
     if (scale_factor <= 0.0f) {
         scale_factor = 1.0f;
     }
 
-    ClaySettings *settings = clay_get_settings();
     int dot_width = scaled_dimension(settings->DotWidth, scale_factor);
     int dot_height = scaled_dimension(settings->DotHeight, scale_factor);
     int gap_size_horizontal = scaled_dimension(settings->DotHorizontalGap, scale_factor);
@@ -105,10 +104,10 @@ DottedTextLayer *dotted_text_layer_create(GRect bounds) {
     data->text = NULL;
     data->align_right = false;
     data->scale_factor = 1.0f;
+    data->auto_scale = true;
     data->text_color = GColorBlack;
     // connect with update method
     layer_set_update_proc(dotted_text_layer, update_proc);
-    apply_scaled_frame(dotted_text_layer, data->scale_factor);
 
     return dotted_text_layer;
 }
@@ -180,9 +179,20 @@ void dotted_text_layer_set_scale_factor(DottedTextLayer *dotted_text_layer, floa
 
     // set the scale factor in struct
     data->scale_factor = scale_factor;
-    apply_scaled_frame(dotted_text_layer, data->scale_factor);
+    data->auto_scale = false;
 
     // mark dirty to trigger redraw
+    layer_mark_dirty(dotted_text_layer);
+}
+
+void dotted_text_layer_set_auto_scale(DottedTextLayer *dotted_text_layer, bool enabled) {
+    if (!dotted_text_layer) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "DottedTextLayer is NULL!");
+        return;
+    }
+
+    DottedTextLayerData *data = get_layer_data(dotted_text_layer);
+    data->auto_scale = enabled;
     layer_mark_dirty(dotted_text_layer);
 }
 

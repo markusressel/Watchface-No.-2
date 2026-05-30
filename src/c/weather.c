@@ -1,5 +1,6 @@
 #include "weather.h"
 #include "theme.h"
+#include "clay_settings.h"
 #include "dotted_text_layer.h"
 #include "layer_factory.h"
 
@@ -21,6 +22,7 @@ typedef struct {
 
 static WeatherLayerInstance s_weather_layers[MAX_WEATHER_LAYERS];
 static int s_weather_layer_count = 0;
+static ClaySettings *s_settings;
 
 WeatherData *weather_get_data() {
   return &weatherData;
@@ -104,6 +106,7 @@ void update_weather_layer(Layer *layer) {
 }
 
 Layer *create_weather_layer(LayerBuilder builder) {
+  s_settings = clay_get_settings();
   restore_saved_weather_data();
 
   if (s_weather_layer_count >= MAX_WEATHER_LAYERS) {
@@ -119,6 +122,11 @@ Layer *create_weather_layer(LayerBuilder builder) {
       true,
       "---"
   );
+  if (s_settings->DotAutoScale) {
+    dotted_text_layer_set_auto_scale(instance->dotted_text_layer, true);
+  } else {
+    dotted_text_layer_set_scale_factor(instance->dotted_text_layer, s_settings->DotScaleFactor);
+  }
 
   s_weather_layer_count++;
 

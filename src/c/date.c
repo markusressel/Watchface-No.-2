@@ -97,6 +97,11 @@ Layer *create_date_layer(LayerBuilder builder) {
         true,
         NULL
     );
+    if (s_settings->DotAutoScale) {
+        dotted_text_layer_set_auto_scale(instance->dotted_text_layer, true);
+    } else {
+        dotted_text_layer_set_scale_factor(instance->dotted_text_layer, s_settings->DotScaleFactor);
+    }
 
     s_date_layer_count++;
 

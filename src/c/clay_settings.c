@@ -38,6 +38,8 @@ static void clay_default_settings() {
   settings.DotHeight = 3;
   settings.DotHorizontalGap = 3;
   settings.DotVerticalGap = 3;
+  settings.DotScaleFactor = 1.0f;
+  settings.DotAutoScale = true;
 
   // Row layout defaults: Weather, Date, [TIME fixed], Stepcount, Battery
   settings.Row0Widget = 0; // WIDGET_WEATHER

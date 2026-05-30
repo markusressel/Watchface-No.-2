@@ -36,6 +36,8 @@ typedef struct ClaySettings {
     int DotHeight;
     int DotHorizontalGap;
     int DotVerticalGap;
+    float DotScaleFactor;
+    bool DotAutoScale;
 
     bool WeekdayAbbreviationUppercase;
 

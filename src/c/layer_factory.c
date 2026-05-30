@@ -36,14 +36,6 @@ TextLayer *layer_factory_create_text_layer(
     return layer;
 }
 
-#if defined(PBL_PLATFORM_BASALT) || defined(PBL_PLATFORM_DIORITE) || defined(PBL_PLATFORM_FLINT)
-static const float scale_factor = 1.0f; // layouts sized for 144x168 (Pebble 2 HR, Core 2 Duo)
-#elif defined(PBL_PLATFORM_CHALK)
-static const float scale_factor = 1.0f; // layouts sized for 180x180 (Pebble Time Round)
-#else
-static const float scale_factor = 1.5f;
-#endif
-
 DottedTextLayer *layer_factory_create_dotted_text_layer(
     LayerBuilder builder,
     GColor text_color,
@@ -52,7 +44,7 @@ DottedTextLayer *layer_factory_create_dotted_text_layer(
 ) {
     DottedTextLayer *layer = dotted_text_layer_create(builder.bounds);
 
-    dotted_text_layer_set_scale_factor(layer, scale_factor);
+    dotted_text_layer_set_auto_scale(layer, true);
     dotted_text_layer_set_color(layer, text_color);
     dotted_text_layer_set_align_right(layer, align_right);
     if (initial_text) {

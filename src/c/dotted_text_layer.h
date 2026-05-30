@@ -10,6 +10,7 @@ typedef struct DottedTextLayerData {
     char *text;
     bool align_right;
     float scale_factor;
+    bool auto_scale;
     GColor text_color;
 } __attribute__((__packed__)) DottedTextLayerData;
 
@@ -53,6 +54,10 @@ void dotted_text_layer_set_align_right(DottedTextLayer *dotted_text_layer, bool 
 // @param dotted_text_layer  the layer you want to set the color to
 // @param scale              the scale factor to set (> 0.0f)
 void dotted_text_layer_set_scale_factor(DottedTextLayer *dotted_text_layer, float scale);
+
+// Enable/disable automatic scale fitting to the layer height.
+// When enabled, scale is computed from available vertical space.
+void dotted_text_layer_set_auto_scale(DottedTextLayer *dotted_text_layer, bool enabled);
 
 
 // Use this method to destroy a DottedTextLayer
