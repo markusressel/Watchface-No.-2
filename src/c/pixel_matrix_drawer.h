@@ -17,7 +17,7 @@ int pixel_matrix_drawer_draw_char(
     GContext *ctx,
     GPoint point_zero,
     char character,
-    int dot_wigth, int dot_height,
+    int dot_width, int dot_height,
     int gap_size_horizontal, int gap_size_vertical,
     bool align_right,
     int digit_size);

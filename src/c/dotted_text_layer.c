@@ -3,7 +3,7 @@
 #include "clay_settings.h"
 
 static DottedTextLayerData *get_layer_data(const DottedTextLayer *dotted_text_layer) {
-    return (DottedTextLayerData *) layer_get_data(dotted_text_layer);
+    return layer_get_data(dotted_text_layer);
 }
 
 static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {

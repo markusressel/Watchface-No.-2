@@ -602,17 +602,17 @@ static const Glyph s_numbers[3][10] = {
 };
 
 int pixel_matrix_drawer_draw_char(
-    GContext *ctx, GPoint point_zero, char character,
-    int dot_width, int dot_height,
-    int gap_size_horizontal, int gap_size_vertical,
-    bool align_right, int digit_size) {
+    GContext *ctx, const GPoint point_zero, const char character,
+    const int dot_width, const int dot_height,
+    const int gap_size_horizontal, const int gap_size_vertical,
+    const bool align_right, const int digit_size) {
     if (!character) return 0;
 
     Glyph glyph;
 
     // 1. Look up the character instantly based on its ASCII value
     if (character >= '0' && character <= '9') {
-        int size_idx = (digit_size == 5) ? 2 : ((digit_size == 4) ? 1 : 0);
+        const int size_idx = (digit_size == 5) ? 2 : ((digit_size == 4) ? 1 : 0);
         glyph = s_numbers[size_idx][character - '0'];
     } else {
         // Simply check if it's within ASCII range
@@ -638,10 +638,10 @@ int pixel_matrix_drawer_draw_char(
                 x_offset -= (glyph.width * dot_width + (glyph.width - 1) * gap_size_horizontal);
             }
 
-            int x = point_zero.x + x_offset;
-            int y = point_zero.y + row * (dot_height + gap_size_vertical);
+            const int x = point_zero.x + x_offset;
+            const int y = point_zero.y + row * (dot_height + gap_size_vertical);
 
-            GRect dot_bounds = GRect(x, y, dot_width, dot_height);
+            const GRect dot_bounds = GRect(x, y, dot_width, dot_height);
             graphics_fill_rect(ctx, dot_bounds, 0, GCornerNone);
         }
     }
