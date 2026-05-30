@@ -14,15 +14,7 @@ clean-emulator platforms: build kill wipe
 
 [arg("platforms", pattern="phone|basalt|chalk|diorite|emery|flint")]
 run *platforms: build
-    #!/usr/bin/env bash
-    for platform in {{platforms}}; do \
-      echo "Installing for $platform..."; \
-      if [[ "$platform" == "phone" ]]; then \
-        pebble install --phone 192.168.2.159; \
-      else \
-        pebble install --emulator "$platform"; \
-      fi; \
-    done
+    ./scripts/run.py {{platforms}}
 
 kill:
     pebble kill
