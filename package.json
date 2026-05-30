@@ -33,6 +33,8 @@
             "SliderDotHeight",
             "SliderDotHorizontalGap",
             "SliderDotVerticalGap",
+            "ToggleDotAutoScale",
+            "SliderDotScaleFactorPercent",
             "SliderDigitWidth",
             "ShowWeekdayAbbreviation",
             "WeekdayAbbreviationUppercase",

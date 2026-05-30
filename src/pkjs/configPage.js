@@ -167,6 +167,22 @@ module.exports = [
         "min": 1,
         "max": 5,
         "step": 1
+      },
+      {
+        "type": "toggle",
+        "messageKey": "ToggleDotAutoScale",
+        "label": "Auto Scale",
+        "defaultValue": true
+      },
+      {
+        "type": "slider",
+        "messageKey": "SliderDotScaleFactorPercent",
+        "defaultValue": 100,
+        "label": "Manual Scale (%)",
+        "description": "Used when Auto Scale is disabled",
+        "min": 50,
+        "max": 300,
+        "step": 5
       }
     ]
   },
