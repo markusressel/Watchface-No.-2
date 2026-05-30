@@ -33,8 +33,6 @@
             "SliderDotHeight",
             "SliderDotHorizontalGap",
             "SliderDotVerticalGap",
-            "ToggleDotAutoScale",
-            "SliderDotScaleFactorPercent",
             "SliderDigitWidth",
             "ShowWeekdayAbbreviation",
             "WeekdayAbbreviationUppercase",
@@ -42,7 +40,9 @@
             "Row1Widget",
             "Row3Widget",
             "Row4Widget",
-            "WeatherApiKey"
+            "WeatherApiKey",
+            "ToggleDotAutoScale",
+            "SliderDotScaleFactorPercent"
         ],
         "projectType": "native",
         "resources": {

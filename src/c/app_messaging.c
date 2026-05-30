@@ -6,10 +6,6 @@
 
 static ClaySettings *s_settings;
 
-// Keep these in sync with package.json messageKeys order.
-#define DOT_AUTO_SCALE_KEY 10019
-#define DOT_SCALE_FACTOR_PERCENT_KEY 10020
-
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
     // Read clay configuration properties
 
@@ -102,12 +98,12 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         s_settings->DotVerticalGap = dot_vertical_gap;
     }
 
-    Tuple *dot_auto_scale_t = dict_find(iterator, DOT_AUTO_SCALE_KEY);
+    Tuple *dot_auto_scale_t = dict_find(iterator, MESSAGE_KEY_ToggleDotAutoScale);
     if (dot_auto_scale_t) {
         s_settings->DotAutoScale = dot_auto_scale_t->value->int32 == 1;
     }
 
-    Tuple *dot_scale_percent_t = dict_find(iterator, DOT_SCALE_FACTOR_PERCENT_KEY);
+    Tuple *dot_scale_percent_t = dict_find(iterator, MESSAGE_KEY_SliderDotScaleFactorPercent);
     if (dot_scale_percent_t) {
         int dot_scale_percent = dot_scale_percent_t->value->int32;
         s_settings->DotScaleFactor = (float) dot_scale_percent / 100.0f;

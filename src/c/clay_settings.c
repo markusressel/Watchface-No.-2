@@ -4,6 +4,31 @@
 // An instance of the struct
 static ClaySettings settings;
 
+static bool is_row_widget_valid(int widget) {
+  return widget == 0 || widget == 1 || widget == 3 || widget == 4;
+}
+
+static void clay_sanitize_settings() {
+  if (settings.DigitWidth < 3 || settings.DigitWidth > 5) {
+    settings.DigitWidth = 4;
+  }
+
+  if (settings.DotWidth < 1 || settings.DotWidth > 5) settings.DotWidth = 3;
+  if (settings.DotHeight < 1 || settings.DotHeight > 5) settings.DotHeight = 3;
+  if (settings.DotHorizontalGap < 1 || settings.DotHorizontalGap > 5) settings.DotHorizontalGap = 3;
+  if (settings.DotVerticalGap < 1 || settings.DotVerticalGap > 5) settings.DotVerticalGap = 3;
+
+  if (settings.DotScaleFactor <= 0.0f || settings.DotScaleFactor > 4.0f) {
+    settings.DotScaleFactor = 1.0f;
+  }
+  settings.DotAutoScale = settings.DotAutoScale ? true : false;
+
+  if (!is_row_widget_valid(settings.Row0Widget)) settings.Row0Widget = 0;
+  if (!is_row_widget_valid(settings.Row1Widget)) settings.Row1Widget = 1;
+  if (!is_row_widget_valid(settings.Row3Widget)) settings.Row3Widget = 3;
+  if (!is_row_widget_valid(settings.Row4Widget)) settings.Row4Widget = 4;
+}
+
 // Initialize the default settings
 // Note: Defaults are also set in the configPage.json, keep them in sync!
 static void clay_default_settings() {
@@ -56,11 +81,28 @@ ClaySettings *clay_get_settings() {
 void clay_load_settings() {
   // Load the default settings
   clay_default_settings();
-  // Read settings from persistent storage, if they exist
-  persist_read_data(SETTINGS_KEY, &settings, sizeof(settings));
+
+  // Migrate/reset settings when struct layout changes across versions.
+  if (!persist_exists(SETTINGS_VERSION_KEY) ||
+      persist_read_int(SETTINGS_VERSION_KEY) != SETTINGS_VERSION) {
+    clay_save_settings();
+    return;
+  }
+
+  if (persist_exists(SETTINGS_KEY)) {
+    const int bytes = persist_read_data(SETTINGS_KEY, &settings, sizeof(settings));
+    if (bytes != sizeof(settings)) {
+      clay_default_settings();
+      clay_save_settings();
+      return;
+    }
+  }
+
+  clay_sanitize_settings();
 }
 
 void clay_save_settings() {
   // save ClaySettings struct to persistent storage
   persist_write_data(SETTINGS_KEY, &settings, sizeof(settings));
+  persist_write_int(SETTINGS_VERSION_KEY, SETTINGS_VERSION);
 }

@@ -2,6 +2,8 @@
 
 // Persistent storage key
 #define SETTINGS_KEY 1
+#define SETTINGS_VERSION_KEY 2
+#define SETTINGS_VERSION 2
 
 // Define our settings struct
 typedef struct ClaySettings {
@@ -36,8 +38,6 @@ typedef struct ClaySettings {
     int DotHeight;
     int DotHorizontalGap;
     int DotVerticalGap;
-    float DotScaleFactor;
-    bool DotAutoScale;
 
     bool WeekdayAbbreviationUppercase;
 
@@ -46,6 +46,10 @@ typedef struct ClaySettings {
     int Row1Widget; // row index 1
     int Row3Widget; // row index 3
     int Row4Widget; // row index 4 (bottom)
+
+    // Dotted font scaling
+    float DotScaleFactor;
+    bool DotAutoScale;
 } __attribute__((__packed__)) ClaySettings;
 
 
