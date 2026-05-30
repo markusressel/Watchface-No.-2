@@ -8,10 +8,10 @@ screenshot:
 build:
 	pebble build
 
-clean-emulator $hardware: build kill wipe (emulator "hardware")
+clean-emulator platform: build kill wipe (emulator "platform")
 
-emulator hardware: build
-	pebble install --emulator {{hardware}} --logs
+emulator platform: build
+	pebble install --emulator {{platform}} --logs
 
 kill:
     pebble kill
