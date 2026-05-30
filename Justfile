@@ -12,7 +12,7 @@ clean-emulator platforms: build kill wipe
     # Note: If you want to auto-run your loop here, you can call:
     # just run {{platforms}}
 
-[positional-arguments]
+[arg("platforms", pattern="phone|basalt|chalk|diorite|emery|flint")]
 run *platforms: build
     #!/usr/bin/env bash
     for platform in {{platforms}}; do \
