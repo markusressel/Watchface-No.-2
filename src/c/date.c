@@ -35,10 +35,12 @@ static void update_all_date_layers() {
     for (int i = 0; i < s_date_layer_count; i++) {
         // Write the current day, month and year into a buffer
         static char s_buffer[16];
-        strftime(s_buffer,
-                 sizeof(s_buffer),
-                 s_date_layers[i].date_format,
-                 tick_time);
+        strftime(
+            s_buffer,
+            sizeof(s_buffer),
+            s_date_layers[i].date_format,
+            tick_time
+        );
 
         // Remove the third character of weekday abbreviation
         if (s_settings->ShowWeekdayAbbreviation) {
@@ -100,12 +102,12 @@ Layer *create_date_layer(LayerBuilder builder) {
 
     update_all_date_layers();
 
-    return (Layer *)instance->dotted_text_layer;
+    return instance->dotted_text_layer;
 }
 
 // destroys the date layer
 void destroy_date_layer(Layer *layer) {
-    DottedTextLayer *dotted_text_layer_to_destroy = (DottedTextLayer *)layer;
+    DottedTextLayer *dotted_text_layer_to_destroy = layer;
 
     // Find and remove from registry
     for (int i = 0; i < s_date_layer_count; i++) {
