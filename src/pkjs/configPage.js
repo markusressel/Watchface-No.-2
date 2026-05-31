@@ -191,6 +191,31 @@ module.exports = [
     "items": [
       {
         "type": "heading",
+        "defaultValue": "Time Font Settings"
+      },
+      {
+        "type": "toggle",
+        "messageKey": "ToggleTimeFontAutoSize",
+        "label": "Auto Size",
+        "defaultValue": true
+      },
+      {
+        "type": "slider",
+        "messageKey": "SliderTimeFontSize",
+        "defaultValue": 42,
+        "label": "Time Font Size",
+        "description": "Used when Auto Size is disabled (mapped to nearest available Pebble font)",
+        "min": 20,
+        "max": 60,
+        "step": 2
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
         "defaultValue": "More Settings"
       },
       {

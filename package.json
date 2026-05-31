@@ -34,6 +34,8 @@
             "SliderDotHorizontalGap",
             "SliderDotVerticalGap",
             "SliderDigitWidth",
+            "SliderTimeFontSize",
+            "ToggleTimeFontAutoSize",
             "ShowWeekdayAbbreviation",
             "WeekdayAbbreviationUppercase",
             "Row0Widget",

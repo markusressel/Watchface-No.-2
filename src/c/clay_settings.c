@@ -9,6 +9,11 @@ static bool is_row_widget_valid(int widget) {
 }
 
 static void clay_sanitize_settings() {
+  if (settings.TimeFontSize < 20 || settings.TimeFontSize > 60) {
+    settings.TimeFontSize = 42;
+  }
+  settings.TimeFontAutoSize = settings.TimeFontAutoSize ? true : false;
+
   if (settings.DigitWidth < 3 || settings.DigitWidth > 5) {
     settings.DigitWidth = 4;
   }
@@ -38,6 +43,8 @@ static void clay_default_settings() {
 
   // Time Layer
   settings.TimeTextColor = textColor;
+  settings.TimeFontSize = 42;
+  settings.TimeFontAutoSize = true;
   // Date Layer
   settings.DateTextColor = textColor;
 

@@ -1,5 +1,6 @@
 #include "watch_layout.h"
 #include "clay_settings.h"
+#include "theme.h"
 
 typedef enum WidgetRowStyle {
     WIDGET_ROW_STYLE_PIXEL,
@@ -16,7 +17,6 @@ typedef struct WidgetMetrics {
     WidgetRowStyle row_style;
 } WidgetMetrics;
 
-#define FONT_ROW_HEIGHT 55
 #define BASELINE_SCREEN_HEIGHT 168
 
 static const WidgetMetrics s_widget_metrics[WIDGET_COUNT] = {
@@ -47,6 +47,21 @@ static int pixel_row_height_for_scale(float scale_factor) {
     return (5 * dot_height) + (4 * gap_size_vertical);
 }
 
+static int font_row_height_for_screen(int screen_width) {
+    ClaySettings *settings = clay_get_settings();
+    const char *sample = settings->ShowSeconds ? "00:00:00" : "00:00";
+    GSize text_size = graphics_text_layout_get_content_size(
+        sample,
+        theme_get_theme()->TimeFont,
+        GRect(0, 0, screen_width, 200),
+        GTextOverflowModeTrailingEllipsis,
+        GTextAlignmentRight
+    );
+
+    int row_height = text_size.h + 10;
+    return row_height < 30 ? 30 : row_height;
+}
+
 static float auto_scale_from_screen(const int screen_height) {
     return (float) screen_height / (float) BASELINE_SCREEN_HEIGHT;
 }
@@ -54,7 +69,8 @@ static float auto_scale_from_screen(const int screen_height) {
 static float max_pixel_scale_to_fit(
     const WatchLayout *layout,
     int center_idx,
-    int screen_height
+    int screen_height,
+    int screen_width
 ) {
     int pixel_row_count = 0;
     int rows_before_center = 0;
@@ -77,7 +93,7 @@ static float max_pixel_scale_to_fit(
 
     int fixed_heights = 2 * EDGE_MARGIN;
     if (center_idx >= 0) {
-        fixed_heights += FONT_ROW_HEIGHT;
+        fixed_heights += font_row_height_for_screen(screen_width);
         fixed_heights += ((rows_before_center > 0) ? (rows_before_center - 1) * ROW_GAP : 0);
         fixed_heights += ((rows_after_center > 0) ? (rows_after_center - 1) * ROW_GAP : 0);
     } else {
@@ -99,9 +115,9 @@ static float max_pixel_scale_to_fit(
     return max_scale > 0.0f ? max_scale : 1.0f;
 }
 
-static int widget_height(WidgetId widget, float pixel_scale) {
+static int widget_height(WidgetId widget, float pixel_scale, int screen_width) {
     return s_widget_metrics[widget].row_style == WIDGET_ROW_STYLE_FONT
-        ? FONT_ROW_HEIGHT
+        ? font_row_height_for_screen(screen_width)
         : pixel_row_height_for_scale(pixel_scale);
 }
 
@@ -171,7 +187,7 @@ LayerBuilder watch_layout_make_builder(
     if (pixel_scale <= 0.0f) {
         pixel_scale = 1.0f;
     }
-    float max_fit_scale = max_pixel_scale_to_fit(layout, center_idx, screen.size.h);
+    float max_fit_scale = max_pixel_scale_to_fit(layout, center_idx, screen.size.h, screen.size.w);
     if (pixel_scale > max_fit_scale) {
         pixel_scale = max_fit_scale;
     }
@@ -179,7 +195,7 @@ LayerBuilder watch_layout_make_builder(
     int row_heights[WATCH_LAYOUT_MAX_ROWS] = {0};
     int total_height = 0;
     for (int i = 0; i < layout->row_count; i++) {
-        row_heights[i] = widget_height(layout->rows[i].widget, pixel_scale);
+        row_heights[i] = widget_height(layout->rows[i].widget, pixel_scale, screen.size.w);
         total_height += row_heights[i];
     }
 

@@ -74,6 +74,16 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         s_settings->DigitWidth = dot_count;
     }
 
+    Tuple *time_font_size_t = dict_find(iterator, MESSAGE_KEY_SliderTimeFontSize);
+    if (time_font_size_t) {
+        s_settings->TimeFontSize = time_font_size_t->value->int32;
+    }
+
+    Tuple *time_font_auto_size_t = dict_find(iterator, MESSAGE_KEY_ToggleTimeFontAutoSize);
+    if (time_font_auto_size_t) {
+        s_settings->TimeFontAutoSize = time_font_auto_size_t->value->int32 == 1;
+    }
+
     Tuple *dot_width_t = dict_find(iterator, MESSAGE_KEY_SliderDotWidth);
     if (dot_width_t) {
         int dot_width = dot_width_t->value->int32;

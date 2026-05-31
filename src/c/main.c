@@ -111,7 +111,15 @@ static void apply_theme_from_settings() {
     } else if (strcmp(s_settings->ThemeValue, "CUSTOM") == 0) {
         theme = CUSTOM;
     } else {
-        theme = LIGHT;
+        theme = DARK;
+    }
+
+    GSize screen_size = (GSize){.w = 144, .h = 168};
+    if (s_main_window) {
+        Layer *window_layer = window_get_root_layer(s_main_window);
+        if (window_layer) {
+            screen_size = layer_get_bounds(window_layer).size;
+        }
     }
 
     if (theme == CUSTOM) {
@@ -124,9 +132,21 @@ static void apply_theme_from_settings() {
         custom_theme.WeatherTextColor = s_settings->WeatherTextColor;
         custom_theme.StepcountTextColor = s_settings->StepcountTextColor;
 
-        init_custom_theme(custom_theme, s_settings->ShowSeconds);
+        init_custom_theme(
+            custom_theme,
+            s_settings->ShowSeconds,
+            s_settings->TimeFontSize,
+            s_settings->TimeFontAutoSize,
+            screen_size
+        );
     } else {
-        init_theme(theme, s_settings->ShowSeconds);
+        init_theme(
+            theme,
+            s_settings->ShowSeconds,
+            s_settings->TimeFontSize,
+            s_settings->TimeFontAutoSize,
+            screen_size
+        );
     }
 
     // Safely update the window background if the window exists

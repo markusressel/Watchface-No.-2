@@ -39,10 +39,28 @@ Theme *theme_get_theme();
 // method to set application theme
 // @param theme        one of the ThemeEnum values DARK, LIGHT
 //                     if you want to set a custom theme use init_custom_theme();
-// @param showSeconds  specifies if the time shows seconds (to properly select font size)
-void init_theme(enum ThemeEnum theme, bool showSeconds);
+// @param showSeconds   specifies if the time shows seconds (to properly select base style)
+// @param timeFontSize  requested time font size in px, mapped to nearest available font
+// @param autoTimeFontSize if true, choose size automatically from the current screen size
+// @param screenSize    current screen size
+void init_theme(
+    enum ThemeEnum theme,
+    bool showSeconds,
+    int timeFontSize,
+    bool autoTimeFontSize,
+    GSize screenSize
+);
 
 // method to initialize custom theme with custom colors
 // @param theme        the custom theme
-// @param showSeconds  specifies if the time shows seconds (to properly select font size)
-void init_custom_theme(Theme theme, bool showSeconds);
+// @param showSeconds   specifies if the time shows seconds (to properly select base style)
+// @param timeFontSize  requested time font size in px, mapped to nearest available font
+// @param autoTimeFontSize if true, choose size automatically from the current screen size
+// @param screenSize    current screen size
+void init_custom_theme(
+    Theme theme,
+    bool showSeconds,
+    int timeFontSize,
+    bool autoTimeFontSize,
+    GSize screenSize
+);
