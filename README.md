@@ -1,24 +1,35 @@
 # Watchface No. 2
-A dot styled watchface for the Pebble platform
+
+A dot-styled watchface for the Pebble platform
 
 <img src="/screenshots/framed_light.png" width=""><img src="/screenshots/framed_dark_small.png" width="">
 
 # Components
-Currently the components of this watchface can not be changed in order without coding and recompiling.
-These are the current components in their top to bottom order:
+
+The components of the watchface are laid out in rows:
+
+| Row | Component    | Default                             |
+|-----|--------------|-------------------------------------|
+| 1   | Configurable | Weather                             |
+| 2   | Configurable | Date                                |
+| 3   | Time         | Time w/o seconds                    |
+| 4   | Configurable | Step count for the day              |
+| 5   | Configurable | Battery bar with charging animation |
+
+To change which component is in which row, use the configuration page in the Pebble app.
+
+These are the components to choose from:
 
 * Weather
-  * Maximum Temp for the day | Minimum temp for the day
+    * Maximum Temp for the day | Minimum temp for the day
 * Date
-  * day of the month . month number
-* Time
-  * hours:minutes(:seconds)
+    * day of the month . month number
 * Step count for the day
 * Battery bar
-  * with charging animation
-
+    * with charging animation
 
 # Theme
+
 Colors can be changed for each component individually through the build in Settings screen, accessible in the Pebble app.
 After saving your modified settings, the watchface needs to be restarted to reload the changed settings.
 To do this you can open the Pebble main menu and close it right after. The watchface will then have to reinitialize and load all settings from scratch.
@@ -32,13 +43,17 @@ Here are the two main themes and a variation for the custom variant:
 <img src="/screenshots/Settings1.png" width="300"><img src="/screenshots/Settings2.png" width="306">
 
 # Behind the scenes
-The "dotted font" in this watchface actually isn't a font. Each character - `0-9`, some special characters like `.` and `/` and selected letters for displaying weekdays - is matched with 5x5 bool matrix that specifies which pixel should be drawn. Between these pixels gaps are interpolated to create the pattern effect.
 
-If you want to take a deeper look at how I've done this check out the [dotted_text_layer.c](src/c/dotted_text_layer.c) and [dotted_text_layer.h](src/c/dotted_text_layer.h). This is a custom implementation of a standard Pebble Layer and internally uses the [pixel_matrix_drawer.h](src/c/pixel_matrix_drawer.h).
+The "dotted font" in this watchface actually isn't a font. Each character - `0-9`, some special characters like `.` and `/` and selected letters for displaying weekdays - is
+matched with 5x5 bool matrix that specifies which pixel should be drawn. Between these pixels gaps are interpolated to create the pattern effect.
+
+If you want to take a deeper look at how I've done this check out the [dotted_text_layer.c](src/c/dotted_text_layer.c) and [dotted_text_layer.h](src/c/dotted_text_layer.h). This is
+a custom implementation of a standard Pebble Layer and internally uses the [pixel_matrix_drawer.h](src/c/pixel_matrix_drawer.h).
 
 # Attributions
 
-This watchface is heavily in inspired by the [TXTTMM](https://apps.repebble.com/684087b4212f070009e2488a) watchface. If you like this watchface please consider supporting the [TXTTMM](https://apps.repebble.com/684087b4212f070009e2488a) watchface makers for their great work by buing their watchface (just a dollar).
+This watchface is heavily in inspired by the [TXTTMM](https://apps.repebble.com/684087b4212f070009e2488a) watchface. If you like this watchface please consider supporting
+the [TXTTMM](https://apps.repebble.com/684087b4212f070009e2488a) watchface makers for their great work by buing their watchface (just a dollar).
 
 # License
 
