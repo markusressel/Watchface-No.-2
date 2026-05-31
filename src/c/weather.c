@@ -126,11 +126,11 @@ Layer *create_weather_layer(LayerBuilder builder) {
 
   s_update_timer = app_timer_register(s_weather_update_interval, (AppTimerCallback) on_scheduled_update_triggered, NULL);
 
-  return (Layer *)instance->dotted_text_layer;
+  return instance->dotted_text_layer;
 }
 
 void destroy_weather_layer(Layer *layer) {
-  DottedTextLayer *dotted_text_layer_to_destroy = (DottedTextLayer *)layer;
+  DottedTextLayer *dotted_text_layer_to_destroy = layer;
 
   // Find and remove from registry
   for (int i = 0; i < s_weather_layer_count; i++) {

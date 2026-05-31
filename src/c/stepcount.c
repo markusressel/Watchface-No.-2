@@ -57,12 +57,12 @@ Layer *create_stepcount_layer(LayerBuilder builder) {
     s_step_count = health_service_sum_today(HealthMetricStepCount);
     update_all_stepcount_layers();
 
-    return (Layer *)instance->dotted_text_layer;
+    return instance->dotted_text_layer;
 }
 
 // destroys the stepcount layer
 void destroy_stepcount_layer(Layer *layer) {
-    DottedTextLayer *dotted_text_layer_to_destroy = (DottedTextLayer *)layer;
+    DottedTextLayer *dotted_text_layer_to_destroy = layer;
 
     // Find and remove from registry
     for (int i = 0; i < s_stepcount_layer_count; i++) {
