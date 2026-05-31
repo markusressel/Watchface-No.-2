@@ -2,7 +2,13 @@
 
 A dot-styled watchface for the Pebble platform
 
-<img src="/screenshots/framed_light.png" width=""><img src="/screenshots/framed_dark_small.png" width="">
+| Time 2                                                               |
+|----------------------------------------------------------------------|
+| <img src="/screenshots/framed_time_2_custom_scaled.png" width="250"> |
+
+| Core 2 Duo                                                                                                                 |
+|----------------------------------------------------------------------------------------------------------------------------|
+| <img src="/screenshots/framed_diorite_dark.png" width="204"> <img src="/screenshots/framed_diorite_light.png" width="204"> |
 
 # Components
 
