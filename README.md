@@ -32,7 +32,7 @@ Here are the two main themes and a variation for the custom variant:
 <img src="/screenshots/Settings1.png" width="300"><img src="/screenshots/Settings2.png" width="306">
 
 # Behind the scenes
-The "dotted font" in this watchface actually isn't a font. Each character (0-9.|/o) is matched with 5x5 bool matrix that specifies which pixel should be drawn. Between these pixels gaps are interpolated to create the pattern effect.
+The "dotted font" in this watchface actually isn't a font. Each character - `0-9`, some special characters like `.` and `/` and selected letters for displaying weekdays - is matched with 5x5 bool matrix that specifies which pixel should be drawn. Between these pixels gaps are interpolated to create the pattern effect.
 
 If you want to take a deeper look at how I've done this check out the [dotted_text_layer.c](src/c/dotted_text_layer.c) and [dotted_text_layer.h](src/c/dotted_text_layer.h). This is a custom implementation of a standard Pebble Layer and internally uses the [pixel_matrix_drawer.h](src/c/pixel_matrix_drawer.h).
 
