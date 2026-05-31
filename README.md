@@ -30,9 +30,8 @@ These are the components to choose from:
 
 # Theme
 
-Colors can be changed for each component individually through the build in Settings screen, accessible in the Pebble app.
-After saving your modified settings, the watchface needs to be restarted to reload the changed settings.
-To do this you can open the Pebble main menu and close it right after. The watchface will then have to reinitialize and load all settings from scratch.
+Colors can be changed for each component individually through the configuration page in the Pebble app.
+After saving your modified settings, the watchface will reload automatically.
 
 Here are the two main themes and a variation for the custom variant:
 
