@@ -65,7 +65,7 @@ static void request_weather_update() {
   }
 }
 
-static void on_scheduled_update_triggered() {
+static void on_scheduled_update_triggered(void *data) {
   APP_LOG(APP_LOG_LEVEL_DEBUG, "scheduled weather update triggered!");
 
   if (s_update_timer) {
@@ -77,7 +77,7 @@ static void on_scheduled_update_triggered() {
   request_weather_update();
 
   //Register next execution
-  s_update_timer = app_timer_register(s_weather_update_interval, (AppTimerCallback) on_scheduled_update_triggered, NULL);
+  s_update_timer = app_timer_register(s_weather_update_interval, on_scheduled_update_triggered, NULL);
 }
 
 // Update all weather layer instances
@@ -124,7 +124,7 @@ Layer *create_weather_layer(LayerBuilder builder) {
 
   update_all_weather_layers();
 
-  s_update_timer = app_timer_register(s_weather_update_interval, (AppTimerCallback) on_scheduled_update_triggered, NULL);
+  s_update_timer = app_timer_register(s_weather_update_interval, on_scheduled_update_triggered, NULL);
 
   return instance->dotted_text_layer;
 }
