@@ -40,20 +40,17 @@ typedef struct ClaySettings {
     bool WeekdayAbbreviationUppercase;
 
     // Row layout (WidgetId values; row 2 is always WIDGET_TIME)
-    int Row0Widget;  // row index 0 (top)
-    int Row1Widget;  // row index 1
-    int Row3Widget;  // row index 3
-    int Row4Widget;  // row index 4 (bottom)
-} __attribute__((__packed__)
-
-        )
-ClaySettings;
+    int Row0Widget; // row index 0 (top)
+    int Row1Widget; // row index 1
+    int Row3Widget; // row index 3
+    int Row4Widget; // row index 4 (bottom)
+} __attribute__((__packed__)) ClaySettings;
 
 
 // get current settings struct
 ClaySettings *clay_get_settings();
 
-// save current current settings struct to persistent storage
+// save current settings struct to persistent storage
 void clay_save_settings();
 
 // load settings from persistent storage

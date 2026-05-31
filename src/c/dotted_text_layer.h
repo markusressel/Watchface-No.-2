@@ -11,10 +11,7 @@ typedef struct DottedTextLayerData {
     bool align_right;
     int scale_factor;
     GColor text_color;
-} __attribute__((__packed__)
-
-)
-DottedTextLayerData;
+} __attribute__((__packed__)) DottedTextLayerData;
 
 
 // Use this method to create a DottedTextLayer
