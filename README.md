@@ -51,8 +51,14 @@ a custom implementation of a standard Pebble Layer and internally uses the [pixe
 
 # Attributions
 
+## Inspiration
+
 This watchface is heavily in inspired by the [TXTTMM](https://apps.repebble.com/684087b4212f070009e2488a) watchface. If you like this watchface please consider supporting
 the [TXTTMM](https://apps.repebble.com/684087b4212f070009e2488a) watchface makers for their great work by buing their watchface (just a dollar).
+
+## Device Frame Generator
+
+See: https://pebble-render.aru.dev/
 
 # License
 
