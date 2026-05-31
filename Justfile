@@ -2,8 +2,14 @@ setup:
     uv tool install pebble-tool --python 3.13
     pebble sdk install latest
 
-screenshot:
-    pebble screenshot --phone 192.168.2.159
+[arg("platform", pattern="phone|basalt|chalk|diorite|emery|flint")]
+screenshot platform:
+    #!/usr/bin/env bash
+    if [[ "{{platform}}" == "phone" ]]; then \
+      pebble screenshot --phone 192.168.2.159; \
+    else \
+      pebble screenshot --emulator "{{platform}}"; \
+    fi
 
 build:
     pebble build
