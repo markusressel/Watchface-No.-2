@@ -30,7 +30,7 @@ static int s_battery_charging_animation_delay = 600;
 static const int s_battery_charging_animation_repeat_count = ANIMATION_DURATION_INFINITE;
 
 static int scaled_dimension(int value, float scale_factor) {
-    int scaled = (int) (value * scale_factor + 0.5f);
+    int scaled = (int) ((float) value * scale_factor + 0.5f);
     return scaled < 1 ? 1 : scaled;
 }
 
@@ -42,6 +42,18 @@ static float auto_scale_for_height(const ClaySettings *settings, int available_h
 
     float scale = (float) available_height / (float) base_height;
     return scale > 0.0f ? scale : 1.0f;
+}
+
+static void fit_vertical_metrics_to_bounds(int *dot_height, int *gap_vertical, int max_height) {
+    while ((5 * (*dot_height) + 4 * (*gap_vertical)) > max_height) {
+        if (*gap_vertical > 1) {
+            (*gap_vertical)--;
+        } else if (*dot_height > 1) {
+            (*dot_height)--;
+        } else {
+            break;
+        }
+    }
 }
 
 static void draw_battery_fill(int percent) {
@@ -74,9 +86,10 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
     }
 
     const int dot_width = scaled_dimension(settings->DotWidth, scale_factor);
-    const int dot_height = scaled_dimension(settings->DotHeight, scale_factor);
+    int dot_height = scaled_dimension(settings->DotHeight, scale_factor);
     const int gap_horizontal = scaled_dimension(settings->DotHorizontalGap, scale_factor);
-    const int gap_vertical = scaled_dimension(settings->DotVerticalGap, scale_factor);
+    int gap_vertical = scaled_dimension(settings->DotVerticalGap, scale_factor);
+    fit_vertical_metrics_to_bounds(&dot_height, &gap_vertical, bounds.size.h);
     const int step_x = dot_width + gap_horizontal;
     const int step_y = dot_height + gap_vertical;
 
