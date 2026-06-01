@@ -7,5 +7,5 @@ typedef struct DeveloperOptions {
 // Compile-time developer toggles.
 // Set values here manually when debugging visuals.
 static const DeveloperOptions DEV_OPTIONS = {
-    .ShowLayerBounds = true,
+    .ShowLayerBounds = false,
 };
