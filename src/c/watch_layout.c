@@ -10,7 +10,6 @@ typedef struct WidgetMetrics {
 } WidgetMetrics;
 
 #define BASELINE_SCREEN_HEIGHT 168
-#define TIME_ROW_SCALE_MULTIPLIER 2.0f
 
 static const WidgetMetrics s_widget_metrics[WIDGET_COUNT] = {
     [WIDGET_WEATHER] = {.x = 0, .width_margin = 3},
@@ -35,19 +34,11 @@ static int pixel_row_height_for_scale(float scale_factor) {
     return (5 * dot_height) + (4 * gap_size_vertical);
 }
 
-static int time_row_height_for_scale(float pixel_scale) {
-    return pixel_row_height_for_scale(pixel_scale * TIME_ROW_SCALE_MULTIPLIER);
-}
-
 static float auto_scale_from_screen(const int screen_height) {
     return (float) screen_height / (float) BASELINE_SCREEN_HEIGHT;
 }
 
 static int widget_height(WidgetId widget, float pixel_scale) {
-    if (widget == WIDGET_TIME) {
-        return time_row_height_for_scale(pixel_scale);
-    }
-
     return pixel_row_height_for_scale(pixel_scale);
 }
 
