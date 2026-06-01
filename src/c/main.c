@@ -4,7 +4,7 @@
 #include "theme.h"
 #include "clay_settings.h"
 #include "watch_layout.h"
-#include "layer/time_layer.h"
+#include "layer/time.h"
 #include "tick_listener.h"
 #include "layer/date.h"
 #include "layer/battery_bar.h"
@@ -47,7 +47,7 @@ static void main_window_load(Window *window) {
     for (int i = 0; i < s_layout.row_count; i++) {
         LayerBuilder builder = watch_layout_make_builder(&s_layout, window_layer, i);
         switch (s_layout.rows[i].widget) {
-            case WIDGET_TIME: s_row_layers[i] = create_time_layer_layer(builder);
+            case WIDGET_TIME: s_row_layers[i] = create_time_layer(builder);
                 break;
             case WIDGET_DATE: s_row_layers[i] = create_date_layer(builder);
                 break;
@@ -83,7 +83,7 @@ static void main_window_unload(Window *window) {
     for (int i = 0; i < s_layout.row_count; i++) {
         if (s_row_layers[i] != NULL) {
             switch (s_layout.rows[i].widget) {
-                case WIDGET_TIME: destroy_time_layer_layer(s_row_layers[i]);
+                case WIDGET_TIME: destroy_time_layer(s_row_layers[i]);
                     break;
                 case WIDGET_DATE: destroy_date_layer(s_row_layers[i]);
                     break;

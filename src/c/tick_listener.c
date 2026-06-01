@@ -1,6 +1,6 @@
 #include <pebble.h>
 #include "tick_listener.h"
-#include "layer/time_layer.h"
+#include "layer/time.h"
 #include "layer/date.h"
 #include "clay_settings.h"
 

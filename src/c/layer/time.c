@@ -1,4 +1,4 @@
-#include "time_layer.h"
+#include "time.h"
 #include "../theme.h"
 #include "../clay_settings.h"
 #include "../layer_factory.h"
@@ -36,11 +36,7 @@ void update_time_layer() {
     update_all_time_layers();
 }
 
-void update_time_layer_layer(Layer *layer) {
-    update_all_time_layers();
-}
-
-Layer *create_time_layer_layer(LayerBuilder builder) {
+Layer *create_time_layer(LayerBuilder builder) {
     s_settings = clay_get_settings();
 
     if (s_time_layer_count >= MAX_TIME_LAYERS) {
@@ -75,7 +71,7 @@ Layer *create_time_layer_layer(LayerBuilder builder) {
     return instance->dotted_text_layer;
 }
 
-void destroy_time_layer_layer(Layer *layer) {
+void destroy_time_layer(Layer *layer) {
     DottedTextLayer *dotted_text_layer_to_destroy = layer;
 
     for (int i = 0; i < s_time_layer_count; i++) {
