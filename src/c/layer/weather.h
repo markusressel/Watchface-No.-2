@@ -1,16 +1,19 @@
 #pragma once
 #include <pebble.h>
-#include "layer_factory.h"
+#include "../layer_factory.h"
 
 // Persistent storage key
 #define WEATHER_DATA_KEY 2
 
 typedef struct WeatherData {
-  int CurrentTemperature;
-  int MaxTemperature;
-  int MinTemperature;
-  char CurrentConditions[32];
-} __attribute__((__packed__)) WeatherData;
+    int CurrentTemperature;
+    int MaxTemperature;
+    int MinTemperature;
+    char CurrentConditions[32];
+} __attribute__((__packed__)
+
+)
+WeatherData;
 
 WeatherData *weather_get_data();
 
@@ -18,10 +21,10 @@ WeatherData *weather_get_data();
 void update_weather();
 
 // update a specific weather layer instance
-void update_weather_layer(Layer *layer);
+void update_weather_layer(Layer * layer);
 
 // create the layer (returns the created layer)
 Layer *create_weather_layer(LayerBuilder builder);
 
 // destroy the layer
-void destroy_weather_layer(Layer *layer);
+void destroy_weather_layer(Layer * layer);

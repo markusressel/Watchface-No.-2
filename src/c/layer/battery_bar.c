@@ -1,8 +1,7 @@
 #include "battery_bar.h"
-#include "battery.h"
-#include "battery_listener.h"
-#include "theme.h"
-#include "layer_factory.h"
+#include "../battery.h"
+#include "../theme.h"
+#include "../layer_factory.h"
 
 #define MAX_BATTERY_LAYERS 5
 
@@ -237,4 +236,3 @@ void destroy_battery_bar_layer(Layer *layer) {
 
     layer_destroy(layer);
 }
-

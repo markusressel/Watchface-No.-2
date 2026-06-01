@@ -2,9 +2,12 @@
 
 LayerBuilder layer_builder(Layer *parent, LayerLayout layout) {
     GRect parent_bounds = layer_get_bounds(parent);
-    return (LayerBuilder){
-        .parent = parent,
-        .bounds = GRect(
+    return (LayerBuilder)
+    {
+        .
+        parent = parent,
+        .
+        bounds = GRect(
             layout.x,
             layout.y,
             parent_bounds.size.w - layout.width_margin,
@@ -14,9 +17,12 @@ LayerBuilder layer_builder(Layer *parent, LayerLayout layout) {
 }
 
 LayerBuilder layer_builder_from_rect(Layer *parent, GRect bounds) {
-    return (LayerBuilder){
-        .parent = parent,
-        .bounds = bounds,
+    return (LayerBuilder)
+    {
+        .
+        parent = parent,
+        .
+        bounds = bounds,
     };
 }
 

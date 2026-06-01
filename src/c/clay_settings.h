@@ -3,7 +3,7 @@
 // Persistent storage key
 #define SETTINGS_KEY 1
 #define SETTINGS_VERSION_KEY 2
-#define SETTINGS_VERSION 4
+#define SETTINGS_VERSION 5
 
 // Define our settings struct
 typedef struct ClaySettings {
@@ -11,8 +11,6 @@ typedef struct ClaySettings {
 
     // Time Layer
     GColor TimeTextColor;
-    int TimeFontSize;
-    bool TimeFontAutoSize;
 
     // Date Layer
     GColor DateTextColor;
@@ -52,7 +50,10 @@ typedef struct ClaySettings {
     // Dotted font scaling
     float DotScaleFactor;
     bool DotAutoScale;
-} __attribute__((__packed__)) ClaySettings;
+} __attribute__((__packed__)
+
+)
+ClaySettings;
 
 
 // get current settings struct

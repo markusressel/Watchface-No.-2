@@ -45,8 +45,8 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
 
     ClaySettings *settings = clay_get_settings();
     float scale_factor = data->auto_scale
-        ? auto_scale_for_height(settings, bounds.size.h)
-        : data->scale_factor;
+                             ? auto_scale_for_height(settings, bounds.size.h)
+                             : data->scale_factor;
     if (scale_factor <= 0.0f) {
         scale_factor = 1.0f;
     }
@@ -80,6 +80,7 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
             dot_width, dot_height,
             gap_size_horizontal, gap_size_vertical,
             data->align_right,
+            data->solid_blocks,
             clay_get_settings()->DigitWidth
         );
 
@@ -105,6 +106,7 @@ DottedTextLayer *dotted_text_layer_create(GRect bounds) {
     data->align_right = false;
     data->scale_factor = 1.0f;
     data->auto_scale = true;
+    data->solid_blocks = false;
     data->text_color = GColorBlack;
     // connect with update method
     layer_set_update_proc(dotted_text_layer, update_proc);
@@ -193,6 +195,17 @@ void dotted_text_layer_set_auto_scale(DottedTextLayer *dotted_text_layer, bool e
 
     DottedTextLayerData *data = get_layer_data(dotted_text_layer);
     data->auto_scale = enabled;
+    layer_mark_dirty(dotted_text_layer);
+}
+
+void dotted_text_layer_set_solid_blocks(DottedTextLayer *dotted_text_layer, bool enabled) {
+    if (!dotted_text_layer) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "DottedTextLayer is NULL!");
+        return;
+    }
+
+    DottedTextLayerData *data = get_layer_data(dotted_text_layer);
+    data->solid_blocks = enabled;
     layer_mark_dirty(dotted_text_layer);
 }
 

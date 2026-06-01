@@ -605,7 +605,7 @@ int pixel_matrix_drawer_draw_char(
     GContext *ctx, const GPoint point_zero, const char character,
     const int dot_width, const int dot_height,
     const int gap_size_horizontal, const int gap_size_vertical,
-    const bool align_right, const int digit_size) {
+    const bool align_right, const bool solid_blocks, const int digit_size) {
     if (!character) return 0;
 
     Glyph glyph;
@@ -640,8 +640,14 @@ int pixel_matrix_drawer_draw_char(
 
             const int x = point_zero.x + x_offset;
             const int y = point_zero.y + row * (dot_height + gap_size_vertical);
+            const int draw_width = solid_blocks && col < glyph.width - 1
+                                       ? dot_width + gap_size_horizontal
+                                       : dot_width;
+            const int draw_height = solid_blocks && row < 4
+                                        ? dot_height + gap_size_vertical
+                                        : dot_height;
 
-            const GRect dot_bounds = GRect(x, y, dot_width, dot_height);
+            const GRect dot_bounds = GRect(x, y, draw_width, draw_height);
             graphics_fill_rect(ctx, dot_bounds, 0, GCornerNone);
         }
     }

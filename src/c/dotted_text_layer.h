@@ -11,6 +11,7 @@ typedef struct DottedTextLayerData {
     bool align_right;
     float scale_factor;
     bool auto_scale;
+    bool solid_blocks;
     GColor text_color;
 } __attribute__((__packed__)) DottedTextLayerData;
 
@@ -58,6 +59,10 @@ void dotted_text_layer_set_scale_factor(DottedTextLayer *dotted_text_layer, floa
 // Enable/disable automatic scale fitting to the layer height.
 // When enabled, scale is computed from available vertical space.
 void dotted_text_layer_set_auto_scale(DottedTextLayer *dotted_text_layer, bool enabled);
+
+// Draw each active matrix cell as a connected block (no visual gap), while
+// preserving overall glyph dimensions.
+void dotted_text_layer_set_solid_blocks(DottedTextLayer *dotted_text_layer, bool enabled);
 
 
 // Use this method to destroy a DottedTextLayer

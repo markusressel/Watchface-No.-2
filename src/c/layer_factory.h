@@ -44,4 +44,3 @@ Layer *layer_factory_create_custom_layer(
     LayerBuilder builder,
     LayerUpdateProc update_proc
 );
-

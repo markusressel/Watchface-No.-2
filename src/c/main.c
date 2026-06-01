@@ -4,14 +4,14 @@
 #include "theme.h"
 #include "clay_settings.h"
 #include "watch_layout.h"
-#include "time.h"
+#include "layer/time_layer.h"
 #include "tick_listener.h"
-#include "date.h"
-#include "battery_bar.h"
+#include "layer/date.h"
+#include "layer/battery_bar.h"
 #include "battery_listener.h"
-#include "weather.h"
+#include "layer/weather.h"
 #include "app_messaging.h"
-#include "stepcount.h"
+#include "layer/stepcount.h"
 #include "health_listener.h"
 
 // Main Window
@@ -47,7 +47,7 @@ static void main_window_load(Window *window) {
     for (int i = 0; i < s_layout.row_count; i++) {
         LayerBuilder builder = watch_layout_make_builder(&s_layout, window_layer, i);
         switch (s_layout.rows[i].widget) {
-            case WIDGET_TIME: s_row_layers[i] = create_time_layer(builder);
+            case WIDGET_TIME: s_row_layers[i] = create_time_layer_layer(builder);
                 break;
             case WIDGET_DATE: s_row_layers[i] = create_date_layer(builder);
                 break;
@@ -83,7 +83,7 @@ static void main_window_unload(Window *window) {
     for (int i = 0; i < s_layout.row_count; i++) {
         if (s_row_layers[i] != NULL) {
             switch (s_layout.rows[i].widget) {
-                case WIDGET_TIME: destroy_time_layer(s_row_layers[i]);
+                case WIDGET_TIME: destroy_time_layer_layer(s_row_layers[i]);
                     break;
                 case WIDGET_DATE: destroy_date_layer(s_row_layers[i]);
                     break;
@@ -114,14 +114,6 @@ static void apply_theme_from_settings() {
         theme = DARK;
     }
 
-    GSize screen_size = (GSize){.w = 144, .h = 168};
-    if (s_main_window) {
-        Layer *window_layer = window_get_root_layer(s_main_window);
-        if (window_layer) {
-            screen_size = layer_get_bounds(window_layer).size;
-        }
-    }
-
     if (theme == CUSTOM) {
         Theme custom_theme;
         custom_theme.BackgroundColor = s_settings->BackgroundColor;
@@ -132,21 +124,9 @@ static void apply_theme_from_settings() {
         custom_theme.WeatherTextColor = s_settings->WeatherTextColor;
         custom_theme.StepcountTextColor = s_settings->StepcountTextColor;
 
-        init_custom_theme(
-            custom_theme,
-            s_settings->ShowSeconds,
-            s_settings->TimeFontSize,
-            s_settings->TimeFontAutoSize,
-            screen_size
-        );
+        init_custom_theme(custom_theme, s_settings->ShowSeconds);
     } else {
-        init_theme(
-            theme,
-            s_settings->ShowSeconds,
-            s_settings->TimeFontSize,
-            s_settings->TimeFontAutoSize,
-            screen_size
-        );
+        init_theme(theme, s_settings->ShowSeconds);
     }
 
     // Safely update the window background if the window exists

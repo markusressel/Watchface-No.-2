@@ -1,7 +1,7 @@
 #include <pebble.h>
 #include "app_messaging.h"
 #include "main.h"
-#include "weather.h"
+#include "layer/weather.h"
 #include "clay_settings.h"
 
 static ClaySettings *s_settings;
@@ -72,16 +72,6 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     if (dot_count_t) {
         int dot_count = dot_count_t->value->int32;
         s_settings->DigitWidth = dot_count;
-    }
-
-    Tuple *time_font_size_t = dict_find(iterator, MESSAGE_KEY_SliderTimeFontSize);
-    if (time_font_size_t) {
-        s_settings->TimeFontSize = time_font_size_t->value->int32;
-    }
-
-    Tuple *time_font_auto_size_t = dict_find(iterator, MESSAGE_KEY_ToggleTimeFontAutoSize);
-    if (time_font_auto_size_t) {
-        s_settings->TimeFontAutoSize = time_font_auto_size_t->value->int32 == 1;
     }
 
     Tuple *dot_width_t = dict_find(iterator, MESSAGE_KEY_SliderDotWidth);
@@ -190,7 +180,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     if (temp_cur_tuple && temp_min_tuple && temp_max_tuple && condition_tuple) {
         WeatherData *weatherData = weather_get_data();
 
-        APP_LOG(APP_LOG_LEVEL_DEBUG, "temp changed: old: %d new: %d", (int) weatherData->CurrentTemperature, (int)temp_cur_tuple->value->int32);
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "temp changed: old: %d new: %d", (int) weatherData->CurrentTemperature, (int) temp_cur_tuple->value->int32);
 
         weatherData->CurrentTemperature = temp_cur_tuple->value->int32;
         weatherData->MinTemperature = temp_min_tuple->value->int32;

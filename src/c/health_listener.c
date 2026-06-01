@@ -1,7 +1,7 @@
 #include <pebble.h>
 #define EXTERN
 #include "health_listener.h"
-#include "stepcount.h"
+#include "layer/stepcount.h"
 
 static bool registered = false;
 

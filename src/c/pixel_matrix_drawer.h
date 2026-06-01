@@ -11,6 +11,7 @@
 // @param gap_size_horizontal  The size of horizontally empty space between two dots
 // @param gap_size_vertical    The size of vertically empty space between two dots
 // @param align_right          Draws the characters from right to left instead of left to right
+// @param solid_blocks         Draw active cells as connected blocks (no visible gaps)
 //
 // @return  width of the drawn matrix (for width in pixel this has to be multiplied by scale_factor)
 int pixel_matrix_drawer_draw_char(
@@ -20,4 +21,5 @@ int pixel_matrix_drawer_draw_char(
     int dot_width, int dot_height,
     int gap_size_horizontal, int gap_size_vertical,
     bool align_right,
+    bool solid_blocks,
     int digit_size);

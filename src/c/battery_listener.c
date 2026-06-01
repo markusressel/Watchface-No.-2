@@ -2,7 +2,7 @@
 #define EXTERN
 #include "battery.h"
 #include "battery_listener.h"
-#include "battery_bar.h"
+#include "layer/battery_bar.h"
 
 static bool registered = false;
 
