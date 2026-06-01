@@ -21,7 +21,7 @@ static const WidgetMetrics s_widget_metrics[WIDGET_COUNT] = {
 };
 
 #define EDGE_MARGIN 5
-#define ROW_GAP 5
+#define ROW_GAP 8
 
 static int scaled_dimension(int value, float scale_factor) {
     int scaled = (int) (value * scale_factor + 0.5f);

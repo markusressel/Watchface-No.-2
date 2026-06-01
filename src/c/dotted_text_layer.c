@@ -84,6 +84,9 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
     int dot_height = scaled_dimension(base_dot_height, scale_factor);
     int gap_size_horizontal = scaled_dimension(base_gap_horizontal, scale_factor);
     int gap_size_vertical = scaled_dimension(base_gap_vertical, scale_factor);
+    const int digit_width = data->custom_digit_width > 0
+                                ? data->custom_digit_width
+                                : clay_get_settings()->DigitWidth;
     int character_offset;
     if (!data->character_offset_overridden) {
         character_offset = 2 * dot_width;
@@ -109,7 +112,7 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
         dot_width,
         gap_size_horizontal,
         character_offset,
-        clay_get_settings()->DigitWidth
+        digit_width
     );
 
     int current_start_x = 0;
@@ -134,7 +137,7 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
             gap_size_horizontal, gap_size_vertical,
             false,
             data->solid_blocks,
-            clay_get_settings()->DigitWidth
+            digit_width
         );
 
         // APP_LOG(APP_LOG_LEVEL_DEBUG, "pxelated char width: %d", pixelated_char_width);
@@ -165,6 +168,7 @@ DottedTextLayer *dotted_text_layer_create(GRect bounds) {
     data->custom_dot_height = 0;
     data->custom_gap_horizontal = 0;
     data->custom_gap_vertical = 0;
+    data->custom_digit_width = 0;
     data->text_color = GColorBlack;
     // connect with update method
     layer_set_update_proc(dotted_text_layer, update_proc);
@@ -346,6 +350,21 @@ void dotted_text_layer_set_custom_metrics(
     data->custom_dot_height = dot_height;
     data->custom_gap_horizontal = gap_horizontal;
     data->custom_gap_vertical = gap_vertical;
+    layer_mark_dirty(dotted_text_layer);
+}
+
+void dotted_text_layer_set_digit_width(DottedTextLayer *dotted_text_layer, const int digit_width) {
+    if (!dotted_text_layer) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "DottedTextLayer is NULL!");
+        return;
+    }
+    if (digit_width < 1) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Digit width must be >= 1");
+        return;
+    }
+
+    DottedTextLayerData *data = get_layer_data(dotted_text_layer);
+    data->custom_digit_width = digit_width;
     layer_mark_dirty(dotted_text_layer);
 }
 

@@ -37,6 +37,7 @@ typedef struct DottedTextLayerData {
     int custom_dot_height;
     int custom_gap_horizontal;
     int custom_gap_vertical;
+    int custom_digit_width;
     GColor text_color;
 } __attribute__((__packed__)) DottedTextLayerData;
 
@@ -110,6 +111,13 @@ void dotted_text_layer_set_custom_metrics(
     int dot_height,
     int gap_horizontal,
     int gap_vertical
+);
+
+// Override per-layer digit width used for matrix glyph selection.
+// Pass values >= 1. The default is global clay_get_settings()->DigitWidth.
+void dotted_text_layer_set_digit_width(
+    DottedTextLayer *dotted_text_layer,
+    int digit_width
 );
 
 

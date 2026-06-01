@@ -83,8 +83,9 @@ Layer *create_time_layer(LayerBuilder builder) {
     );
     dotted_text_layer_set_character_offset(
         instance->dotted_text_layer,
-        12, DOTTED_TEXT_OFFSET_PIXELS
+        8, DOTTED_TEXT_OFFSET_PIXELS
     );
+    dotted_text_layer_set_digit_width(instance->dotted_text_layer, 3);
 
     if (s_settings->DotAutoScale) {
         dotted_text_layer_set_auto_scale(instance->dotted_text_layer, true);
