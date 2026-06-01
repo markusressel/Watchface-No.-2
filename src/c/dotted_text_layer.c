@@ -11,12 +11,12 @@ static int scaled_dimension(int value, float scale_factor) {
     return scaled < 1 ? 1 : scaled;
 }
 
-static int matrix_base_height(const ClaySettings *settings) {
-    return (5 * settings->DotHeight) + (4 * settings->DotVerticalGap);
+static int matrix_base_height(int dot_height, int gap_vertical) {
+    return (5 * dot_height) + (4 * gap_vertical);
 }
 
-static float auto_scale_for_height(const ClaySettings *settings, int available_height) {
-    const int base_height = matrix_base_height(settings);
+static float auto_scale_for_height(int dot_height, int gap_vertical, int available_height) {
+    const int base_height = matrix_base_height(dot_height, gap_vertical);
     if (base_height <= 0 || available_height <= 0) {
         return 1.0f;
     }
@@ -44,17 +44,17 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
     int character_offset = 2;
 
     ClaySettings *settings = clay_get_settings();
-    float scale_factor = data->auto_scale
-                             ? auto_scale_for_height(settings, bounds.size.h)
-                             : data->scale_factor;
-    if (scale_factor <= 0.0f) {
-        scale_factor = 1.0f;
-    }
-
     int base_dot_width = data->use_custom_metrics ? data->custom_dot_width : settings->DotWidth;
     int base_dot_height = data->use_custom_metrics ? data->custom_dot_height : settings->DotHeight;
     int base_gap_horizontal = data->use_custom_metrics ? data->custom_gap_horizontal : settings->DotHorizontalGap;
     int base_gap_vertical = data->use_custom_metrics ? data->custom_gap_vertical : settings->DotVerticalGap;
+
+    float scale_factor = data->auto_scale
+                             ? auto_scale_for_height(base_dot_height, base_gap_vertical, bounds.size.h)
+                             : data->scale_factor;
+    if (scale_factor <= 0.0f) {
+        scale_factor = 1.0f;
+    }
 
     int dot_width = scaled_dimension(base_dot_width, scale_factor);
     int dot_height = scaled_dimension(base_dot_height, scale_factor);

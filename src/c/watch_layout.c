@@ -14,7 +14,7 @@ typedef struct WidgetMetrics {
 static const WidgetMetrics s_widget_metrics[WIDGET_COUNT] = {
     [WIDGET_WEATHER] = {.x = 0, .width_margin = 3},
     [WIDGET_DATE] = {.x = 0, .width_margin = 3},
-    [WIDGET_TIME] = {.x = 0, .width_margin = 0},
+    [WIDGET_TIME] = {.x = 0, .width_margin = 3},
     [WIDGET_STEPCOUNT] = {.x = 0, .width_margin = 3},
     [WIDGET_BATTERY_BAR] = {.x = 7, .width_margin = 10},
 };
