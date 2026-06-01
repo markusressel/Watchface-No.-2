@@ -19,22 +19,50 @@ static Window *s_main_window;
 
 static ClaySettings *s_settings;
 
+// Emery (time 2 hardware) supports up to 7 rows, others up to 5.
+#ifdef PBL_PLATFORM_EMERY
+#define MAX_LAYOUT_ROW_COUNT 7
+#else
+#define MAX_LAYOUT_ROW_COUNT 5
+#endif
+
 // Layout is built at runtime from settings (see build_layout_from_settings).
-// Row 2 is always WIDGET_TIME; rows 0, 1, 3, 4 come from the user config.
+// Row 2 is always WIDGET_TIME; all other rows come from user config.
 static WatchLayout s_layout;
 
 // Store created layer instances indexed by row for proper cleanup
-static Layer *s_row_layers[5] = {NULL};
+static Layer *s_row_layers[WATCH_LAYOUT_MAX_ROWS];
+
+static void init_row_layers() {
+    for (int i = 0; i < WATCH_LAYOUT_MAX_ROWS; i++) {
+        s_row_layers[i] = NULL;
+    }
+}
+
+static int clamp_layout_row_count(const int row_count) {
+    const int min_rows = 5;
+    if (row_count < min_rows) {
+        return min_rows;
+    }
+    if (row_count > MAX_LAYOUT_ROW_COUNT) {
+        return MAX_LAYOUT_ROW_COUNT;
+    }
+    return row_count;
+}
 
 static void build_layout_from_settings() {
+    const int row_count = clamp_layout_row_count(s_settings->LayoutRowCount);
+
     s_layout = (WatchLayout){
-        .row_count = 5,
+        .row_count = row_count,
         .rows = {
             [0] = {.widget = (WidgetId) s_settings->Row0Widget},
             [1] = {.widget = (WidgetId) s_settings->Row1Widget},
             [2] = {.widget = WIDGET_TIME},
             [3] = {.widget = (WidgetId) s_settings->Row3Widget},
             [4] = {.widget = (WidgetId) s_settings->Row4Widget},
+            [5] = {.widget = (WidgetId) s_settings->Row5Widget},
+            [6] = {.widget = (WidgetId) s_settings->Row6Widget},
         },
     };
 }
@@ -140,6 +168,7 @@ static void apply_theme_from_settings() {
 void main_reload_layout() {
     // APP_LOG(APP_LOG_LEVEL_DEBUG, "main_reload_layout");
     main_window_unload(s_main_window);
+    init_row_layers();
     apply_theme_from_settings();
     build_layout_from_settings();
     main_window_load(s_main_window);
@@ -149,6 +178,9 @@ void main_reload_layout() {
 static void init() {
     clay_load_settings();
     s_settings = clay_get_settings();
+
+    // Initialize row layers array
+    init_row_layers();
 
     // Create main Window element first
     s_main_window = window_create();

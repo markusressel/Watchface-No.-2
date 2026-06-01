@@ -168,6 +168,30 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         }
     }
 
+    Tuple *row5_t = dict_find(iterator, MESSAGE_KEY_Row5Widget);
+    if (row5_t) {
+        int value = atoi(row5_t->value->cstring);
+        if (s_settings->Row5Widget != value) {
+            s_settings->Row5Widget = value;
+        }
+    }
+
+    Tuple *row6_t = dict_find(iterator, MESSAGE_KEY_Row6Widget);
+    if (row6_t) {
+        int value = atoi(row6_t->value->cstring);
+        if (s_settings->Row6Widget != value) {
+            s_settings->Row6Widget = value;
+        }
+    }
+
+    Tuple *layout_row_count_t = dict_find(iterator, MESSAGE_KEY_LayoutRowCount);
+    if (layout_row_count_t) {
+        int value = atoi(layout_row_count_t->value->cstring);
+        if (s_settings->LayoutRowCount != value) {
+            s_settings->LayoutRowCount = value;
+        }
+    }
+
     // Read weather data
 
     // Read tuples for data

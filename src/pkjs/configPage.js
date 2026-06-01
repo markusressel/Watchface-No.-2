@@ -228,7 +228,22 @@ module.exports = [
       },
       {
         "type": "text",
-        "defaultValue": "The time is always shown in the center row. Choose what to display in the other four rows."
+        "defaultValue": "The time is always shown in the center row. Choose how many rows to render and what to display in each non-time row."
+      },
+      {
+        "type": "text",
+        "defaultValue": "Rows 6 and 7 only take effect if Row Count is set to 6 or 7. On non-time-2 hardware, values above 5 are ignored."
+      },
+      {
+        "type": "select",
+        "messageKey": "LayoutRowCount",
+        "defaultValue": 5,
+        "label": "Row Count (including time)",
+        "options": [
+          { "label": "5 Rows", "value": 5 },
+          { "label": "6 Rows", "value": 6 },
+          { "label": "7 Rows (time 2 / emery)", "value": 7 }
+        ]
       },
       {
         "type": "select",
@@ -271,6 +286,30 @@ module.exports = [
         "messageKey": "Row4Widget",
         "defaultValue": 4,
         "label": "Row 5 (bottom)",
+        "options": [
+          { "label": "Weather",  "value": 0 },
+          { "label": "Date",     "value": 1 },
+          { "label": "Stepcount","value": 3 },
+          { "label": "Battery",  "value": 4 }
+        ]
+      },
+      {
+        "type": "select",
+        "messageKey": "Row5Widget",
+        "defaultValue": 3,
+        "label": "Row 6 (used when Row Count >= 6)",
+        "options": [
+          { "label": "Weather",  "value": 0 },
+          { "label": "Date",     "value": 1 },
+          { "label": "Stepcount","value": 3 },
+          { "label": "Battery",  "value": 4 }
+        ]
+      },
+      {
+        "type": "select",
+        "messageKey": "Row6Widget",
+        "defaultValue": 3,
+        "label": "Row 7 (used when Row Count = 7)",
         "options": [
           { "label": "Weather",  "value": 0 },
           { "label": "Date",     "value": 1 },

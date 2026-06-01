@@ -40,6 +40,9 @@
             "Row1Widget",
             "Row3Widget",
             "Row4Widget",
+            "Row5Widget",
+            "Row6Widget",
+            "LayoutRowCount",
             "WeatherApiKey",
             "ToggleDotAutoScale",
             "SliderDotScaleFactorPercent"

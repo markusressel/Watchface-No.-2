@@ -18,7 +18,8 @@ typedef struct WatchRow {
     WidgetId widget;
 } WatchRow;
 
-#define WATCH_LAYOUT_MAX_ROWS WIDGET_COUNT
+// Maximum number of rows supported. Actual number may be less based on hardware.
+#define WATCH_LAYOUT_MAX_ROWS 7
 
 // Full screen layout: an ordered list of rows from top to bottom.
 // Rows above the time row are stacked from the top edge,

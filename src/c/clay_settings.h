@@ -3,7 +3,7 @@
 // Persistent storage key
 #define SETTINGS_KEY 1
 #define SETTINGS_VERSION_KEY 2
-#define SETTINGS_VERSION 5
+#define SETTINGS_VERSION 6
 
 // Define our settings struct
 typedef struct ClaySettings {
@@ -42,10 +42,13 @@ typedef struct ClaySettings {
     bool WeekdayAbbreviationUppercase;
 
     // Row layout (WidgetId values; row 2 is always WIDGET_TIME)
+    int LayoutRowCount; // total rows including time row (clamped per platform)
     int Row0Widget; // row index 0 (top)
     int Row1Widget; // row index 1
     int Row3Widget; // row index 3
     int Row4Widget; // row index 4 (bottom)
+    int Row5Widget; // row index 5 (used when LayoutRowCount >= 6)
+    int Row6Widget; // row index 6 (used when LayoutRowCount >= 7)
 
     // Dotted font scaling
     float DotScaleFactor;

@@ -4,8 +4,29 @@
 // An instance of the struct
 static ClaySettings settings;
 
-static bool is_row_widget_valid(int widget) {
+static bool is_row_widget_valid(const int widget) {
     return widget == 0 || widget == 1 || widget == 3 || widget == 4;
+}
+
+static int layout_row_count_max_for_platform() {
+#ifdef PBL_PLATFORM_EMERY
+    return 7;
+#else
+    return 5;
+#endif
+}
+
+static int clamp_layout_row_count(const int requested_row_count) {
+    const int min_row_count = 5;
+    const int max_row_count = layout_row_count_max_for_platform();
+
+    if (requested_row_count < min_row_count) {
+        return min_row_count;
+    }
+    if (requested_row_count > max_row_count) {
+        return max_row_count;
+    }
+    return requested_row_count;
 }
 
 static void clay_sanitize_settings() {
@@ -23,10 +44,14 @@ static void clay_sanitize_settings() {
     }
     settings.DotAutoScale = settings.DotAutoScale ? true : false;
 
+    settings.LayoutRowCount = clamp_layout_row_count(settings.LayoutRowCount);
+
     if (!is_row_widget_valid(settings.Row0Widget)) settings.Row0Widget = 0;
     if (!is_row_widget_valid(settings.Row1Widget)) settings.Row1Widget = 1;
     if (!is_row_widget_valid(settings.Row3Widget)) settings.Row3Widget = 3;
     if (!is_row_widget_valid(settings.Row4Widget)) settings.Row4Widget = 4;
+    if (!is_row_widget_valid(settings.Row5Widget)) settings.Row5Widget = 3;
+    if (!is_row_widget_valid(settings.Row6Widget)) settings.Row6Widget = 3;
 }
 
 // Initialize the default settings
@@ -66,11 +91,19 @@ static void clay_default_settings() {
     settings.DotScaleFactor = 1.0f;
     settings.DotAutoScale = true;
 
-    // Row layout defaults: Weather, Date, [TIME fixed], Stepcount, Battery
+    // Row layout defaults: Weather, Date, [TIME fixed], Stepcount, Battery.
+    // On emery, default to 7 rows; on others, keep 5.
+#ifdef PBL_PLATFORM_EMERY
+    settings.LayoutRowCount = 7;
+#else
+    settings.LayoutRowCount = 5;
+#endif
     settings.Row0Widget = 0; // WIDGET_WEATHER
     settings.Row1Widget = 1; // WIDGET_DATE
     settings.Row3Widget = 3; // WIDGET_STEPCOUNT
     settings.Row4Widget = 4; // WIDGET_BATTERY_BAR
+    settings.Row5Widget = 3; // WIDGET_STEPCOUNT
+    settings.Row6Widget = 3; // WIDGET_STEPCOUNT
 }
 
 ClaySettings *clay_get_settings() {
