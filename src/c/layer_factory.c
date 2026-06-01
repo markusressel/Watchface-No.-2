@@ -58,14 +58,16 @@ TextLayer *layer_factory_create_text_layer(
 DottedTextLayer *layer_factory_create_dotted_text_layer(
     LayerBuilder builder,
     GColor text_color,
-    bool align_right,
+    HorizontalAlignment horizontal_alignment,
+    VerticalAlignment vertical_alignment,
     const char *initial_text
 ) {
     DottedTextLayer *layer = dotted_text_layer_create(builder.bounds);
 
     dotted_text_layer_set_auto_scale(layer, true);
     dotted_text_layer_set_color(layer, text_color);
-    dotted_text_layer_set_align_right(layer, align_right);
+    dotted_text_layer_set_horizontal_alignment(layer, horizontal_alignment);
+    dotted_text_layer_set_vertical_alignment(layer, vertical_alignment);
     if (initial_text) {
         dotted_text_layer_set_text(layer, (char *) initial_text);
     }

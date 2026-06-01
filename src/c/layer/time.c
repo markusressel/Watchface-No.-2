@@ -54,7 +54,8 @@ Layer *create_time_layer(LayerBuilder builder) {
     instance->dotted_text_layer = layer_factory_create_dotted_text_layer(
         builder,
         theme_get_theme()->TimeTextColor,
-        true,
+        HORIZONTAL_ALIGN_RIGHT,
+        VERTICAL_ALIGN_CENTER,
         "00:00"
     );
     dotted_text_layer_set_solid_blocks(instance->dotted_text_layer, true);

@@ -36,7 +36,8 @@ TextLayer *layer_factory_create_text_layer(
 DottedTextLayer *layer_factory_create_dotted_text_layer(
     LayerBuilder builder,
     GColor text_color,
-    bool align_right,
+    HorizontalAlignment horizontal_alignment,
+    VerticalAlignment vertical_alignment,
     const char *initial_text
 );
 

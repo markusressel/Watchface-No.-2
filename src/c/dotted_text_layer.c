@@ -28,6 +28,33 @@ static float auto_scale_for_height(int dot_height, int gap_vertical, int availab
     return scale;
 }
 
+static int text_width_in_pixels(
+    const char *text,
+    int dot_width,
+    int gap_size_horizontal,
+    int character_offset,
+    int digit_size
+) {
+    if (!text) {
+        return 0;
+    }
+
+    int width = 0;
+    const unsigned int length = strlen(text);
+    for (unsigned int i = 0; i < length; i++) {
+        const int glyph_width = pixel_matrix_drawer_char_width(text[i], digit_size);
+        width += glyph_width * dot_width;
+        if (glyph_width > 1) {
+            width += (glyph_width - 1) * gap_size_horizontal;
+        }
+        if (i + 1 < length) {
+            width += character_offset;
+        }
+    }
+
+    return width;
+}
+
 static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
     GRect bounds = layer_get_bounds(dotted_text_layer);
 
@@ -66,44 +93,56 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
         character_offset = scaled_dimension(data->character_offset_value, scale_factor);
     }
 
-    int current_start_x;
-    if (data->align_right) {
-        current_start_x = bounds.size.w;
-    } else {
+    const int text_height = (5 * dot_height) + (4 * gap_size_vertical);
+    int start_y = 0;
+    if (data->vertical_alignment == VERTICAL_ALIGN_CENTER) {
+        start_y = (bounds.size.h - text_height) / 2;
+    } else if (data->vertical_alignment == VERTICAL_ALIGN_BOTTOM) {
+        start_y = bounds.size.h - text_height;
+    }
+    if (start_y < 0) {
+        start_y = 0;
+    }
+
+    const int text_width = text_width_in_pixels(
+        data->text,
+        dot_width,
+        gap_size_horizontal,
+        character_offset,
+        clay_get_settings()->DigitWidth
+    );
+
+    int current_start_x = 0;
+    if (data->horizontal_alignment == HORIZONTAL_ALIGN_CENTER) {
+        current_start_x = (bounds.size.w - text_width) / 2;
+    } else if (data->horizontal_alignment == HORIZONTAL_ALIGN_RIGHT) {
+        current_start_x = bounds.size.w - text_width;
+    }
+    if (current_start_x < 0) {
         current_start_x = 0;
     }
+
     unsigned int length = strlen(data->text);
     for (unsigned int i = 0; i < length; i++) {
-        char current_character;
-        if (data->align_right) {
-            current_character = data->text[length - 1 - i];
-        } else {
-            current_character = data->text[i];
-        }
-
-        // APP_LOG(APP_LOG_LEVEL_DEBUG, "drawing char: %c", current_character);
+        char current_character = data->text[i];
 
         int pixelated_char_width = pixel_matrix_drawer_draw_char(
             ctx,
-            GPoint(current_start_x, 0),
+            GPoint(current_start_x, start_y),
             current_character,
             dot_width, dot_height,
             gap_size_horizontal, gap_size_vertical,
-            data->align_right,
+            false,
             data->solid_blocks,
             clay_get_settings()->DigitWidth
         );
 
         // APP_LOG(APP_LOG_LEVEL_DEBUG, "pxelated char width: %d", pixelated_char_width);
 
-        if (data->align_right) {
-            current_start_x -= pixelated_char_width * dot_width
-                    + ((pixelated_char_width - 1) * gap_size_horizontal)
-                    + character_offset;
-        } else {
-            current_start_x += pixelated_char_width * dot_width
-                    + ((pixelated_char_width - 1) * gap_size_horizontal)
-                    + character_offset;
+        current_start_x += pixelated_char_width * dot_width
+                + ((pixelated_char_width - 1) * gap_size_horizontal);
+        if (i + 1 < length) {
+            current_start_x += character_offset;
         }
     }
 }
@@ -113,7 +152,8 @@ DottedTextLayer *dotted_text_layer_create(GRect bounds) {
     DottedTextLayer *dotted_text_layer = layer_create_with_data(bounds, sizeof(DottedTextLayerData));
     DottedTextLayerData *data = get_layer_data(dotted_text_layer);
     data->text = NULL;
-    data->align_right = false;
+    data->horizontal_alignment = HORIZONTAL_ALIGN_LEFT;
+    data->vertical_alignment = VERTICAL_ALIGN_TOP;
     data->character_offset_overridden = false;
     data->character_offset_value = 0;
     data->character_offset_unit = DOTTED_TEXT_OFFSET_PIXELS;
@@ -153,17 +193,46 @@ void dotted_text_layer_set_text(DottedTextLayer *dotted_text_layer, char *text) 
     layer_mark_dirty(dotted_text_layer);
 }
 
-void dotted_text_layer_set_align_right(DottedTextLayer *dotted_text_layer, bool align_right) {
+void dotted_text_layer_set_horizontal_alignment(
+    DottedTextLayer *dotted_text_layer,
+    HorizontalAlignment alignment
+) {
     if (!dotted_text_layer) {
         APP_LOG(APP_LOG_LEVEL_ERROR, "DottedTextLayer is NULL!");
         return;
     }
 
-    // get data associated with layer
-    DottedTextLayerData *data = get_layer_data(dotted_text_layer);
-    data->align_right = align_right;
+    if (alignment != HORIZONTAL_ALIGN_LEFT &&
+        alignment != HORIZONTAL_ALIGN_CENTER &&
+        alignment != HORIZONTAL_ALIGN_RIGHT) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Invalid horizontal alignment!");
+        return;
+    }
 
-    // mark dirty to trigger redraw
+    DottedTextLayerData *data = get_layer_data(dotted_text_layer);
+    data->horizontal_alignment = alignment;
+
+    layer_mark_dirty(dotted_text_layer);
+}
+
+void dotted_text_layer_set_vertical_alignment(
+    DottedTextLayer *dotted_text_layer,
+    VerticalAlignment alignment
+) {
+    if (!dotted_text_layer) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "DottedTextLayer is NULL!");
+        return;
+    }
+
+    if (alignment != VERTICAL_ALIGN_TOP &&
+        alignment != VERTICAL_ALIGN_CENTER &&
+        alignment != VERTICAL_ALIGN_BOTTOM) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Invalid vertical alignment!");
+        return;
+    }
+
+    DottedTextLayerData *data = get_layer_data(dotted_text_layer);
+    data->vertical_alignment = alignment;
     layer_mark_dirty(dotted_text_layer);
 }
 

@@ -48,7 +48,8 @@ Layer *create_stepcount_layer(LayerBuilder builder) {
     instance->dotted_text_layer = layer_factory_create_dotted_text_layer(
         builder,
         theme_get_theme()->StepcountTextColor,
-        true,
+        HORIZONTAL_ALIGN_RIGHT,
+        VERTICAL_ALIGN_TOP,
         NULL
     );
     if (s_settings->DotAutoScale) {

@@ -10,9 +10,22 @@ typedef enum DottedTextOffsetUnit {
     DOTTED_TEXT_OFFSET_BLOCKS = 1,
 } DottedTextOffsetUnit;
 
+typedef enum HorizontalAlignment {
+    HORIZONTAL_ALIGN_LEFT = 0,
+    HORIZONTAL_ALIGN_CENTER = 1,
+    HORIZONTAL_ALIGN_RIGHT = 2,
+} HorizontalAlignment;
+
+typedef enum VerticalAlignment {
+    VERTICAL_ALIGN_TOP = 0,
+    VERTICAL_ALIGN_CENTER = 1,
+    VERTICAL_ALIGN_BOTTOM = 2,
+} VerticalAlignment;
+
 typedef struct DottedTextLayerData {
     char *text;
-    bool align_right;
+    HorizontalAlignment horizontal_alignment;
+    VerticalAlignment vertical_alignment;
     bool character_offset_overridden;
     int character_offset_value;
     DottedTextOffsetUnit character_offset_unit;
@@ -56,10 +69,14 @@ void dotted_text_layer_set_text(DottedTextLayer *dotted_text_layer, char *text);
 // @param color              the color to set
 void dotted_text_layer_set_color(DottedTextLayer *dotted_text_layer, GColor color);
 
-// Use this method to draw characters from the right instead of the left
-//
-// @param align_right  align to right if true, false otherwise
-void dotted_text_layer_set_align_right(DottedTextLayer *dotted_text_layer, bool align_right);
+void dotted_text_layer_set_horizontal_alignment(
+    DottedTextLayer *dotted_text_layer,
+    HorizontalAlignment alignment
+);
+void dotted_text_layer_set_vertical_alignment(
+    DottedTextLayer *dotted_text_layer,
+    VerticalAlignment alignment
+);
 
 // Use this method to set the scale factor for the layer.
 // This scales dot size, dot gaps, and spacing between characters.

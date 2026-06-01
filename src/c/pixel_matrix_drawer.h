@@ -23,3 +23,6 @@ int pixel_matrix_drawer_draw_char(
     bool align_right,
     bool solid_blocks,
     int digit_size);
+
+// Returns glyph width in matrix columns for the given character.
+int pixel_matrix_drawer_char_width(char character, int digit_size);

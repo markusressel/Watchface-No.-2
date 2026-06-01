@@ -611,6 +611,28 @@ static const Glyph s_numbers[3][10] = {
     }
 };
 
+static Glyph glyph_for_char(const char character, const int digit_size) {
+    Glyph glyph;
+
+    if (character >= '0' && character <= '9') {
+        const int size_idx = (digit_size == 5) ? 2 : ((digit_size == 4) ? 1 : 0);
+        glyph = s_numbers[size_idx][character - '0'];
+    } else {
+        glyph = s_chars[(int) character];
+    }
+
+    if (glyph.width == 0) {
+        glyph = s_default;
+    }
+
+    return glyph;
+}
+
+int pixel_matrix_drawer_char_width(char character, int digit_size) {
+    if (!character) return 0;
+    return glyph_for_char(character, digit_size).width;
+}
+
 int pixel_matrix_drawer_draw_char(
     GContext *ctx, const GPoint point_zero, const char character,
     const int dot_width, const int dot_height,
@@ -618,23 +640,8 @@ int pixel_matrix_drawer_draw_char(
     const bool align_right, const bool solid_blocks, const int digit_size) {
     if (!character) return 0;
 
-    Glyph glyph;
+    Glyph glyph = glyph_for_char(character, digit_size);
 
-    // 1. Look up the character instantly based on its ASCII value
-    if (character >= '0' && character <= '9') {
-        const int size_idx = (digit_size == 5) ? 2 : ((digit_size == 4) ? 1 : 0);
-        glyph = s_numbers[size_idx][character - '0'];
-    } else {
-        // Simply check if it's within ASCII range
-        glyph = s_chars[(int) character];
-    }
-
-    // 2. If the character wasn't in our arrays, use the default block
-    if (glyph.width == 0) {
-        glyph = s_default;
-    }
-
-    // 3. Draw the pixels using clean, simplified math
     for (int row = 0; row < 5; row++) {
         for (int col = 0; col < glyph.width; col++) {
             // Skip if pixel is false ('_')
