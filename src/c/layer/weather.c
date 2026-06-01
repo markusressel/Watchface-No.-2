@@ -28,7 +28,6 @@ WeatherData *weather_get_data() {
     return &weatherData;
 }
 
-// ...existing code...
 static void restore_saved_weather_data() {
     // Read settings from persistent storage, if they exist
     persist_read_data(WEATHER_DATA_KEY, &weatherData, sizeof(weatherData));
@@ -98,10 +97,6 @@ static void update_all_weather_layers() {
 
 // Backward compatible wrapper (called by app messaging or other code)
 void update_weather() {
-    update_all_weather_layers();
-}
-
-void update_weather_layer(Layer *layer) {
     update_all_weather_layers();
 }
 

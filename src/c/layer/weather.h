@@ -20,9 +20,6 @@ WeatherData *weather_get_data();
 // update all weather layer instances (backward compatible wrapper)
 void update_weather();
 
-// update a specific weather layer instance
-void update_weather_layer(Layer * layer);
-
 // create the layer (returns the created layer)
 Layer *create_weather_layer(LayerBuilder builder);
 
