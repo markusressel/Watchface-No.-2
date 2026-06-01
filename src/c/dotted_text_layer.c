@@ -7,7 +7,7 @@ static DottedTextLayerData *get_layer_data(const DottedTextLayer *dotted_text_la
 }
 
 static int scaled_dimension(int value, float scale_factor) {
-    int scaled = (int) (value * scale_factor + 0.5f);
+    int scaled = (int) ((float) value * scale_factor + 0.5f);
     return scaled < 1 ? 1 : scaled;
 }
 
@@ -40,9 +40,6 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
     // set the fill color
     graphics_context_set_fill_color(ctx, data->text_color);
 
-    // offset in pixel between two characters
-    int character_offset = 2;
-
     ClaySettings *settings = clay_get_settings();
     int base_dot_width = data->use_custom_metrics ? data->custom_dot_width : settings->DotWidth;
     int base_dot_height = data->use_custom_metrics ? data->custom_dot_height : settings->DotHeight;
@@ -60,6 +57,14 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
     int dot_height = scaled_dimension(base_dot_height, scale_factor);
     int gap_size_horizontal = scaled_dimension(base_gap_horizontal, scale_factor);
     int gap_size_vertical = scaled_dimension(base_gap_vertical, scale_factor);
+    int character_offset;
+    if (!data->character_offset_overridden) {
+        character_offset = 2 * dot_width;
+    } else if (data->character_offset_unit == DOTTED_TEXT_OFFSET_BLOCKS) {
+        character_offset = data->character_offset_value * dot_width;
+    } else {
+        character_offset = scaled_dimension(data->character_offset_value, scale_factor);
+    }
 
     int current_start_x;
     if (data->align_right) {
@@ -94,11 +99,11 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
         if (data->align_right) {
             current_start_x -= pixelated_char_width * dot_width
                     + ((pixelated_char_width - 1) * gap_size_horizontal)
-                    + (character_offset * gap_size_horizontal);
+                    + character_offset;
         } else {
             current_start_x += pixelated_char_width * dot_width
                     + ((pixelated_char_width - 1) * gap_size_horizontal)
-                    + (character_offset * gap_size_horizontal);
+                    + character_offset;
         }
     }
 }
@@ -109,6 +114,9 @@ DottedTextLayer *dotted_text_layer_create(GRect bounds) {
     DottedTextLayerData *data = get_layer_data(dotted_text_layer);
     data->text = NULL;
     data->align_right = false;
+    data->character_offset_overridden = false;
+    data->character_offset_value = 0;
+    data->character_offset_unit = DOTTED_TEXT_OFFSET_PIXELS;
     data->scale_factor = 1.0f;
     data->auto_scale = true;
     data->solid_blocks = false;
@@ -194,6 +202,33 @@ void dotted_text_layer_set_scale_factor(DottedTextLayer *dotted_text_layer, floa
     data->auto_scale = false;
 
     // mark dirty to trigger redraw
+    layer_mark_dirty(dotted_text_layer);
+}
+
+void dotted_text_layer_set_character_offset(
+    DottedTextLayer *dotted_text_layer,
+    int value,
+    DottedTextOffsetUnit unit
+) {
+    if (!dotted_text_layer) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "DottedTextLayer is NULL!");
+        return;
+    }
+
+    if (value < 0) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Character offset needs to be >= 0!");
+        return;
+    }
+
+    if (unit != DOTTED_TEXT_OFFSET_PIXELS && unit != DOTTED_TEXT_OFFSET_BLOCKS) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Invalid character offset unit!");
+        return;
+    }
+
+    DottedTextLayerData *data = get_layer_data(dotted_text_layer);
+    data->character_offset_overridden = true;
+    data->character_offset_value = value;
+    data->character_offset_unit = unit;
     layer_mark_dirty(dotted_text_layer);
 }
 

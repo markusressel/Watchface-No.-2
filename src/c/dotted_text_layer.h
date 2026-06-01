@@ -5,10 +5,17 @@
 // in a dotted style
 typedef Layer DottedTextLayer;
 
+typedef enum DottedTextOffsetUnit {
+    DOTTED_TEXT_OFFSET_PIXELS = 0,
+    DOTTED_TEXT_OFFSET_BLOCKS = 1,
+} DottedTextOffsetUnit;
 
 typedef struct DottedTextLayerData {
     char *text;
     bool align_right;
+    bool character_offset_overridden;
+    int character_offset_value;
+    DottedTextOffsetUnit character_offset_unit;
     float scale_factor;
     bool auto_scale;
     bool solid_blocks;
@@ -60,6 +67,16 @@ void dotted_text_layer_set_align_right(DottedTextLayer *dotted_text_layer, bool 
 // @param dotted_text_layer  the layer you want to set the color to
 // @param scale              the scale factor to set (> 0.0f)
 void dotted_text_layer_set_scale_factor(DottedTextLayer *dotted_text_layer, float scale);
+
+// Override spacing between adjacent characters.
+// unit:
+// - DOTTED_TEXT_OFFSET_PIXELS: value is interpreted as pixels before scaling
+// - DOTTED_TEXT_OFFSET_BLOCKS: value is interpreted as block-count * dot-width
+void dotted_text_layer_set_character_offset(
+    DottedTextLayer *dotted_text_layer,
+    int value,
+    DottedTextOffsetUnit unit
+);
 
 // Enable/disable automatic scale fitting to the layer height.
 // When enabled, scale is computed from available vertical space.
