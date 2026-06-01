@@ -650,42 +650,55 @@ int pixel_matrix_drawer_draw_char(
 
             const int x = point_zero.x + x_offset;
             const int y = point_zero.y + row * (dot_height + gap_size_vertical);
+            const bool has_left_neighbor =
+                col > 0 && glyph.pixels[row][col - 1];
             const bool has_right_neighbor =
                 col < glyph.width - 1 && glyph.pixels[row][col + 1];
+            const bool has_top_neighbor =
+                row > 0 && glyph.pixels[row - 1][col];
             const bool has_bottom_neighbor =
                 row < 4 && glyph.pixels[row + 1][col];
-            const bool has_bottom_right_neighbor =
-                row < 4 && col < glyph.width - 1 && glyph.pixels[row + 1][col + 1];
 
             // Base dot
             graphics_fill_rect(ctx, GRect(x, y, dot_width, dot_height), 0, GCornerNone);
 
             if (solid_blocks) {
-                // Bridge to right neighbor only
+                const int left_bridge = gap_size_horizontal / 2;
+                const int right_bridge = gap_size_horizontal - left_bridge;
+                const int top_bridge = gap_size_vertical / 2;
+                const int bottom_bridge = gap_size_vertical - top_bridge;
+
+                // Horizontal bridges split between both neighboring cells.
+                if (has_left_neighbor && left_bridge > 0) {
+                    graphics_fill_rect(
+                        ctx,
+                        GRect(x - left_bridge, y, left_bridge, dot_height),
+                        0,
+                        GCornerNone
+                    );
+                }
                 if (has_right_neighbor) {
                     graphics_fill_rect(
                         ctx,
-                        GRect(x + dot_width, y, gap_size_horizontal, dot_height),
+                        GRect(x + dot_width, y, right_bridge, dot_height),
                         0,
                         GCornerNone
                     );
                 }
 
-                // Bridge to bottom neighbor only
+                // Vertical bridges split between both neighboring cells.
+                if (has_top_neighbor && top_bridge > 0) {
+                    graphics_fill_rect(
+                        ctx,
+                        GRect(x, y - top_bridge, dot_width, top_bridge),
+                        0,
+                        GCornerNone
+                    );
+                }
                 if (has_bottom_neighbor) {
                     graphics_fill_rect(
                         ctx,
-                        GRect(x, y + dot_height, dot_width, gap_size_vertical),
-                        0,
-                        GCornerNone
-                    );
-                }
-
-                // Fill the bottom-right mini-cell only for a real 2x2 connection.
-                if (has_right_neighbor && has_bottom_neighbor && has_bottom_right_neighbor) {
-                    graphics_fill_rect(
-                        ctx,
-                        GRect(x + dot_width, y + dot_height, gap_size_horizontal, gap_size_vertical),
+                        GRect(x, y + dot_height, dot_width, bottom_bridge),
                         0,
                         GCornerNone
                     );

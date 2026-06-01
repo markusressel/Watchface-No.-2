@@ -1,6 +1,7 @@
 #include "battery_bar.h"
 #include "../battery.h"
 #include "../theme.h"
+#include "../clay_settings.h"
 #include "../layer_factory.h"
 
 #define MAX_BATTERY_LAYERS 5
@@ -28,6 +29,21 @@ static int s_battery_charging_animation_duration = 2000;
 static int s_battery_charging_animation_delay = 600;
 static const int s_battery_charging_animation_repeat_count = ANIMATION_DURATION_INFINITE;
 
+static int scaled_dimension(int value, float scale_factor) {
+    int scaled = (int) (value * scale_factor + 0.5f);
+    return scaled < 1 ? 1 : scaled;
+}
+
+static float auto_scale_for_height(const ClaySettings *settings, int available_height) {
+    const int base_height = (5 * settings->DotHeight) + (4 * settings->DotVerticalGap);
+    if (base_height <= 0 || available_height <= 0) {
+        return 1.0f;
+    }
+
+    float scale = (float) available_height / (float) base_height;
+    return scale > 0.0f ? scale : 1.0f;
+}
+
 static void draw_battery_fill(int percent) {
     s_current_battery_level = percent;
     // Mark all battery layers as dirty
@@ -49,78 +65,81 @@ static void batteryChargingAnimUpdate(Animation *animation, const AnimationProgr
 static void battery_update_proc(Layer *layer, GContext *ctx) {
     const GRect bounds = layer_get_bounds(layer);
 
-    int dotSizeInPixel = 3;
+    ClaySettings *settings = clay_get_settings();
+    float scale_factor = settings->DotAutoScale
+        ? auto_scale_for_height(settings, bounds.size.h)
+        : settings->DotScaleFactor;
+    if (scale_factor <= 0.0f) {
+        scale_factor = 1.0f;
+    }
+
+    const int dot_width = scaled_dimension(settings->DotWidth, scale_factor);
+    const int dot_height = scaled_dimension(settings->DotHeight, scale_factor);
+    const int gap_horizontal = scaled_dimension(settings->DotHorizontalGap, scale_factor);
+    const int gap_vertical = scaled_dimension(settings->DotVerticalGap, scale_factor);
+    const int step_x = dot_width + gap_horizontal;
+    const int step_y = dot_height + gap_vertical;
 
     int leftMargin = 0;
     int rightMargin = 0;
-
-    bool inverted = true;
-
-    int rightToLeftOffset;
-    int rightToLeftOffsetFactor;
-    if (inverted) {
-        rightToLeftOffset = rightMargin + dotSizeInPixel;
-        rightToLeftOffsetFactor = 0;
-    } else {
-        rightToLeftOffset = bounds.size.w - leftMargin;
-        rightToLeftOffsetFactor = 2;
-    }
 
     // Draw battery outline
     graphics_context_set_stroke_color(ctx, theme_get_theme()->BatteryOutlineColor);
     graphics_context_set_fill_color(ctx, theme_get_theme()->BatteryOutlineColor);
 
-    // calculate how much dots would fit the screen
-    int first = ((bounds.size.w - leftMargin - rightMargin) / dotSizeInPixel) / 2;
-    int second = ((bounds.size.w - leftMargin - rightMargin) / dotSizeInPixel - 1) / 2;
-    int widthDotsCount = (first == second) ? first + 1 : first;
+    // Calculate how many matrix columns fit horizontally.
+    const int available_width = bounds.size.w - leftMargin - rightMargin;
+    const int widthDotsCount = (available_width + gap_horizontal) / step_x;
+    if (widthDotsCount < 5) {
+        return;
+    }
 
     // upper row
     int x; // dot x position;
     int y; // dot y position;
     GRect currentDotBorder;
     for (int row = 0; row < 5; row++) {
-        y = row * 2 * dotSizeInPixel;
+        y = row * step_y;
 
         // single dot at the tip (representing +pole)
         if (row == 2) {
-            x = ((widthDotsCount - 1) * 2 * dotSizeInPixel);
+            x = ((widthDotsCount - 1) * step_x);
             currentDotBorder = GRect(
-                bounds.size.w - (rightToLeftOffset - rightToLeftOffsetFactor * x) - x,
+                bounds.size.w - rightMargin - dot_width - x,
                 y,
-                dotSizeInPixel,
-                dotSizeInPixel);
+                dot_width,
+                dot_height);
             graphics_fill_rect(ctx, currentDotBorder, 0, GCornerNone);
         }
 
         // upper and lower row
         if (row == 0 || row == 4) {
             for (int column = 0; column < widthDotsCount - 1; column++) {
-                x = (column * 2 * dotSizeInPixel);
+                x = (column * step_x);
                 currentDotBorder = GRect(
-                    bounds.size.w - (rightToLeftOffset - rightToLeftOffsetFactor * x) - x,
+                    bounds.size.w - rightMargin - dot_width - x,
                     y,
-                    dotSizeInPixel,
-                    dotSizeInPixel);
+                    dot_width,
+                    dot_height);
                 graphics_fill_rect(ctx, currentDotBorder, 0, GCornerNone);
             }
         } else {
             // single dot at beginning and end of the battery (left and right borders)
 
-            x = ((widthDotsCount - 2) * 2 * dotSizeInPixel);
+            x = ((widthDotsCount - 2) * step_x);
             currentDotBorder = GRect(
-                bounds.size.w - (rightToLeftOffset - rightToLeftOffsetFactor * x) - x,
+                bounds.size.w - rightMargin - dot_width - x,
                 y,
-                dotSizeInPixel,
-                dotSizeInPixel);
+                dot_width,
+                dot_height);
             graphics_fill_rect(ctx, currentDotBorder, 0, GCornerNone);
 
-            x = (0 * 2 * dotSizeInPixel);
+            x = 0;
             currentDotBorder = GRect(
-                bounds.size.w - (rightToLeftOffset - rightToLeftOffsetFactor * x) - x,
+                bounds.size.w - rightMargin - dot_width - x,
                 y,
-                dotSizeInPixel,
-                dotSizeInPixel);
+                dot_width,
+                dot_height);
             graphics_fill_rect(ctx, currentDotBorder, 0, GCornerNone);
         }
     }
@@ -134,13 +153,13 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
 
     const int row = 2;
     for (int column = 0; column < fillDotsCount; column++) {
-        x = ((column + 2) * 2 * dotSizeInPixel);
-        y = row * 2 * dotSizeInPixel;
+        x = ((column + 2) * step_x);
+        y = row * step_y;
         currentDotBorder = GRect(
-            bounds.size.w - (rightToLeftOffset - rightToLeftOffsetFactor * x) - x,
+            bounds.size.w - rightMargin - dot_width - x,
             y,
-            dotSizeInPixel,
-            dotSizeInPixel);
+            dot_width,
+            dot_height);
         graphics_fill_rect(ctx, currentDotBorder, 0, GCornerNone);
     }
 }

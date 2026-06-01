@@ -67,12 +67,16 @@ Layer *create_time_layer(LayerBuilder builder) {
     const int base_gap = s_settings->DotHorizontalGap < s_settings->DotVerticalGap
         ? s_settings->DotHorizontalGap
         : s_settings->DotVerticalGap;
+    // Redistribute visual weight from gaps into dots so boldness survives
+    // auto-fit scaling and remains visible on edge rows (like the bottom row).
+    const int bold_dot = base_dot + 5;
+    const int bold_gap = base_gap > 1 ? base_gap - 1 : 1;
     dotted_text_layer_set_custom_metrics(
         instance->dotted_text_layer,
-        base_dot,
-        base_dot,
-        base_gap,
-        base_gap
+        bold_dot,
+        bold_dot,
+        bold_gap,
+        bold_gap
     );
 
     if (s_settings->DotAutoScale) {
