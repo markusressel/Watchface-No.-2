@@ -51,10 +51,15 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
         scale_factor = 1.0f;
     }
 
-    int dot_width = scaled_dimension(settings->DotWidth, scale_factor);
-    int dot_height = scaled_dimension(settings->DotHeight, scale_factor);
-    int gap_size_horizontal = scaled_dimension(settings->DotHorizontalGap, scale_factor);
-    int gap_size_vertical = scaled_dimension(settings->DotVerticalGap, scale_factor);
+    int base_dot_width = data->use_custom_metrics ? data->custom_dot_width : settings->DotWidth;
+    int base_dot_height = data->use_custom_metrics ? data->custom_dot_height : settings->DotHeight;
+    int base_gap_horizontal = data->use_custom_metrics ? data->custom_gap_horizontal : settings->DotHorizontalGap;
+    int base_gap_vertical = data->use_custom_metrics ? data->custom_gap_vertical : settings->DotVerticalGap;
+
+    int dot_width = scaled_dimension(base_dot_width, scale_factor);
+    int dot_height = scaled_dimension(base_dot_height, scale_factor);
+    int gap_size_horizontal = scaled_dimension(base_gap_horizontal, scale_factor);
+    int gap_size_vertical = scaled_dimension(base_gap_vertical, scale_factor);
 
     int current_start_x;
     if (data->align_right) {
@@ -107,6 +112,11 @@ DottedTextLayer *dotted_text_layer_create(GRect bounds) {
     data->scale_factor = 1.0f;
     data->auto_scale = true;
     data->solid_blocks = false;
+    data->use_custom_metrics = false;
+    data->custom_dot_width = 0;
+    data->custom_dot_height = 0;
+    data->custom_gap_horizontal = 0;
+    data->custom_gap_vertical = 0;
     data->text_color = GColorBlack;
     // connect with update method
     layer_set_update_proc(dotted_text_layer, update_proc);
@@ -206,6 +216,32 @@ void dotted_text_layer_set_solid_blocks(DottedTextLayer *dotted_text_layer, bool
 
     DottedTextLayerData *data = get_layer_data(dotted_text_layer);
     data->solid_blocks = enabled;
+    layer_mark_dirty(dotted_text_layer);
+}
+
+void dotted_text_layer_set_custom_metrics(
+    DottedTextLayer *dotted_text_layer,
+    int dot_width,
+    int dot_height,
+    int gap_horizontal,
+    int gap_vertical
+) {
+    if (!dotted_text_layer) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "DottedTextLayer is NULL!");
+        return;
+    }
+
+    if (dot_width < 1 || dot_height < 1 || gap_horizontal < 1 || gap_vertical < 1) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Custom metrics must be >= 1");
+        return;
+    }
+
+    DottedTextLayerData *data = get_layer_data(dotted_text_layer);
+    data->use_custom_metrics = true;
+    data->custom_dot_width = dot_width;
+    data->custom_dot_height = dot_height;
+    data->custom_gap_horizontal = gap_horizontal;
+    data->custom_gap_vertical = gap_vertical;
     layer_mark_dirty(dotted_text_layer);
 }
 

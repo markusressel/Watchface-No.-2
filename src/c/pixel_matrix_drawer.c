@@ -650,15 +650,47 @@ int pixel_matrix_drawer_draw_char(
 
             const int x = point_zero.x + x_offset;
             const int y = point_zero.y + row * (dot_height + gap_size_vertical);
-            const int draw_width = solid_blocks && col < glyph.width - 1
-                                       ? dot_width + gap_size_horizontal
-                                       : dot_width;
-            const int draw_height = solid_blocks && row < 4
-                                        ? dot_height + gap_size_vertical
-                                        : dot_height;
+            const bool has_right_neighbor =
+                col < glyph.width - 1 && glyph.pixels[row][col + 1];
+            const bool has_bottom_neighbor =
+                row < 4 && glyph.pixels[row + 1][col];
+            const bool has_bottom_right_neighbor =
+                row < 4 && col < glyph.width - 1 && glyph.pixels[row + 1][col + 1];
 
-            const GRect dot_bounds = GRect(x, y, draw_width, draw_height);
-            graphics_fill_rect(ctx, dot_bounds, 0, GCornerNone);
+            // Base dot
+            graphics_fill_rect(ctx, GRect(x, y, dot_width, dot_height), 0, GCornerNone);
+
+            if (solid_blocks) {
+                // Bridge to right neighbor only
+                if (has_right_neighbor) {
+                    graphics_fill_rect(
+                        ctx,
+                        GRect(x + dot_width, y, gap_size_horizontal, dot_height),
+                        0,
+                        GCornerNone
+                    );
+                }
+
+                // Bridge to bottom neighbor only
+                if (has_bottom_neighbor) {
+                    graphics_fill_rect(
+                        ctx,
+                        GRect(x, y + dot_height, dot_width, gap_size_vertical),
+                        0,
+                        GCornerNone
+                    );
+                }
+
+                // Fill the bottom-right mini-cell only for a real 2x2 connection.
+                if (has_right_neighbor && has_bottom_neighbor && has_bottom_right_neighbor) {
+                    graphics_fill_rect(
+                        ctx,
+                        GRect(x + dot_width, y + dot_height, gap_size_horizontal, gap_size_vertical),
+                        0,
+                        GCornerNone
+                    );
+                }
+            }
         }
     }
 

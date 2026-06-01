@@ -59,6 +59,22 @@ Layer *create_time_layer(LayerBuilder builder) {
     );
     dotted_text_layer_set_solid_blocks(instance->dotted_text_layer, true);
 
+    // Solid blocks reveal unequal horizontal/vertical metrics strongly.
+    // For time, force square metrics so each block appears square.
+    const int base_dot = s_settings->DotWidth < s_settings->DotHeight
+        ? s_settings->DotWidth
+        : s_settings->DotHeight;
+    const int base_gap = s_settings->DotHorizontalGap < s_settings->DotVerticalGap
+        ? s_settings->DotHorizontalGap
+        : s_settings->DotVerticalGap;
+    dotted_text_layer_set_custom_metrics(
+        instance->dotted_text_layer,
+        base_dot,
+        base_dot,
+        base_gap,
+        base_gap
+    );
+
     if (s_settings->DotAutoScale) {
         dotted_text_layer_set_auto_scale(instance->dotted_text_layer, true);
     } else {
