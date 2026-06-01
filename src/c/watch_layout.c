@@ -9,7 +9,8 @@ typedef struct WidgetMetrics {
     int width_margin;
 } WidgetMetrics;
 
-#define BASELINE_SCREEN_HEIGHT 168
+#define TIME_ROW_RATIO 1.2f
+#define DEFAULT_ROW_RATIO 1.0f
 
 static const WidgetMetrics s_widget_metrics[WIDGET_COUNT] = {
     [WIDGET_WEATHER] = {.x = 0, .width_margin = 3},
@@ -34,10 +35,6 @@ static int pixel_row_height_for_scale(float scale_factor) {
     return (5 * dot_height) + (4 * gap_size_vertical);
 }
 
-static float auto_scale_from_screen(const int screen_height) {
-    return (float) screen_height / (float) BASELINE_SCREEN_HEIGHT;
-}
-
 static int widget_height(WidgetId widget, float pixel_scale) {
     return pixel_row_height_for_scale(pixel_scale);
 }
@@ -56,47 +53,90 @@ static int find_center_row(const WatchLayout *layout) {
     return -1;
 }
 
-static int total_layout_height_for_scale(
-    const WatchLayout *layout,
-    int center_idx,
-    float pixel_scale
-) {
-    int row_heights_total = 0;
-    for (int i = 0; i < layout->row_count; i++) {
-        row_heights_total += widget_height(layout->rows[i].widget, pixel_scale);
-    }
-
-    if (center_idx < 0) {
-        return row_heights_total + ((layout->row_count - 1) * ROW_GAP);
-    }
-
-    const int rows_before_center = center_idx;
-    const int rows_after_center = layout->row_count - center_idx - 1;
-    const int gaps_top = rows_before_center > 0 ? rows_before_center - 1 : 0;
-    const int gaps_bottom = rows_after_center > 0 ? rows_after_center - 1 : 0;
-
-    return (2 * EDGE_MARGIN) + row_heights_total + ((gaps_top + gaps_bottom) * ROW_GAP);
+static int layout_row_gap_count(const WatchLayout *layout) {
+    return layout->row_count > 1 ? layout->row_count - 1 : 0;
 }
 
-static float max_pixel_scale_to_fit(
+static float row_ratio(WidgetId widget) {
+    return widget == WIDGET_TIME ? TIME_ROW_RATIO : DEFAULT_ROW_RATIO;
+}
+
+static void compute_auto_row_heights(
     const WatchLayout *layout,
     int center_idx,
-    int screen_height
+    int screen_height,
+    int *row_heights
 ) {
-    float low = 0.1f;
-    float high = 4.0f;
-
-    for (int i = 0; i < 16; i++) {
-        const float mid = (low + high) / 2.0f;
-        const int used_height = total_layout_height_for_scale(layout, center_idx, mid);
-        if (used_height <= screen_height) {
-            low = mid;
-        } else {
-            high = mid;
-        }
+    const int gap_count = layout_row_gap_count(layout);
+    int available = screen_height - (2 * EDGE_MARGIN) - (gap_count * ROW_GAP);
+    if (available < layout->row_count) {
+        available = layout->row_count;
     }
 
-    return low;
+    float ratio_sum = 0.0f;
+    float raw_heights[WATCH_LAYOUT_MAX_ROWS] = {0.0f};
+    int used = 0;
+    for (int i = 0; i < layout->row_count; i++) {
+        ratio_sum += row_ratio(layout->rows[i].widget);
+    }
+    if (ratio_sum <= 0.0f) {
+        ratio_sum = 1.0f;
+    }
+
+    for (int i = 0; i < layout->row_count; i++) {
+        raw_heights[i] = ((float) available * row_ratio(layout->rows[i].widget)) / ratio_sum;
+        row_heights[i] = (int) raw_heights[i];
+        if (row_heights[i] < 1) {
+            row_heights[i] = 1;
+        }
+        used += row_heights[i];
+    }
+
+    int remaining = available - used;
+    while (remaining > 0) {
+        int best_idx = -1;
+        float best_frac = -2.0f;
+        int best_dist_to_center = 1000000;
+        for (int i = 0; i < layout->row_count; i++) {
+            const int base_height = (int) raw_heights[i];
+            const int assigned_extra = row_heights[i] - base_height;
+            const float frac = raw_heights[i] - (float) base_height - (float) assigned_extra;
+            int dist_to_center = center_idx >= 0 ? i - center_idx : 0;
+            if (dist_to_center < 0) {
+                dist_to_center = -dist_to_center;
+            }
+
+            if (
+                frac > best_frac ||
+                (frac == best_frac && dist_to_center < best_dist_to_center)
+            ) {
+                best_frac = frac;
+                best_idx = i;
+                best_dist_to_center = dist_to_center;
+            }
+        }
+        if (best_idx < 0) {
+            break;
+        }
+        row_heights[best_idx]++;
+        remaining--;
+    }
+
+    while (remaining < 0) {
+        int best_idx = -1;
+        int best_height = 0;
+        for (int i = 0; i < layout->row_count; i++) {
+            if (row_heights[i] > best_height && row_heights[i] > 1) {
+                best_height = row_heights[i];
+                best_idx = i;
+            }
+        }
+        if (best_idx < 0) {
+            break;
+        }
+        row_heights[best_idx]--;
+        remaining++;
+    }
 }
 
 static int top_group_end_y(const WatchLayout *layout, const int *row_heights, int center_idx) {
@@ -145,22 +185,22 @@ LayerBuilder watch_layout_make_builder(
     const GRect screen = layer_get_bounds(window_layer);
     const int center_idx = find_center_row(layout);
     ClaySettings *settings = clay_get_settings();
-    float pixel_scale = settings->DotAutoScale
-                            ? auto_scale_from_screen(screen.size.h)
-                            : settings->DotScaleFactor;
-    if (pixel_scale <= 0.0f) {
-        pixel_scale = 1.0f;
-    }
-
-    float max_fit_scale = max_pixel_scale_to_fit(layout, center_idx, screen.size.h);
-    if (pixel_scale > max_fit_scale) {
-        pixel_scale = max_fit_scale;
-    }
 
     int row_heights[WATCH_LAYOUT_MAX_ROWS] = {0};
     int total_height = 0;
+    if (settings->DotAutoScale) {
+        compute_auto_row_heights(layout, center_idx, screen.size.h, row_heights);
+    } else {
+        float pixel_scale = settings->DotScaleFactor;
+        if (pixel_scale <= 0.0f) {
+            pixel_scale = 1.0f;
+        }
+        for (int i = 0; i < layout->row_count; i++) {
+            row_heights[i] = widget_height(layout->rows[i].widget, pixel_scale);
+        }
+    }
+
     for (int i = 0; i < layout->row_count; i++) {
-        row_heights[i] = widget_height(layout->rows[i].widget, pixel_scale);
         total_height += row_heights[i];
     }
 
