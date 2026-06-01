@@ -65,10 +65,6 @@ void update_date() {
     update_all_date_layers();
 }
 
-void update_date_layer(Layer *layer) {
-    update_all_date_layers();
-}
-
 // creates the date layer
 Layer *create_date_layer(LayerBuilder builder) {
     s_settings = clay_get_settings();

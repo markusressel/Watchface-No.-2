@@ -34,10 +34,6 @@ void update_stepcount() {
     update_all_stepcount_layers();
 }
 
-void update_stepcount_layer(Layer *layer) {
-    update_all_stepcount_layers();
-}
-
 // creates the stepcount layer
 Layer *create_stepcount_layer(LayerBuilder builder) {
     s_settings = clay_get_settings();

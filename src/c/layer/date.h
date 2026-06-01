@@ -4,9 +4,6 @@
 // update all date layer instances (backward compatible wrapper, called by listeners)
 void update_date();
 
-// update a specific date layer instance
-void update_date_layer(Layer * layer);
-
 // create the layer (returns the created layer)
 Layer *create_date_layer(LayerBuilder builder);
 
