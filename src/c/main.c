@@ -27,7 +27,6 @@ static ClaySettings *s_settings;
 #endif
 
 // Layout is built at runtime from settings (see build_layout_from_settings).
-// Row 2 is always WIDGET_TIME; all other rows come from user config.
 static WatchLayout s_layout;
 
 // Store created layer instances indexed by row for proper cleanup
@@ -58,7 +57,7 @@ static void build_layout_from_settings() {
         .rows = {
             [0] = {.widget = (WidgetId) s_settings->Row0Widget},
             [1] = {.widget = (WidgetId) s_settings->Row1Widget},
-            [2] = {.widget = WIDGET_TIME},
+            [2] = {.widget = (WidgetId) s_settings->Row2Widget},
             [3] = {.widget = (WidgetId) s_settings->Row3Widget},
             [4] = {.widget = (WidgetId) s_settings->Row4Widget},
             [5] = {.widget = (WidgetId) s_settings->Row5Widget},

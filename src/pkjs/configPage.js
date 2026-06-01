@@ -228,31 +228,31 @@ module.exports = [
       },
       {
         "type": "text",
-        "defaultValue": "The time is always shown in the center row. Choose how many rows to render and what to display in each non-time row."
+        "defaultValue": "Choose how many rows to render and what each row should display."
       },
       {
         "type": "text",
-        "defaultValue": "Rows 6 and 7 only take effect if Row Count is set to 6 or 7. On non-time-2 hardware, values above 5 are ignored."
+        "defaultValue": "Rows 6 and 7 only take effect if Row Count is set to 6 or 7."
       },
       {
-        "type": "select",
+        "type": "slider",
         "messageKey": "LayoutRowCount",
         "defaultValue": 5,
-        "label": "Row Count (including time)",
-        "options": [
-          { "label": "5 Rows", "value": 5 },
-          { "label": "6 Rows", "value": 6 },
-          { "label": "7 Rows (time 2 / emery)", "value": 7 }
-        ]
+        "label": "Row Count",
+        "description": "Total visible rows",
+        "min": 5,
+        "max": 7,
+        "step": 1
       },
       {
         "type": "select",
         "messageKey": "Row0Widget",
         "defaultValue": 0,
-        "label": "Row 1 (top)",
+        "label": "Row 1",
         "options": [
           { "label": "Weather",  "value": 0 },
           { "label": "Date",     "value": 1 },
+          { "label": "Time",     "value": 2 },
           { "label": "Stepcount","value": 3 },
           { "label": "Battery",  "value": 4 }
         ]
@@ -265,6 +265,20 @@ module.exports = [
         "options": [
           { "label": "Weather",  "value": 0 },
           { "label": "Date",     "value": 1 },
+          { "label": "Time",     "value": 2 },
+          { "label": "Stepcount","value": 3 },
+          { "label": "Battery",  "value": 4 }
+        ]
+      },
+      {
+        "type": "select",
+        "messageKey": "Row2Widget",
+        "defaultValue": 2,
+        "label": "Row 3",
+        "options": [
+          { "label": "Weather",  "value": 0 },
+          { "label": "Date",     "value": 1 },
+          { "label": "Time",     "value": 2 },
           { "label": "Stepcount","value": 3 },
           { "label": "Battery",  "value": 4 }
         ]
@@ -277,6 +291,7 @@ module.exports = [
         "options": [
           { "label": "Weather",  "value": 0 },
           { "label": "Date",     "value": 1 },
+          { "label": "Time",     "value": 2 },
           { "label": "Stepcount","value": 3 },
           { "label": "Battery",  "value": 4 }
         ]
@@ -285,10 +300,11 @@ module.exports = [
         "type": "select",
         "messageKey": "Row4Widget",
         "defaultValue": 4,
-        "label": "Row 5 (bottom)",
+        "label": "Row 5",
         "options": [
           { "label": "Weather",  "value": 0 },
           { "label": "Date",     "value": 1 },
+          { "label": "Time",     "value": 2 },
           { "label": "Stepcount","value": 3 },
           { "label": "Battery",  "value": 4 }
         ]
@@ -297,10 +313,11 @@ module.exports = [
         "type": "select",
         "messageKey": "Row5Widget",
         "defaultValue": 3,
-        "label": "Row 6 (used when Row Count >= 6)",
+        "label": "Row 6",
         "options": [
           { "label": "Weather",  "value": 0 },
           { "label": "Date",     "value": 1 },
+          { "label": "Time",     "value": 2 },
           { "label": "Stepcount","value": 3 },
           { "label": "Battery",  "value": 4 }
         ]
@@ -309,10 +326,11 @@ module.exports = [
         "type": "select",
         "messageKey": "Row6Widget",
         "defaultValue": 3,
-        "label": "Row 7 (used when Row Count = 7)",
+        "label": "Row 7",
         "options": [
           { "label": "Weather",  "value": 0 },
           { "label": "Date",     "value": 1 },
+          { "label": "Time",     "value": 2 },
           { "label": "Stepcount","value": 3 },
           { "label": "Battery",  "value": 4 }
         ]

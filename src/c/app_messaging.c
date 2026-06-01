@@ -152,6 +152,14 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         }
     }
 
+    Tuple *row2_t = dict_find(iterator, MESSAGE_KEY_Row2Widget);
+    if (row2_t) {
+        int value = atoi(row2_t->value->cstring);
+        if (s_settings->Row2Widget != value) {
+            s_settings->Row2Widget = value;
+        }
+    }
+
     Tuple *row3_t = dict_find(iterator, MESSAGE_KEY_Row3Widget);
     if (row3_t) {
         int value = atoi(row3_t->value->cstring);
