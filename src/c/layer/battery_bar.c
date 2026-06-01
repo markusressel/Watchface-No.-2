@@ -10,6 +10,8 @@
 typedef struct {
     Layer *layer;
     int current_battery_level;
+    HorizontalAlignment horizontal_alignment;
+    VerticalAlignment vertical_alignment;
 } BatteryLayerInstance;
 
 static BatteryLayerInstance s_battery_layers[MAX_BATTERY_LAYERS];
@@ -28,6 +30,15 @@ static int s_battery_charging_animation_duration = 2000;
 // delay between a full battery charging animation cycle
 static int s_battery_charging_animation_delay = 600;
 static const int s_battery_charging_animation_repeat_count = ANIMATION_DURATION_INFINITE;
+
+static BatteryLayerInstance *find_battery_instance(Layer *layer) {
+    for (int i = 0; i < s_battery_layer_count; i++) {
+        if (s_battery_layers[i].layer == layer) {
+            return &s_battery_layers[i];
+        }
+    }
+    return NULL;
+}
 
 static int scaled_dimension(int value, float scale_factor) {
     int scaled = (int) ((float) value * scale_factor + 0.5f);
@@ -76,6 +87,13 @@ static void batteryChargingAnimUpdate(Animation *animation, const AnimationProgr
 // draw the battery layer
 static void battery_update_proc(Layer *layer, GContext *ctx) {
     const GRect bounds = layer_get_bounds(layer);
+    BatteryLayerInstance *instance = find_battery_instance(layer);
+    const HorizontalAlignment horizontal_alignment = instance
+                                                         ? instance->horizontal_alignment
+                                                         : HORIZONTAL_ALIGN_RIGHT;
+    const VerticalAlignment vertical_alignment = instance
+                                                     ? instance->vertical_alignment
+                                                     : VERTICAL_ALIGN_TOP;
 
     ClaySettings *settings = clay_get_settings();
     float scale_factor = settings->DotAutoScale
@@ -106,19 +124,41 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
     if (widthDotsCount < 5) {
         return;
     }
+    const int battery_width = dot_width + ((widthDotsCount - 1) * step_x);
+    const int battery_height = dot_height + (4 * step_y);
+    int start_x = 0;
+    int start_y = 0;
+
+    if (horizontal_alignment == HORIZONTAL_ALIGN_CENTER) {
+        start_x = (bounds.size.w - battery_width) / 2;
+    } else if (horizontal_alignment == HORIZONTAL_ALIGN_RIGHT) {
+        start_x = bounds.size.w - battery_width;
+    }
+    if (start_x < 0) {
+        start_x = 0;
+    }
+
+    if (vertical_alignment == VERTICAL_ALIGN_CENTER) {
+        start_y = (bounds.size.h - battery_height) / 2;
+    } else if (vertical_alignment == VERTICAL_ALIGN_BOTTOM) {
+        start_y = bounds.size.h - battery_height;
+    }
+    if (start_y < 0) {
+        start_y = 0;
+    }
 
     // upper row
     int x; // dot x position;
     int y; // dot y position;
     GRect currentDotBorder;
     for (int row = 0; row < 5; row++) {
-        y = row * step_y;
+        y = start_y + row * step_y;
 
         // single dot at the tip (representing +pole)
         if (row == 2) {
             x = ((widthDotsCount - 1) * step_x);
             currentDotBorder = GRect(
-                bounds.size.w - rightMargin - dot_width - x,
+                start_x + battery_width - dot_width - x,
                 y,
                 dot_width,
                 dot_height);
@@ -130,7 +170,7 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
             for (int column = 0; column < widthDotsCount - 1; column++) {
                 x = (column * step_x);
                 currentDotBorder = GRect(
-                    bounds.size.w - rightMargin - dot_width - x,
+                    start_x + battery_width - dot_width - x,
                     y,
                     dot_width,
                     dot_height);
@@ -141,7 +181,7 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
 
             x = ((widthDotsCount - 2) * step_x);
             currentDotBorder = GRect(
-                bounds.size.w - rightMargin - dot_width - x,
+                start_x + battery_width - dot_width - x,
                 y,
                 dot_width,
                 dot_height);
@@ -149,7 +189,7 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
 
             x = 0;
             currentDotBorder = GRect(
-                bounds.size.w - rightMargin - dot_width - x,
+                start_x + battery_width - dot_width - x,
                 y,
                 dot_width,
                 dot_height);
@@ -167,9 +207,9 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
     const int row = 2;
     for (int column = 0; column < fillDotsCount; column++) {
         x = ((column + 2) * step_x);
-        y = row * step_y;
+        y = start_y + row * step_y;
         currentDotBorder = GRect(
-            bounds.size.w - rightMargin - dot_width - x,
+            start_x + battery_width - dot_width - x,
             y,
             dot_width,
             dot_height);
@@ -237,6 +277,8 @@ Layer *create_battery_bar_layer(LayerBuilder builder) {
 
     instance->layer = layer_factory_create_custom_layer(builder, battery_update_proc);
     instance->current_battery_level = 0;
+    instance->horizontal_alignment = HORIZONTAL_ALIGN_RIGHT;
+    instance->vertical_alignment = VERTICAL_ALIGN_TOP;
 
     s_battery_layer_count++;
 
@@ -244,6 +286,50 @@ Layer *create_battery_bar_layer(LayerBuilder builder) {
     update_battery_bar_layer(instance->layer);
 
     return instance->layer;
+}
+
+void battery_bar_layer_set_horizontal_alignment(Layer *layer, HorizontalAlignment alignment) {
+    if (!layer) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Battery bar layer is NULL!");
+        return;
+    }
+    if (alignment != HORIZONTAL_ALIGN_LEFT &&
+        alignment != HORIZONTAL_ALIGN_CENTER &&
+        alignment != HORIZONTAL_ALIGN_RIGHT) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Invalid horizontal alignment!");
+        return;
+    }
+
+    BatteryLayerInstance *instance = find_battery_instance(layer);
+    if (!instance) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Battery bar layer instance not found!");
+        return;
+    }
+
+    instance->horizontal_alignment = alignment;
+    layer_mark_dirty(layer);
+}
+
+void battery_bar_layer_set_vertical_alignment(Layer *layer, VerticalAlignment alignment) {
+    if (!layer) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Battery bar layer is NULL!");
+        return;
+    }
+    if (alignment != VERTICAL_ALIGN_TOP &&
+        alignment != VERTICAL_ALIGN_CENTER &&
+        alignment != VERTICAL_ALIGN_BOTTOM) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Invalid vertical alignment!");
+        return;
+    }
+
+    BatteryLayerInstance *instance = find_battery_instance(layer);
+    if (!instance) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Battery bar layer instance not found!");
+        return;
+    }
+
+    instance->vertical_alignment = alignment;
+    layer_mark_dirty(layer);
 }
 
 void destroy_battery_bar_layer(Layer *layer) {
