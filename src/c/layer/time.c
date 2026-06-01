@@ -58,28 +58,15 @@ Layer *create_time_layer(LayerBuilder builder) {
         VERTICAL_ALIGN_CENTER,
         "00:00"
     );
-    dotted_text_layer_set_solid_blocks(instance->dotted_text_layer, true);
-
-    // Solid blocks reveal unequal horizontal/vertical metrics strongly.
     // For time, force square metrics so each block appears square.
     const int base_dot = 10;
-    const int base_gap = 3;
-    // const int base_dot = s_settings->DotWidth < s_settings->DotHeight
-    //     ? s_settings->DotWidth
-    //     : s_settings->DotHeight;
-    // const int base_gap = s_settings->DotHorizontalGap < s_settings->DotVerticalGap
-    //     ? s_settings->DotHorizontalGap
-    //     : s_settings->DotVerticalGap;
-    // Redistribute visual weight from gaps into dots so boldness survives
-    // auto-fit scaling and remains visible on edge rows (like the bottom row).
-    const int bold_dot = base_dot;
-    const int bold_gap = base_gap > 1 ? base_gap - 1 : 1;
+    const int base_gap = 0;
     dotted_text_layer_set_custom_metrics(
         instance->dotted_text_layer,
-        bold_dot,
-        bold_dot,
-        bold_gap,
-        bold_gap
+        base_dot,
+        base_dot,
+        base_gap,
+        base_gap
     );
     dotted_text_layer_set_character_offset(
         instance->dotted_text_layer,

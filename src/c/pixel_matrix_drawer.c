@@ -637,7 +637,7 @@ int pixel_matrix_drawer_draw_char(
     GContext *ctx, const GPoint point_zero, const char character,
     const int dot_width, const int dot_height,
     const int gap_size_horizontal, const int gap_size_vertical,
-    const bool align_right, const bool solid_blocks, const int digit_size) {
+    const bool align_right, const int digit_size) {
     if (!character) return 0;
 
     Glyph glyph = glyph_for_char(character, digit_size);
@@ -657,60 +657,7 @@ int pixel_matrix_drawer_draw_char(
 
             const int x = point_zero.x + x_offset;
             const int y = point_zero.y + row * (dot_height + gap_size_vertical);
-            const bool has_left_neighbor =
-                col > 0 && glyph.pixels[row][col - 1];
-            const bool has_right_neighbor =
-                col < glyph.width - 1 && glyph.pixels[row][col + 1];
-            const bool has_top_neighbor =
-                row > 0 && glyph.pixels[row - 1][col];
-            const bool has_bottom_neighbor =
-                row < 4 && glyph.pixels[row + 1][col];
-
-            // Base dot
             graphics_fill_rect(ctx, GRect(x, y, dot_width, dot_height), 0, GCornerNone);
-
-            if (solid_blocks) {
-                const int left_bridge = gap_size_horizontal / 2;
-                const int right_bridge = gap_size_horizontal - left_bridge;
-                const int top_bridge = gap_size_vertical / 2;
-                const int bottom_bridge = gap_size_vertical - top_bridge;
-
-                // Horizontal bridges split between both neighboring cells.
-                if (has_left_neighbor && left_bridge > 0) {
-                    graphics_fill_rect(
-                        ctx,
-                        GRect(x - left_bridge, y, left_bridge, dot_height),
-                        0,
-                        GCornerNone
-                    );
-                }
-                if (has_right_neighbor) {
-                    graphics_fill_rect(
-                        ctx,
-                        GRect(x + dot_width, y, right_bridge, dot_height),
-                        0,
-                        GCornerNone
-                    );
-                }
-
-                // Vertical bridges split between both neighboring cells.
-                if (has_top_neighbor && top_bridge > 0) {
-                    graphics_fill_rect(
-                        ctx,
-                        GRect(x, y - top_bridge, dot_width, top_bridge),
-                        0,
-                        GCornerNone
-                    );
-                }
-                if (has_bottom_neighbor) {
-                    graphics_fill_rect(
-                        ctx,
-                        GRect(x, y + dot_height, dot_width, bottom_bridge),
-                        0,
-                        GCornerNone
-                    );
-                }
-            }
         }
     }
 

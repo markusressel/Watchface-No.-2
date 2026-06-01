@@ -31,7 +31,6 @@ typedef struct DottedTextLayerData {
     DottedTextOffsetUnit character_offset_unit;
     float scale_factor;
     bool auto_scale;
-    bool solid_blocks;
     bool use_custom_metrics;
     int custom_dot_width;
     int custom_dot_height;
@@ -99,10 +98,6 @@ void dotted_text_layer_set_character_offset(
 // Enable/disable automatic scale fitting to the layer height.
 // When enabled, scale is computed from available vertical space.
 void dotted_text_layer_set_auto_scale(DottedTextLayer *dotted_text_layer, bool enabled);
-
-// Draw each active matrix cell as a connected block (no visual gap), while
-// preserving overall glyph dimensions.
-void dotted_text_layer_set_solid_blocks(DottedTextLayer *dotted_text_layer, bool enabled);
 
 // Override matrix metrics (base values before scaling) for this layer only.
 void dotted_text_layer_set_custom_metrics(

@@ -11,6 +11,11 @@ static int scaled_dimension(int value, float scale_factor) {
     return scaled < 1 ? 1 : scaled;
 }
 
+static int scaled_non_negative_dimension(int value, float scale_factor) {
+    int scaled = (int) ((float) value * scale_factor + 0.5f);
+    return scaled < 0 ? 0 : scaled;
+}
+
 static int matrix_base_height(int dot_height, int gap_vertical) {
     return (5 * dot_height) + (4 * gap_vertical);
 }
@@ -82,8 +87,8 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
 
     int dot_width = scaled_dimension(base_dot_width, scale_factor);
     int dot_height = scaled_dimension(base_dot_height, scale_factor);
-    int gap_size_horizontal = scaled_dimension(base_gap_horizontal, scale_factor);
-    int gap_size_vertical = scaled_dimension(base_gap_vertical, scale_factor);
+    int gap_size_horizontal = scaled_non_negative_dimension(base_gap_horizontal, scale_factor);
+    int gap_size_vertical = scaled_non_negative_dimension(base_gap_vertical, scale_factor);
     const int digit_width = data->custom_digit_width > 0
                                 ? data->custom_digit_width
                                 : clay_get_settings()->DigitWidth;
@@ -93,7 +98,7 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
     } else if (data->character_offset_unit == DOTTED_TEXT_OFFSET_BLOCKS) {
         character_offset = data->character_offset_value * dot_width;
     } else {
-        character_offset = scaled_dimension(data->character_offset_value, scale_factor);
+        character_offset = scaled_non_negative_dimension(data->character_offset_value, scale_factor);
     }
 
     const int text_height = (5 * dot_height) + (4 * gap_size_vertical);
@@ -136,7 +141,6 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
             dot_width, dot_height,
             gap_size_horizontal, gap_size_vertical,
             false,
-            data->solid_blocks,
             digit_width
         );
 
@@ -162,7 +166,6 @@ DottedTextLayer *dotted_text_layer_create(GRect bounds) {
     data->character_offset_unit = DOTTED_TEXT_OFFSET_PIXELS;
     data->scale_factor = 1.0f;
     data->auto_scale = true;
-    data->solid_blocks = false;
     data->use_custom_metrics = false;
     data->custom_dot_width = 0;
     data->custom_dot_height = 0;
@@ -316,17 +319,6 @@ void dotted_text_layer_set_auto_scale(DottedTextLayer *dotted_text_layer, bool e
     layer_mark_dirty(dotted_text_layer);
 }
 
-void dotted_text_layer_set_solid_blocks(DottedTextLayer *dotted_text_layer, bool enabled) {
-    if (!dotted_text_layer) {
-        APP_LOG(APP_LOG_LEVEL_ERROR, "DottedTextLayer is NULL!");
-        return;
-    }
-
-    DottedTextLayerData *data = get_layer_data(dotted_text_layer);
-    data->solid_blocks = enabled;
-    layer_mark_dirty(dotted_text_layer);
-}
-
 void dotted_text_layer_set_custom_metrics(
     DottedTextLayer *dotted_text_layer,
     const int dot_width,
@@ -339,8 +331,8 @@ void dotted_text_layer_set_custom_metrics(
         return;
     }
 
-    if (dot_width < 1 || dot_height < 1 || gap_horizontal < 1 || gap_vertical < 1) {
-        APP_LOG(APP_LOG_LEVEL_ERROR, "Custom metrics must be >= 1");
+    if (dot_width < 1 || dot_height < 1 || gap_horizontal < 0 || gap_vertical < 0) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Dot size must be >= 1 and gaps must be >= 0");
         return;
     }
 
