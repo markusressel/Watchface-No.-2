@@ -207,8 +207,8 @@ void dotted_text_layer_set_scale_factor(DottedTextLayer *dotted_text_layer, floa
 
 void dotted_text_layer_set_character_offset(
     DottedTextLayer *dotted_text_layer,
-    int value,
-    DottedTextOffsetUnit unit
+    const int value,
+    const DottedTextOffsetUnit unit
 ) {
     if (!dotted_text_layer) {
         APP_LOG(APP_LOG_LEVEL_ERROR, "DottedTextLayer is NULL!");
@@ -256,10 +256,10 @@ void dotted_text_layer_set_solid_blocks(DottedTextLayer *dotted_text_layer, bool
 
 void dotted_text_layer_set_custom_metrics(
     DottedTextLayer *dotted_text_layer,
-    int dot_width,
-    int dot_height,
-    int gap_horizontal,
-    int gap_vertical
+    const int dot_width,
+    const int dot_height,
+    const int gap_horizontal,
+    const int gap_vertical
 ) {
     if (!dotted_text_layer) {
         APP_LOG(APP_LOG_LEVEL_ERROR, "DottedTextLayer is NULL!");

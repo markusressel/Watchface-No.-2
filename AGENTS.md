@@ -25,3 +25,8 @@ Working with settings requires many different parts:
    1. [C Implementation](./src/c/app_messaging.c) - This is the C implementation of the App Messaging. It uses the Pebble C API to receive messages from the JavaScript Configuration Page and save them in persistent storage.
    2. [package.json](./package.json) - Requires "pebble"->"messageKeys" to be set to the keys used in the JavaScript Configuration Page.
 3. [Settings Storage](./src/c/clay_settings.c) - This is the C implementation of the persistent storage for the settings.
+
+# Codestyle
+
+You may use `const` on variables and function parameters where possible and reasonable, except:
+- Pebble SDK methods
