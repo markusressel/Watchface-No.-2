@@ -31,6 +31,7 @@ These are the components to choose from:
 * Date
     * day of the month . month number
 * Step count for the day
+* Heart rate
 * Battery bar
     * with charging animation
 
