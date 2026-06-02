@@ -14,6 +14,7 @@ static char s_buffer[32];
 
 static WeatherData weatherData;
 static WeatherData s_mock_weather_data;
+
 static const WeatherData s_mock_weather_data_template = {
     .CurrentTemperature = 26,
     .MaxTemperature = 27,

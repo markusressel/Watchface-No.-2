@@ -31,42 +31,26 @@ void destroy_temperature_forecast_layer(Layer *layer) {
 static Layer *s_layers[MAX_TEMPERATURE_FORECAST_LAYERS];
 static int s_layer_count = 0;
 
-static GColor temperature_color_for_value(
-    const int value,
-    const int min_value,
-    const int max_value,
-    void *context
-) {
-    (void) context;
-
 #if defined(PBL_COLOR)
-    if (max_value <= min_value) {
-        return theme_get_theme()->WeatherTextColor;
-    }
-
-    const int percent = ((value - min_value) * 100) / (max_value - min_value);
-    if (percent >= 70) {
-        return GColorRed;
-    }
-    if (percent >= 35) {
-        return GColorChromeYellow;
-    }
-    return GColorVividCerulean;
-#else
-    (void) value;
-    (void) min_value;
-    (void) max_value;
-    return theme_get_theme()->WeatherTextColor;
+static const GraphColorStop s_temperature_color_stops[] = {
+    {.value = -25, .color = GColorMagenta},
+    {.value = -12, .color = GColorBlueMoon},
+    {.value = -1, .color = GColorPictonBlue},
+    {.value = 0, .color = GColorGreen},
+    {.value = 15, .color = GColorChromeYellow},
+    {.value = 30, .color = GColorRed},
+};
 #endif
-}
 
 static void update_proc(Layer *layer, GContext *ctx) {
     const GRect bounds = layer_get_bounds(layer);
     WeatherData *weather_data = weather_get_data();
     ClaySettings *settings = clay_get_settings();
 
-    const int dot_size = settings->DotHeight > 1 ? settings->DotHeight : 1;
-    const int point_gap = settings->DotHorizontalGap > 0 ? settings->DotHorizontalGap : 1;
+    // const int dot_size = settings->DotHeight > 1 ? settings->DotHeight : 1;
+    const int dot_size = 1;
+    // const int min_interpolated_dot_distance = settings->DotHorizontalGap > 0 ? settings->DotHorizontalGap : 1;
+    const int min_interpolated_dot_distance = 0;
 
     int values[MAX_FORECAST_POINTS] = {0};
     int value_count = forecast_parse_int_series(
@@ -83,10 +67,23 @@ static void update_proc(Layer *layer, GContext *ctx) {
     GraphDrawConfig graph_config = {
         .graph_type = GRAPH_TYPE_LINE,
         .dot_size = dot_size,
-        .interpolation_steps = point_gap,
-        .bars_from_zero = false,
+        .min_interpolated_dot_distance_px = min_interpolated_dot_distance,
+        .fill_area_under_line = true,
+        .interpolate_color_stops = true,
         .default_color = theme_get_theme()->WeatherTextColor,
-        .color_for_value = temperature_color_for_value,
+        .color_stops =
+#if defined(PBL_COLOR)
+            s_temperature_color_stops,
+#else
+            NULL,
+#endif
+        .color_stop_count =
+#if defined(PBL_COLOR)
+            (int) (sizeof(s_temperature_color_stops) / sizeof(s_temperature_color_stops[0])),
+#else
+            0,
+#endif
+        .color_for_value = NULL,
         .color_context = NULL,
     };
 

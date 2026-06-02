@@ -17,7 +17,6 @@ void destroy_rain_forecast_layer(Layer *layer) {
 #else
 
 #include <pebble.h>
-#include <stdlib.h>
 
 #include "../clay_settings.h"
 #include "forecast_series.h"
@@ -31,34 +30,16 @@ void destroy_rain_forecast_layer(Layer *layer) {
 static Layer *s_layers[MAX_RAIN_FORECAST_LAYERS];
 static int s_layer_count = 0;
 
-static GColor rain_color_for_value(
-    const int value,
-    const int min_value,
-    const int max_value,
-    void *context
-) {
-    (void) context;
-
 #if defined(PBL_COLOR)
-    if (max_value <= min_value) {
-        return theme_get_theme()->WeatherTextColor;
-    }
-
-    const int percent = ((value - min_value) * 100) / (max_value - min_value);
-    if (percent >= 70) {
-        return GColorBlueMoon;
-    }
-    if (percent >= 35) {
-        return GColorPictonBlue;
-    }
-    return GColorLightGray;
-#else
-    (void) value;
-    (void) min_value;
-    (void) max_value;
-    return theme_get_theme()->WeatherTextColor;
+static const GraphColorStop s_rain_color_stops[] = {
+    {.value = -50, .color = GColorVividCerulean},
+    {.value = -10, .color = GColorPictonBlue},
+    {.value = 0, .color = GColorLightGray},
+    {.value = 15, .color = GColorPictonBlue},
+    {.value = 40, .color = GColorBlueMoon},
+    {.value = 80, .color = GColorBlueMoon},
+};
 #endif
-}
 
 static void update_proc(Layer *layer, GContext *ctx) {
     const GRect bounds = layer_get_bounds(layer);
@@ -82,10 +63,23 @@ static void update_proc(Layer *layer, GContext *ctx) {
     GraphDrawConfig graph_config = {
         .graph_type = GRAPH_TYPE_BAR,
         .dot_size = dot_size,
-        .interpolation_steps = settings->DotHorizontalGap,
-        .bars_from_zero = true,
+        .min_interpolated_dot_distance_px = settings->DotHorizontalGap > 0 ? settings->DotHorizontalGap : 1,
+        .fill_area_under_line = false,
+        .interpolate_color_stops = true,
         .default_color = theme_get_theme()->WeatherTextColor,
-        .color_for_value = rain_color_for_value,
+        .color_stops =
+#if defined(PBL_COLOR)
+            s_rain_color_stops,
+#else
+            NULL,
+#endif
+        .color_stop_count =
+#if defined(PBL_COLOR)
+            (int) (sizeof(s_rain_color_stops) / sizeof(s_rain_color_stops[0])),
+#else
+            0,
+#endif
+        .color_for_value = NULL,
         .color_context = NULL,
     };
 

@@ -15,12 +15,20 @@ typedef GColor (*GraphColorForValueFn)(
     void *context
 );
 
+typedef struct GraphColorStop {
+    int value;
+    GColor color;
+} GraphColorStop;
+
 typedef struct GraphDrawConfig {
     GraphType graph_type;
     int dot_size;
-    int interpolation_steps;
-    bool bars_from_zero;
+    int min_interpolated_dot_distance_px;
+    bool fill_area_under_line;
+    bool interpolate_color_stops;
     GColor default_color;
+    const GraphColorStop *color_stops;
+    int color_stop_count;
     GraphColorForValueFn color_for_value;
     void *color_context;
 } GraphDrawConfig;
