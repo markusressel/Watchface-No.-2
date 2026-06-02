@@ -392,6 +392,25 @@ module.exports = [
      ]
    },
    {
+     "type": "section",
+     "items": [
+       {
+         "type": "heading",
+         "defaultValue": "Developer Options"
+       },
+       {
+         "type": "text",
+         "defaultValue": "Enable simulation mode to use bundled timeline.json weather data instead of live API requests."
+       },
+       {
+         "type": "toggle",
+         "messageKey": "WeatherUseSimulation",
+         "label": "Use simulated weather data",
+         "defaultValue": false
+       }
+     ]
+   },
+   {
      "type": "submit",
      "defaultValue": "Save Settings"
    }

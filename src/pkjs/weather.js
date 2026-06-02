@@ -1,10 +1,88 @@
 var config = require('./config');
+var timelineSimulation = require('./timeline.json');
 
 var WEATHER_UPDATE_INTERVAL_MINUTES = 30;
 var WEATHER_UPDATE_INTERVAL_MS = WEATHER_UPDATE_INTERVAL_MINUTES * 60 * 1000;
 var WEATHER_LAST_FETCH_KEY = 'weather-last-fetch-ts';
 var WEATHER_LAST_DATA_KEY = 'weather-last-data';
 var FORECAST_POINT_COUNT = 10;
+
+function process_timeline_payload(json, sourceLabel) {
+    if (!json || !json.data || json.data.length === 0) {
+        console.log('No timeline data available from ' + sourceLabel + '.');
+        return;
+    }
+
+    console.log('Weather source: ' + sourceLabel);
+    console.log('JSON response is: ' + JSON.stringify(json));
+
+    var timeline = json.data || [];
+    var current = pick_closest_entry_to_now(timeline) || timeline[0] || {};
+    var minMax = day_min_max_from_timeline(timeline, current, json.timezone_offset || 0);
+    var minKelvin = minMax.minKelvin;
+    var maxKelvin = minMax.maxKelvin;
+
+    // Temperature in Kelvin requires adjustment
+    var temperatureCurrent = kelvin_to_celsius(current.temp);
+    console.log('Current Temperature is ' + temperatureCurrent);
+    var temperatureMin = kelvin_to_celsius(minKelvin);
+    console.log('Min Temperature is ' + temperatureMin);
+    var temperatureMax = kelvin_to_celsius(maxKelvin);
+    console.log('Max Temperature is ' + temperatureMax);
+
+    // Conditions
+    var conditions = '';
+    if (current.weather && current.weather.length > 0 && current.weather[0].main) {
+        conditions = current.weather[0].main;
+    }
+    console.log('Conditions are ' + conditions);
+
+    // Rain forecast based on selected 15-minute entry
+    var rainMm = (current.rain && current.rain['1h']) ? current.rain['1h'] : 0;
+    var popPercent = typeof current.pop === 'number' ? Math.round(current.pop * 100) : 0;
+    console.log('Rain from selected entry (mm/h): ' + rainMm + ', pop (%): ' + popPercent);
+
+    var temperatureForecastSeries = build_condensed_series(
+        timeline,
+        function (entry) {
+            return kelvin_to_celsius(entry && entry.temp);
+        },
+        FORECAST_POINT_COUNT
+    );
+
+    var rainForecastSeries = build_condensed_series(
+        timeline,
+        function (entry) {
+            var rain = (entry && entry.rain && entry.rain['1h']) ? entry.rain['1h'] : 0;
+            return one_decimal_to_int(rain);
+        },
+        FORECAST_POINT_COUNT
+    );
+
+    // Assemble dictionary using our keys
+    var dictionary = {
+        'WEATHER_TEMPERATURE_CURRENT': temperatureCurrent,
+        'WEATHER_TEMPERATURE_MIN': temperatureMin,
+        'WEATHER_TEMPERATURE_MAX': temperatureMax,
+        'WEATHER_CONDITION': conditions,
+        'WEATHER_RAIN_NEXT_HOUR_MM_X10': one_decimal_to_int(rainMm),
+        'WEATHER_RAIN_POP_PERCENT': popPercent,
+        'WEATHER_TEMP_FORECAST_ENCODED': encode_number_array(temperatureForecastSeries),
+        'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': encode_number_array(rainForecastSeries)
+    };
+
+    cache_weather_data(dictionary);
+
+    send_weather_to_watch(
+        dictionary,
+        'Weather info sent to Pebble successfully!',
+        'Error sending weather info to Pebble!'
+    );
+}
+
+function request_simulated_weather_data() {
+    process_timeline_payload(timelineSimulation, 'simulation/timeline.json');
+}
 
 function kelvin_to_celsius(kelvin) {
     if (typeof kelvin !== 'number') {
@@ -186,74 +264,12 @@ function locationSuccess(pos) {
     // Send request to OpenWeatherMap
     xhrRequest(url, 'GET',
         function (responseText) {
-            // responseText contains a JSON object with weather info
-            var json = JSON.parse(responseText);
-
-            console.log("JSON response is: " + JSON.stringify(json));
-
-            var timeline = json.data || [];
-            var current = pick_closest_entry_to_now(timeline) || timeline[0] || {};
-            var minMax = day_min_max_from_timeline(timeline, current, json.timezone_offset || 0);
-            var minKelvin = minMax.minKelvin;
-            var maxKelvin = minMax.maxKelvin;
-
-            // Temperature in Kelvin requires adjustment
-            var temperatureCurrent = kelvin_to_celsius(current.temp);
-            console.log("Current Temperature is " + temperatureCurrent);
-            var temperatureMin = kelvin_to_celsius(minKelvin);
-            console.log("Min Temperature is " + temperatureMin);
-            var temperatureMax = kelvin_to_celsius(maxKelvin);
-            console.log("Max Temperature is " + temperatureMax);
-
-            // Conditions
-            var conditions = "";
-            if (current.weather && current.weather.length > 0 && current.weather[0].main) {
-                conditions = current.weather[0].main;
+            try {
+                var json = JSON.parse(responseText);
+                process_timeline_payload(json, 'api/openweathermap');
+            } catch (error) {
+                console.log('Error parsing API weather response: ' + error);
             }
-            console.log("Conditions are " + conditions);
-
-            // Rain forecast based on selected 15-minute entry
-            var rainMm = (current.rain && current.rain["1h"]) ? current.rain["1h"] : 0;
-            var popPercent = typeof current.pop === 'number' ? Math.round(current.pop * 100) : 0;
-            console.log("Rain from selected entry (mm/h): " + rainMm + ", pop (%): " + popPercent);
-
-            var temperatureForecastSeries = build_condensed_series(
-                timeline,
-                function (entry) {
-                    return kelvin_to_celsius(entry && entry.temp);
-                },
-                FORECAST_POINT_COUNT
-            );
-
-            var rainForecastSeries = build_condensed_series(
-                timeline,
-                function (entry) {
-                    var rain = (entry && entry.rain && entry.rain['1h']) ? entry.rain['1h'] : 0;
-                    return one_decimal_to_int(rain);
-                },
-                FORECAST_POINT_COUNT
-            );
-
-            // Assemble dictionary using our keys
-            var dictionary = {
-                "WEATHER_TEMPERATURE_CURRENT": temperatureCurrent,
-                "WEATHER_TEMPERATURE_MIN": temperatureMin,
-                "WEATHER_TEMPERATURE_MAX": temperatureMax,
-                "WEATHER_CONDITION": conditions,
-                "WEATHER_RAIN_NEXT_HOUR_MM_X10": one_decimal_to_int(rainMm),
-                "WEATHER_RAIN_POP_PERCENT": popPercent,
-                "WEATHER_TEMP_FORECAST_ENCODED": encode_number_array(temperatureForecastSeries),
-                "WEATHER_RAIN_FORECAST_MM_X10_ENCODED": encode_number_array(rainForecastSeries)
-            };
-
-            cache_weather_data(dictionary);
-
-            // Send to Pebble
-            send_weather_to_watch(
-                dictionary,
-                "Weather info sent to Pebble successfully!",
-                "Error sending weather info to Pebble!"
-            );
         }
     );
 }
@@ -263,6 +279,12 @@ function locationError(err) {
 }
 
 function getWeather() {
+    if (config.isWeatherSimulationEnabled()) {
+        console.log('Simulation mode enabled. Using timeline.json weather data.');
+        request_simulated_weather_data();
+        return;
+    }
+
     var apiKey = config.getWeatherApiKey();
 
     // If no API key is configured, clear any stale weather data
@@ -313,3 +335,5 @@ function getWeather() {
 }
 
 module.exports.getWeather = getWeather;
+module.exports.setSimulationModeEnabled = config.setWeatherSimulationEnabled;
+module.exports.toggleSimulationMode = config.toggleWeatherSimulation;
