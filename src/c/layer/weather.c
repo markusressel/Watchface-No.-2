@@ -4,6 +4,8 @@
 #include "../clay_settings.h"
 #include "../dotted_text_layer.h"
 #include "../layer_factory.h"
+#include "temperature_forecast.h"
+#include "rain_forecast.h"
 
 #define MAX_WEATHER_LAYERS 7
 
@@ -110,6 +112,9 @@ static void update_all_weather_layers() {
         // update text layer
         dotted_text_layer_set_text(s_weather_layers[i].dotted_text_layer, s_buffer);
     }
+
+    update_temperature_forecast();
+    update_rain_forecast();
 }
 
 // Backward compatible wrapper (called by app messaging or other code)

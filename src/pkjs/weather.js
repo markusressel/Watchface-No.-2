@@ -3,6 +3,7 @@ var config = require('./config');
 var WEATHER_UPDATE_INTERVAL_MS = 1800000;
 var WEATHER_LAST_FETCH_KEY = 'weather-last-fetch-ts';
 var WEATHER_LAST_DATA_KEY = 'weather-last-data';
+var FORECAST_POINT_COUNT = 10;
 
 function kelvin_to_celsius(kelvin) {
   if (typeof kelvin !== 'number') {
@@ -86,6 +87,83 @@ function pick_closest_entry_to_now(entries) {
   return best;
 }
 
+function local_day_index(utcTimestamp, timezoneOffsetSeconds) {
+  return Math.floor((utcTimestamp + timezoneOffsetSeconds) / 86400);
+}
+
+function day_min_max_from_timeline(entries, referenceEntry, timezoneOffsetSeconds) {
+  if (!entries || entries.length === 0) {
+    return { minKelvin: undefined, maxKelvin: undefined };
+  }
+
+  var reference = referenceEntry || entries[0];
+  var referenceDay = local_day_index(reference.dt || 0, timezoneOffsetSeconds || 0);
+  var minKelvin;
+  var maxKelvin;
+
+  for (var i = 0; i < entries.length; i++) {
+    var entry = entries[i];
+    var t = entry && entry.temp;
+    if (typeof t !== 'number') {
+      continue;
+    }
+
+    if (local_day_index(entry.dt || 0, timezoneOffsetSeconds || 0) !== referenceDay) {
+      continue;
+    }
+
+    if (typeof minKelvin !== 'number' || t < minKelvin) {
+      minKelvin = t;
+    }
+    if (typeof maxKelvin !== 'number' || t > maxKelvin) {
+      maxKelvin = t;
+    }
+  }
+
+  if (typeof minKelvin !== 'number' || typeof maxKelvin !== 'number') {
+    for (var j = 0; j < entries.length; j++) {
+      var fallbackTemp = entries[j] && entries[j].temp;
+      if (typeof fallbackTemp !== 'number') {
+        continue;
+      }
+      if (typeof minKelvin !== 'number' || fallbackTemp < minKelvin) {
+        minKelvin = fallbackTemp;
+      }
+      if (typeof maxKelvin !== 'number' || fallbackTemp > maxKelvin) {
+        maxKelvin = fallbackTemp;
+      }
+    }
+  }
+
+  return { minKelvin: minKelvin, maxKelvin: maxKelvin };
+}
+
+function build_condensed_series(entries, extractor, count) {
+  var samples = [];
+  if (!entries || entries.length === 0) {
+    return samples;
+  }
+
+  var targetCount = count;
+  if (entries.length <= targetCount) {
+    for (var i = 0; i < entries.length; i++) {
+      samples.push(extractor(entries[i]));
+    }
+    return samples;
+  }
+
+  for (var n = 0; n < targetCount; n++) {
+    var idx = Math.round((n * (entries.length - 1)) / (targetCount - 1));
+    samples.push(extractor(entries[idx]));
+  }
+
+  return samples;
+}
+
+function encode_number_array(values) {
+  return values.join(',');
+}
+
 var xhrRequest = function (url, type, callback) {
   var xhr = new XMLHttpRequest();
   xhr.onload = function () {
@@ -114,22 +192,9 @@ function locationSuccess(pos) {
 
       var timeline = json.data || [];
       var current = pick_closest_entry_to_now(timeline) || timeline[0] || {};
-      var minKelvin = current.temp;
-      var maxKelvin = current.temp;
-
-      for (var i = 0; i < timeline.length; i++) {
-        var t = timeline[i] && timeline[i].temp;
-        if (typeof t !== 'number') {
-          continue;
-        }
-
-        if (typeof minKelvin !== 'number' || t < minKelvin) {
-          minKelvin = t;
-        }
-        if (typeof maxKelvin !== 'number' || t > maxKelvin) {
-          maxKelvin = t;
-        }
-      }
+      var minMax = day_min_max_from_timeline(timeline, current, json.timezone_offset || 0);
+      var minKelvin = minMax.minKelvin;
+      var maxKelvin = minMax.maxKelvin;
 
       // Temperature in Kelvin requires adjustment
       var temperatureCurrent = kelvin_to_celsius(current.temp);
@@ -151,6 +216,23 @@ function locationSuccess(pos) {
       var popPercent = typeof current.pop === 'number' ? Math.round(current.pop * 100) : 0;
       console.log("Rain from selected entry (mm/h): " + rainMm + ", pop (%): " + popPercent);
 
+      var temperatureForecastSeries = build_condensed_series(
+        timeline,
+        function(entry) {
+          return kelvin_to_celsius(entry && entry.temp);
+        },
+        FORECAST_POINT_COUNT
+      );
+
+      var rainForecastSeries = build_condensed_series(
+        timeline,
+        function(entry) {
+          var rain = (entry && entry.rain && entry.rain['1h']) ? entry.rain['1h'] : 0;
+          return one_decimal_to_int(rain);
+        },
+        FORECAST_POINT_COUNT
+      );
+
       // Assemble dictionary using our keys
       var dictionary = {
         "WEATHER_TEMPERATURE_CURRENT": temperatureCurrent,
@@ -158,7 +240,9 @@ function locationSuccess(pos) {
         "WEATHER_TEMPERATURE_MAX": temperatureMax,
         "WEATHER_CONDITION": conditions,
         "WEATHER_RAIN_NEXT_HOUR_MM_X10": one_decimal_to_int(rainMm),
-        "WEATHER_RAIN_POP_PERCENT": popPercent
+        "WEATHER_RAIN_POP_PERCENT": popPercent,
+        "WEATHER_TEMP_FORECAST_ENCODED": encode_number_array(temperatureForecastSeries),
+        "WEATHER_RAIN_FORECAST_MM_X10_ENCODED": encode_number_array(rainForecastSeries)
       };
 
       cache_weather_data(dictionary);
@@ -191,7 +275,9 @@ function getWeather() {
       "WEATHER_TEMPERATURE_MAX": 0,
       "WEATHER_CONDITION": "",
       "WEATHER_RAIN_NEXT_HOUR_MM_X10": 0,
-      "WEATHER_RAIN_POP_PERCENT": 0
+      "WEATHER_RAIN_POP_PERCENT": 0,
+      "WEATHER_TEMP_FORECAST_ENCODED": "",
+      "WEATHER_RAIN_FORECAST_MM_X10_ENCODED": ""
     };
     
     cache_weather_data(clearDictionary);

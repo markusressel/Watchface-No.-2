@@ -19,6 +19,8 @@ static const WidgetMetrics s_widget_metrics[WIDGET_COUNT] = {
     [WIDGET_STEPCOUNT] = {.x = 0, .width_margin = 3},
     [WIDGET_BATTERY_BAR] = {.x = 7, .width_margin = 10},
     [WIDGET_HEARTRATE] = {.x = 0, .width_margin = 3},
+    [WIDGET_TEMPERATURE_FORECAST] = {.x = 0, .width_margin = 3},
+    [WIDGET_RAIN_FORECAST] = {.x = 0, .width_margin = 3},
 };
 
 #define EDGE_MARGIN 5

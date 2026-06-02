@@ -14,9 +14,7 @@ screenshot platform:
 build:
     pebble build
 
-clean-emulator platforms: build kill wipe
-    # Note: If you want to auto-run your loop here, you can call:
-    # just run {{platforms}}
+clean-emulator platforms: kill wipe
 
 [arg("platforms", pattern="phone|basalt|chalk|diorite|emery|flint")]
 run *platforms: build

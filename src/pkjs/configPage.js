@@ -265,7 +265,9 @@ module.exports = [
           { "label": "Time",     "value": 2 },
           { "label": "Stepcount","value": 3 },
           { "label": "Battery",  "value": 4 },
-          { "label": "Heartrate","value": 5 }
+          { "label": "Heartrate","value": 5 },
+          { "label": "Temp Forecast","value": 6 },
+          { "label": "Rain Forecast","value": 7 }
         ]
       },
       {
@@ -279,7 +281,9 @@ module.exports = [
           { "label": "Time",     "value": 2 },
           { "label": "Stepcount","value": 3 },
           { "label": "Battery",  "value": 4 },
-          { "label": "Heartrate","value": 5 }
+          { "label": "Heartrate","value": 5 },
+          { "label": "Temp Forecast","value": 6 },
+          { "label": "Rain Forecast","value": 7 }
         ]
       },
       {
@@ -293,7 +297,9 @@ module.exports = [
           { "label": "Time",     "value": 2 },
           { "label": "Stepcount","value": 3 },
           { "label": "Battery",  "value": 4 },
-          { "label": "Heartrate","value": 5 }
+          { "label": "Heartrate","value": 5 },
+          { "label": "Temp Forecast","value": 6 },
+          { "label": "Rain Forecast","value": 7 }
         ]
       },
       {
@@ -307,7 +313,9 @@ module.exports = [
           { "label": "Time",     "value": 2 },
           { "label": "Stepcount","value": 3 },
           { "label": "Battery",  "value": 4 },
-          { "label": "Heartrate","value": 5 }
+          { "label": "Heartrate","value": 5 },
+          { "label": "Temp Forecast","value": 6 },
+          { "label": "Rain Forecast","value": 7 }
         ]
       },
       {
@@ -321,7 +329,9 @@ module.exports = [
           { "label": "Time",     "value": 2 },
           { "label": "Stepcount","value": 3 },
           { "label": "Battery",  "value": 4 },
-          { "label": "Heartrate","value": 5 }
+          { "label": "Heartrate","value": 5 },
+          { "label": "Temp Forecast","value": 6 },
+          { "label": "Rain Forecast","value": 7 }
         ]
       },
       {
@@ -335,7 +345,9 @@ module.exports = [
           { "label": "Time",     "value": 2 },
           { "label": "Stepcount","value": 3 },
           { "label": "Battery",  "value": 4 },
-          { "label": "Heartrate","value": 5 }
+          { "label": "Heartrate","value": 5 },
+          { "label": "Temp Forecast","value": 6 },
+          { "label": "Rain Forecast","value": 7 }
         ]
       },
       {
@@ -349,7 +361,9 @@ module.exports = [
           { "label": "Time",     "value": 2 },
           { "label": "Stepcount","value": 3 },
           { "label": "Battery",  "value": 4 },
-          { "label": "Heartrate","value": 5 }
+          { "label": "Heartrate","value": 5 },
+          { "label": "Temp Forecast","value": 6 },
+          { "label": "Rain Forecast","value": 7 }
         ]
       }
     ]

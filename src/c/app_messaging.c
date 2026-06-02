@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include <string.h>
 #include "app_messaging.h"
 #include "main.h"
 #include "layer/weather.h"
@@ -270,6 +271,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *condition_tuple = dict_find(iterator, MESSAGE_KEY_WEATHER_CONDITION);
     Tuple *rain_next_hour_tuple = dict_find(iterator, MESSAGE_KEY_WEATHER_RAIN_NEXT_HOUR_MM_X10);
     Tuple *rain_pop_percent_tuple = dict_find(iterator, MESSAGE_KEY_WEATHER_RAIN_POP_PERCENT);
+    Tuple *temp_forecast_encoded_tuple = dict_find(iterator, MESSAGE_KEY_WEATHER_TEMP_FORECAST_ENCODED);
+    Tuple *rain_forecast_encoded_tuple = dict_find(iterator, MESSAGE_KEY_WEATHER_RAIN_FORECAST_MM_X10_ENCODED);
 
     // If all data is available, use it
     if (temp_cur_tuple && temp_min_tuple && temp_max_tuple && condition_tuple) {
@@ -288,6 +291,22 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         if (rain_pop_percent_tuple) {
             weatherData->RainPopPercent = rain_pop_percent_tuple->value->int32;
         }
+        if (temp_forecast_encoded_tuple) {
+            strncpy(
+                weatherData->TemperatureForecastEncoded,
+                temp_forecast_encoded_tuple->value->cstring,
+                sizeof(weatherData->TemperatureForecastEncoded) - 1
+            );
+            weatherData->TemperatureForecastEncoded[sizeof(weatherData->TemperatureForecastEncoded) - 1] = '\0';
+        }
+        if (rain_forecast_encoded_tuple) {
+            strncpy(
+                weatherData->RainForecastMmX10Encoded,
+                rain_forecast_encoded_tuple->value->cstring,
+                sizeof(weatherData->RainForecastMmX10Encoded) - 1
+            );
+            weatherData->RainForecastMmX10Encoded[sizeof(weatherData->RainForecastMmX10Encoded) - 1] = '\0';
+        }
 
         APP_LOG(
             APP_LOG_LEVEL_DEBUG,
@@ -295,6 +314,12 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
             weatherData->RainNextHourMmX10 / 10,
             weatherData->RainNextHourMmX10 % 10,
             weatherData->RainPopPercent
+        );
+        APP_LOG(
+            APP_LOG_LEVEL_DEBUG,
+            "weather forecast arrays: temp='%s' rain='%s'",
+            weatherData->TemperatureForecastEncoded,
+            weatherData->RainForecastMmX10Encoded
         );
 
         update_weather();

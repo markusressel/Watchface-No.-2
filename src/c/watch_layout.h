@@ -11,7 +11,9 @@ typedef enum WidgetId {
     WIDGET_STEPCOUNT = 3,
     WIDGET_BATTERY_BAR = 4,
     WIDGET_HEARTRATE = 5,
-    WIDGET_COUNT = 6
+    WIDGET_TEMPERATURE_FORECAST = 6,
+    WIDGET_RAIN_FORECAST = 7,
+    WIDGET_COUNT = 8
 } WidgetId;
 
 // A single row in the layout.

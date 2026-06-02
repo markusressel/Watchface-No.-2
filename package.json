@@ -21,6 +21,8 @@
             "WEATHER_TEMPERATURE_MIN",
             "WEATHER_RAIN_NEXT_HOUR_MM_X10",
             "WEATHER_RAIN_POP_PERCENT",
+            "WEATHER_TEMP_FORECAST_ENCODED",
+            "WEATHER_RAIN_FORECAST_MM_X10_ENCODED",
             "WeatherTextColor",
             "BackgroundColor",
             "TimeTextColor",
