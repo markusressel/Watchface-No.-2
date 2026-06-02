@@ -17,7 +17,6 @@ void destroy_temperature_forecast_layer(Layer *layer) {
 #else
 
 #include <pebble.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "../clay_settings.h"
@@ -30,31 +29,70 @@ void destroy_temperature_forecast_layer(Layer *layer) {
 static Layer *s_layers[MAX_TEMPERATURE_FORECAST_LAYERS];
 static int s_layer_count = 0;
 
-static int parse_int_series(const char *encoded, int *out_values, const int max_values) {
-    if (!encoded || !out_values || max_values <= 0 || encoded[0] == '\0') {
+static size_t bounded_cstring_length(const char *value, const size_t capacity) {
+    if (!value || capacity == 0) {
         return 0;
     }
 
-    const char *cursor = encoded;
-    int count = 0;
+    size_t length = 0;
+    while (length < capacity && value[length] != '\0') {
+        length++;
+    }
 
-    while (*cursor != '\0' && count < max_values) {
-        char *end = NULL;
-        long value = strtol(cursor, &end, 10);
-        if (end == cursor) {
+    return length;
+}
+
+static int parse_int_series(
+    const char *encoded,
+    const size_t encoded_capacity,
+    int *out_values,
+    const int max_values
+) {
+    if (!encoded || encoded_capacity == 0 || !out_values || max_values <= 0 || encoded[0] == '\0') {
+        return 0;
+    }
+
+    // Never scan beyond the fixed WeatherData buffer even if persisted data is corrupt.
+    const size_t encoded_length = bounded_cstring_length(encoded, encoded_capacity);
+    if (encoded_length == 0 || encoded_length >= encoded_capacity) {
+        return 0;
+    }
+
+    int count = 0;
+    size_t index = 0;
+
+    while (index < encoded_length && count < max_values) {
+        bool is_negative = false;
+        if (encoded[index] == '-') {
+            is_negative = true;
+            index++;
+        }
+
+        bool has_digit = false;
+        int value = 0;
+        while (index < encoded_length && encoded[index] >= '0' && encoded[index] <= '9') {
+            has_digit = true;
+            value = (value * 10) + (encoded[index] - '0');
+            index++;
+        }
+
+        if (!has_digit) {
             break;
         }
 
-        out_values[count++] = (int) value;
+        out_values[count++] = is_negative ? -value : value;
 
-        if (*end == ',') {
-            cursor = end + 1;
-        } else {
-            cursor = end;
-            if (*cursor != '\0') {
-                break;
-            }
+        if (index >= encoded_length) {
+            break;
         }
+
+        if (encoded[index] == ',') {
+            index++;
+            continue;
+        }
+
+        // Unexpected separator, stop parsing remaining values.
+        break;
     }
 
     return count;
@@ -77,7 +115,12 @@ static void update_proc(Layer *layer, GContext *ctx) {
     const int point_gap = settings->DotHorizontalGap > 0 ? settings->DotHorizontalGap : 1;
 
     int values[MAX_FORECAST_POINTS] = {0};
-    int value_count = parse_int_series(weather_data->TemperatureForecastEncoded, values, MAX_FORECAST_POINTS);
+    int value_count = parse_int_series(
+        weather_data->TemperatureForecastEncoded,
+        sizeof(weather_data->TemperatureForecastEncoded),
+        values,
+        MAX_FORECAST_POINTS
+    );
     if (value_count <= 0) {
         values[0] = weather_data->CurrentTemperature;
         value_count = 1;
@@ -131,7 +174,9 @@ static void update_proc(Layer *layer, GContext *ctx) {
 
 void update_temperature_forecast() {
     for (int i = 0; i < s_layer_count; i++) {
-        layer_mark_dirty(s_layers[i]);
+        if (s_layers[i] != NULL) {
+            layer_mark_dirty(s_layers[i]);
+        }
     }
 }
 
@@ -142,6 +187,11 @@ Layer *create_temperature_forecast_layer(LayerBuilder builder) {
     }
 
     Layer *layer = layer_factory_create_custom_layer(builder, update_proc);
+    if (layer == NULL) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Failed to create temperature forecast layer");
+        return NULL;
+    }
+
     s_layers[s_layer_count++] = layer;
     layer_mark_dirty(layer);
 
@@ -149,6 +199,10 @@ Layer *create_temperature_forecast_layer(LayerBuilder builder) {
 }
 
 void destroy_temperature_forecast_layer(Layer *layer) {
+    if (layer == NULL) {
+        return;
+    }
+
     for (int i = 0; i < s_layer_count; i++) {
         if (s_layers[i] == layer) {
             for (int j = i; j < s_layer_count - 1; j++) {
@@ -163,4 +217,3 @@ void destroy_temperature_forecast_layer(Layer *layer) {
 }
 
 #endif
-

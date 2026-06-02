@@ -123,7 +123,7 @@ static void copy_tuple_cstring_to_buffer(
     }
 
     Tuple *tuple = dict_find(iterator, message_key);
-    if (!tuple) {
+    if (!tuple || tuple->type != TUPLE_CSTRING) {
         return;
     }
 
@@ -213,7 +213,17 @@ static void read_weather_data(DictionaryIterator *iterator) {
         weatherData->CurrentTemperature = temp_cur_tuple->value->int32;
         weatherData->MinTemperature = temp_min_tuple->value->int32;
         weatherData->MaxTemperature = temp_max_tuple->value->int32;
-        strcpy(weatherData->CurrentConditions, condition_tuple->value->cstring);
+
+        if (condition_tuple->type == TUPLE_CSTRING) {
+            strncpy(
+                weatherData->CurrentConditions,
+                condition_tuple->value->cstring,
+                sizeof(weatherData->CurrentConditions) - 1
+            );
+            weatherData->CurrentConditions[sizeof(weatherData->CurrentConditions) - 1] = '\0';
+        } else {
+            weatherData->CurrentConditions[0] = '\0';
+        }
 
         if (rain_next_hour_tuple) {
             weatherData->RainNextHourMmX10 = rain_next_hour_tuple->value->int32;
@@ -286,7 +296,19 @@ void initialize_app_messaging() {
     app_message_register_outbox_failed(outbox_failed_callback);
     app_message_register_outbox_sent(outbox_sent_callback);
 
-    // Open AppMessage with the largest receive buffer the platform supports,
-    // to accommodate all settings including string fields like WeatherApiKey.
-    app_message_open(app_message_inbox_size_maximum(), 256);
+    // Avoid app_message_inbox_size_maximum() to keep heap usage stable when
+    // forecast layers are enabled.
+    static const uint32_t k_outbox_size = 256;
+    static const uint32_t k_inbox_sizes[] = {1024, 768, 512};
+
+    AppMessageResult result = APP_MSG_INTERNAL_ERROR;
+    for (unsigned int i = 0; i < sizeof(k_inbox_sizes) / sizeof(k_inbox_sizes[0]); i++) {
+        result = app_message_open(k_inbox_sizes[i], k_outbox_size);
+        if (result == APP_MSG_OK) {
+            APP_LOG(APP_LOG_LEVEL_INFO, "app_message_open() inbox=%lu outbox=%lu", k_inbox_sizes[i], k_outbox_size);
+            return;
+        }
+    }
+
+    APP_LOG(APP_LOG_LEVEL_ERROR, "app_message_open() failed: %d", (int) result);
 }

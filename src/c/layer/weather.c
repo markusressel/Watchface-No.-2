@@ -13,6 +13,23 @@ static char s_buffer[32];
 
 static WeatherData weatherData;
 
+static void sanitize_weather_strings() {
+    if (memchr(weatherData.TemperatureForecastEncoded, '\0', sizeof(weatherData.TemperatureForecastEncoded)) == NULL) {
+        weatherData.TemperatureForecastEncoded[0] = '\0';
+    }
+    weatherData.TemperatureForecastEncoded[sizeof(weatherData.TemperatureForecastEncoded) - 1] = '\0';
+
+    if (memchr(weatherData.RainForecastMmX10Encoded, '\0', sizeof(weatherData.RainForecastMmX10Encoded)) == NULL) {
+        weatherData.RainForecastMmX10Encoded[0] = '\0';
+    }
+    weatherData.RainForecastMmX10Encoded[sizeof(weatherData.RainForecastMmX10Encoded) - 1] = '\0';
+
+    if (memchr(weatherData.CurrentConditions, '\0', sizeof(weatherData.CurrentConditions)) == NULL) {
+        weatherData.CurrentConditions[0] = '\0';
+    }
+    weatherData.CurrentConditions[sizeof(weatherData.CurrentConditions) - 1] = '\0';
+}
+
 // Timer to update weather after the given amount of time
 static int s_weather_update_interval = 1800000;
 //static int s_weather_update_interval = 30000;
@@ -41,7 +58,10 @@ static void restore_saved_weather_data() {
     const int bytes = persist_read_data(WEATHER_DATA_KEY, &weatherData, sizeof(weatherData));
     if (bytes != sizeof(weatherData)) {
         memset(&weatherData, 0, sizeof(weatherData));
+        return;
     }
+
+    sanitize_weather_strings();
 }
 
 static void save_current_weather_data() {

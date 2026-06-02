@@ -112,7 +112,9 @@ static void update_proc(Layer *layer, GContext *ctx) {
 
 void update_rain_forecast() {
     for (int i = 0; i < s_layer_count; i++) {
-        layer_mark_dirty(s_layers[i]);
+        if (s_layers[i] != NULL) {
+            layer_mark_dirty(s_layers[i]);
+        }
     }
 }
 
@@ -123,6 +125,11 @@ Layer *create_rain_forecast_layer(LayerBuilder builder) {
     }
 
     Layer *layer = layer_factory_create_custom_layer(builder, update_proc);
+    if (layer == NULL) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Failed to create rain forecast layer");
+        return NULL;
+    }
+
     s_layers[s_layer_count++] = layer;
     layer_mark_dirty(layer);
 
@@ -130,6 +137,10 @@ Layer *create_rain_forecast_layer(LayerBuilder builder) {
 }
 
 void destroy_rain_forecast_layer(Layer *layer) {
+    if (layer == NULL) {
+        return;
+    }
+
     for (int i = 0; i < s_layer_count; i++) {
         if (s_layers[i] == layer) {
             for (int j = i; j < s_layer_count - 1; j++) {

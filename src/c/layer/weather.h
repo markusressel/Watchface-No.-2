@@ -14,7 +14,7 @@ typedef struct WeatherData {
     int RainPopPercent; // 0..100
     char TemperatureForecastEncoded[64];
     char RainForecastMmX10Encoded[64];
-    char CurrentConditions[32];
+    char CurrentConditions[48];
 } __attribute__((__packed__)
 
 )
