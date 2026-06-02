@@ -68,3 +68,6 @@ void clay_save_settings();
 
 // load settings from persistent storage
 void clay_load_settings();
+
+// print current settings values for debugging
+void clay_log_settings_debug(const char *context_label);

@@ -4,6 +4,61 @@
 // An instance of the struct
 static ClaySettings settings;
 
+void clay_log_settings_debug(const char *context_label) {
+    const char *label = context_label ? context_label : "settings";
+
+    APP_LOG(
+        APP_LOG_LEVEL_DEBUG,
+        "%s theme=%s show_seconds=%d show_year=%d show_weekday=%d weekday_upper=%d",
+        label,
+        settings.ThemeValue,
+        settings.ShowSeconds,
+        settings.ShowYear,
+        settings.ShowWeekdayAbbreviation,
+        settings.WeekdayAbbreviationUppercase
+    );
+
+    APP_LOG(
+        APP_LOG_LEVEL_DEBUG,
+        "%s colors bg=%lu time=%lu date=%lu weather=%lu step=%lu batt_frame=%lu batt_fill=%lu",
+        label,
+        (unsigned long) settings.BackgroundColor.argb,
+        (unsigned long) settings.TimeTextColor.argb,
+        (unsigned long) settings.DateTextColor.argb,
+        (unsigned long) settings.WeatherTextColor.argb,
+        (unsigned long) settings.StepcountTextColor.argb,
+        (unsigned long) settings.BatteryFrameColor.argb,
+        (unsigned long) settings.BatteryFillColor.argb
+    );
+
+    APP_LOG(
+        APP_LOG_LEVEL_DEBUG,
+        "%s dotted digit_w=%d dot_w=%d dot_h=%d gap_h=%d gap_v=%d auto_scale=%d scale=%.2f",
+        label,
+        settings.DigitWidth,
+        settings.DotWidth,
+        settings.DotHeight,
+        settings.DotHorizontalGap,
+        settings.DotVerticalGap,
+        settings.DotAutoScale,
+        (double) settings.DotScaleFactor
+    );
+
+    APP_LOG(
+        APP_LOG_LEVEL_DEBUG,
+        "%s layout rows=%d r0=%d r1=%d r2=%d r3=%d r4=%d r5=%d r6=%d",
+        label,
+        settings.LayoutRowCount,
+        settings.Row0Widget,
+        settings.Row1Widget,
+        settings.Row2Widget,
+        settings.Row3Widget,
+        settings.Row4Widget,
+        settings.Row5Widget,
+        settings.Row6Widget
+    );
+}
+
 static bool is_row_widget_valid(const int widget) {
     return widget == 0 || widget == 1 || widget == 2 || widget == 3 || widget == 4;
 }
@@ -128,6 +183,8 @@ void clay_load_settings() {
     }
 
     clay_sanitize_settings();
+
+    clay_log_settings_debug("loaded persisted settings");
 }
 
 void clay_save_settings() {

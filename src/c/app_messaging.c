@@ -6,6 +6,18 @@
 
 static ClaySettings *s_settings;
 
+static int tuple_to_int(const Tuple *tuple) {
+    if (tuple == NULL) {
+        return 0;
+    }
+
+    if (tuple->type == TUPLE_CSTRING) {
+        return atoi(tuple->value->cstring);
+    }
+
+    return tuple->value->int32;
+}
+
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
     // Read clay configuration properties
 
@@ -137,8 +149,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
     Tuple *row0_t = dict_find(iterator, MESSAGE_KEY_Row0Widget);
     if (row0_t) {
-        // Read as a string and convert to integer
-        int value = atoi(row0_t->value->cstring);
+        int value = tuple_to_int(row0_t);
         if (s_settings->Row0Widget != value) {
             s_settings->Row0Widget = value;
         }
@@ -146,7 +157,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
     Tuple *row1_t = dict_find(iterator, MESSAGE_KEY_Row1Widget);
     if (row1_t) {
-        int value = atoi(row1_t->value->cstring);
+        int value = tuple_to_int(row1_t);
         if (s_settings->Row1Widget != value) {
             s_settings->Row1Widget = value;
         }
@@ -154,7 +165,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
     Tuple *row2_t = dict_find(iterator, MESSAGE_KEY_Row2Widget);
     if (row2_t) {
-        int value = atoi(row2_t->value->cstring);
+        int value = tuple_to_int(row2_t);
         if (s_settings->Row2Widget != value) {
             s_settings->Row2Widget = value;
         }
@@ -162,7 +173,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
     Tuple *row3_t = dict_find(iterator, MESSAGE_KEY_Row3Widget);
     if (row3_t) {
-        int value = atoi(row3_t->value->cstring);
+        int value = tuple_to_int(row3_t);
         if (s_settings->Row3Widget != value) {
             s_settings->Row3Widget = value;
         }
@@ -170,7 +181,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
     Tuple *row4_t = dict_find(iterator, MESSAGE_KEY_Row4Widget);
     if (row4_t) {
-        int value = atoi(row4_t->value->cstring);
+        int value = tuple_to_int(row4_t);
         if (s_settings->Row4Widget != value) {
             s_settings->Row4Widget = value;
         }
@@ -178,7 +189,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
     Tuple *row5_t = dict_find(iterator, MESSAGE_KEY_Row5Widget);
     if (row5_t) {
-        int value = atoi(row5_t->value->cstring);
+        int value = tuple_to_int(row5_t);
         if (s_settings->Row5Widget != value) {
             s_settings->Row5Widget = value;
         }
@@ -186,7 +197,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
     Tuple *row6_t = dict_find(iterator, MESSAGE_KEY_Row6Widget);
     if (row6_t) {
-        int value = atoi(row6_t->value->cstring);
+        int value = tuple_to_int(row6_t);
         if (s_settings->Row6Widget != value) {
             s_settings->Row6Widget = value;
         }
@@ -194,7 +205,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
     Tuple *layout_row_count_t = dict_find(iterator, MESSAGE_KEY_LayoutRowCount);
     if (layout_row_count_t) {
-        int value = atoi(layout_row_count_t->value->cstring);
+        int value = tuple_to_int(layout_row_count_t);
         if (s_settings->LayoutRowCount != value) {
             s_settings->LayoutRowCount = value;
         }
@@ -221,6 +232,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
         update_weather();
     }
+
+    clay_log_settings_debug("received settings update");
 
     // persist data
     clay_save_settings();
