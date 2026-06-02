@@ -1,16 +1,17 @@
 #include "weather.h"
+#include <string.h>
 #include "../theme.h"
 #include "../clay_settings.h"
 #include "../dotted_text_layer.h"
 #include "../layer_factory.h"
 
-#define MAX_WEATHER_LAYERS 5
+#define MAX_WEATHER_LAYERS 7
 
 static char s_buffer[32];
 
 static WeatherData weatherData;
 
-// Timer to update weather after given amount of time
+// Timer to update weather after the given amount of time
 static int s_weather_update_interval = 1800000;
 //static int s_weather_update_interval = 30000;
 static AppTimer *s_update_timer;
@@ -29,8 +30,16 @@ WeatherData *weather_get_data() {
 }
 
 static void restore_saved_weather_data() {
-    // Read settings from persistent storage, if they exist
-    persist_read_data(WEATHER_DATA_KEY, &weatherData, sizeof(weatherData));
+    memset(&weatherData, 0, sizeof(weatherData));
+
+    if (!persist_exists(WEATHER_DATA_KEY)) {
+        return;
+    }
+
+    const int bytes = persist_read_data(WEATHER_DATA_KEY, &weatherData, sizeof(weatherData));
+    if (bytes != sizeof(weatherData)) {
+        memset(&weatherData, 0, sizeof(weatherData));
+    }
 }
 
 static void save_current_weather_data() {
@@ -85,6 +94,14 @@ static void on_scheduled_update_triggered(void *data) {
 static void update_all_weather_layers() {
     // persist current data for fast access when opening the watchface
     save_current_weather_data();
+
+    APP_LOG(
+        APP_LOG_LEVEL_DEBUG,
+        "weather rain forecast: next_1h=%d.%dmm pop=%d%%",
+        weatherData.RainNextHourMmX10 / 10,
+        weatherData.RainNextHourMmX10 % 10,
+        weatherData.RainPopPercent
+    );
 
     // Write the current temperature into a buffer
     snprintf(s_buffer, sizeof(s_buffer), "%d|%d", weatherData.MaxTemperature, weatherData.MinTemperature);

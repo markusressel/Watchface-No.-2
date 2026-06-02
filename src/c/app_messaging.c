@@ -225,6 +225,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *temp_min_tuple = dict_find(iterator, MESSAGE_KEY_WEATHER_TEMPERATURE_MIN);
     Tuple *temp_max_tuple = dict_find(iterator, MESSAGE_KEY_WEATHER_TEMPERATURE_MAX);
     Tuple *condition_tuple = dict_find(iterator, MESSAGE_KEY_WEATHER_CONDITION);
+    Tuple *rain_next_hour_tuple = dict_find(iterator, MESSAGE_KEY_WEATHER_RAIN_NEXT_HOUR_MM_X10);
+    Tuple *rain_pop_percent_tuple = dict_find(iterator, MESSAGE_KEY_WEATHER_RAIN_POP_PERCENT);
 
     // If all data is available, use it
     if (temp_cur_tuple && temp_min_tuple && temp_max_tuple && condition_tuple) {
@@ -236,6 +238,21 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         weatherData->MinTemperature = temp_min_tuple->value->int32;
         weatherData->MaxTemperature = temp_max_tuple->value->int32;
         strcpy(weatherData->CurrentConditions, condition_tuple->value->cstring);
+
+        if (rain_next_hour_tuple) {
+            weatherData->RainNextHourMmX10 = rain_next_hour_tuple->value->int32;
+        }
+        if (rain_pop_percent_tuple) {
+            weatherData->RainPopPercent = rain_pop_percent_tuple->value->int32;
+        }
+
+        APP_LOG(
+            APP_LOG_LEVEL_DEBUG,
+            "weather rain update: next_1h=%d.%dmm pop=%d%%",
+            weatherData->RainNextHourMmX10 / 10,
+            weatherData->RainNextHourMmX10 % 10,
+            weatherData->RainPopPercent
+        );
 
         update_weather();
     }

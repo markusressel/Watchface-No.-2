@@ -19,6 +19,8 @@
             "WEATHER_CONDITION",
             "WEATHER_TEMPERATURE_MAX",
             "WEATHER_TEMPERATURE_MIN",
+            "WEATHER_RAIN_NEXT_HOUR_MM_X10",
+            "WEATHER_RAIN_POP_PERCENT",
             "WeatherTextColor",
             "BackgroundColor",
             "TimeTextColor",

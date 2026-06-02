@@ -9,6 +9,8 @@ typedef struct WeatherData {
     int CurrentTemperature;
     int MaxTemperature;
     int MinTemperature;
+    int RainNextHourMmX10; // millimeters * 10
+    int RainPopPercent; // 0..100
     char CurrentConditions[32];
 } __attribute__((__packed__)
 
