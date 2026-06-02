@@ -16,6 +16,7 @@
 #include "layer/temperature_forecast.h"
 #include "layer/rain_forecast.h"
 #include "health_listener.h"
+#include "layer/widget.h"
 
 // Main Window
 static Window *s_main_window;

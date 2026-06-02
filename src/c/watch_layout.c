@@ -1,5 +1,6 @@
 #include "watch_layout.h"
 #include "clay_settings.h"
+#include "layer/widget.h"
 
 // Per-widget layout constants.
 // x            - left edge of the layer (pixels from screen left)

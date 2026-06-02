@@ -1,5 +1,6 @@
 #include <pebble.h>
 #include "clay_settings.h"
+#include "layer/widget.h"
 
 // An instance of the struct
 static ClaySettings settings;
@@ -154,13 +155,13 @@ static void clay_default_settings() {
     settings.LayoutRowCount = layout_row_count_max_for_platform() == 7 ? 7 : 5;
 
     // Row layout defaults: Weather, Date, Time, Stepcount, Battery.
-    settings.Row0Widget = 0; // WIDGET_WEATHER
-    settings.Row1Widget = 1; // WIDGET_DATE
-    settings.Row2Widget = 2; // WIDGET_TIME
-    settings.Row3Widget = 3; // WIDGET_STEPCOUNT
-    settings.Row4Widget = 4; // WIDGET_BATTERY_BAR
-    settings.Row5Widget = 3; // WIDGET_STEPCOUNT
-    settings.Row6Widget = 3; // WIDGET_STEPCOUNT
+    settings.Row0Widget = WIDGET_WEATHER; // 0
+    settings.Row1Widget = WIDGET_DATE; // 1
+    settings.Row2Widget = WIDGET_TIME; // 2
+    settings.Row3Widget = WIDGET_STEPCOUNT;
+    settings.Row4Widget = WIDGET_BATTERY_BAR;
+    settings.Row5Widget = WIDGET_HEARTRATE;
+    settings.Row6Widget = WIDGET_TEMPERATURE_FORECAST;
 }
 
 ClaySettings *clay_get_settings() {

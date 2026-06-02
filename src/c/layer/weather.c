@@ -1,5 +1,6 @@
 #include "weather.h"
 #include <string.h>
+#include "../developer_options.h"
 #include "../theme.h"
 #include "../clay_settings.h"
 #include "../dotted_text_layer.h"
@@ -12,6 +13,17 @@
 static char s_buffer[32];
 
 static WeatherData weatherData;
+static WeatherData s_mock_weather_data;
+static const WeatherData s_mock_weather_data_template = {
+    .CurrentTemperature = 26,
+    .MaxTemperature = 27,
+    .MinTemperature = 19,
+    .RainNextHourMmX10 = 0,
+    .RainPopPercent = 0,
+    .TemperatureForecastEncoded = "27,26,25,24,21,19,19,19,18,16",
+    .RainForecastMmX10Encoded = "0,3,5,6,3,1,0,10,25,50",
+    .CurrentConditions = "Mock",
+};
 
 static void sanitize_weather_strings() {
     if (memchr(weatherData.TemperatureForecastEncoded, '\0', sizeof(weatherData.TemperatureForecastEncoded)) == NULL) {
@@ -45,6 +57,11 @@ static int s_weather_layer_count = 0;
 static ClaySettings *s_settings;
 
 WeatherData *weather_get_data() {
+    if (DEV_OPTIONS.UseMockWeatherData) {
+        memcpy(&s_mock_weather_data, &s_mock_weather_data_template, sizeof(WeatherData));
+        return &s_mock_weather_data;
+    }
+
     return &weatherData;
 }
 
@@ -65,6 +82,10 @@ static void restore_saved_weather_data() {
 }
 
 static void save_current_weather_data() {
+    if (DEV_OPTIONS.UseMockWeatherData) {
+        return;
+    }
+
     // save WeatherData struct to persistent storage
     persist_write_data(WEATHER_DATA_KEY, &weatherData, sizeof(weatherData));
 }
@@ -114,19 +135,21 @@ static void on_scheduled_update_triggered(void *data) {
 
 // Update all weather layer instances
 static void update_all_weather_layers() {
+    WeatherData *data = weather_get_data();
+
     // persist current data for fast access when opening the watchface
     save_current_weather_data();
 
     APP_LOG(
         APP_LOG_LEVEL_DEBUG,
         "weather rain forecast: next_1h=%d.%dmm pop=%d%%",
-        weatherData.RainNextHourMmX10 / 10,
-        weatherData.RainNextHourMmX10 % 10,
-        weatherData.RainPopPercent
+        data->RainNextHourMmX10 / 10,
+        data->RainNextHourMmX10 % 10,
+        data->RainPopPercent
     );
 
     // Write the current temperature into a buffer
-    snprintf(s_buffer, sizeof(s_buffer), "%d|%d", weatherData.MaxTemperature, weatherData.MinTemperature);
+    snprintf(s_buffer, sizeof(s_buffer), "%d|%d", data->MaxTemperature, data->MinTemperature);
 
     for (int i = 0; i < s_weather_layer_count; i++) {
         // update text layer
