@@ -21,6 +21,7 @@ void destroy_rain_forecast_layer(Layer *layer) {
 
 #include "../clay_settings.h"
 #include "forecast_series.h"
+#include "graph_utils.h"
 #include "../theme.h"
 #include "weather.h"
 
@@ -29,6 +30,35 @@ void destroy_rain_forecast_layer(Layer *layer) {
 
 static Layer *s_layers[MAX_RAIN_FORECAST_LAYERS];
 static int s_layer_count = 0;
+
+static GColor rain_color_for_value(
+    const int value,
+    const int min_value,
+    const int max_value,
+    void *context
+) {
+    (void) context;
+
+#if defined(PBL_COLOR)
+    if (max_value <= min_value) {
+        return theme_get_theme()->WeatherTextColor;
+    }
+
+    const int percent = ((value - min_value) * 100) / (max_value - min_value);
+    if (percent >= 70) {
+        return GColorBlueMoon;
+    }
+    if (percent >= 35) {
+        return GColorPictonBlue;
+    }
+    return GColorLightGray;
+#else
+    (void) value;
+    (void) min_value;
+    (void) max_value;
+    return theme_get_theme()->WeatherTextColor;
+#endif
+}
 
 static void update_proc(Layer *layer, GContext *ctx) {
     const GRect bounds = layer_get_bounds(layer);
@@ -49,41 +79,17 @@ static void update_proc(Layer *layer, GContext *ctx) {
         value_count = 1;
     }
 
-    int max_value = 1;
-    for (int i = 0; i < value_count; i++) {
-        if (values[i] > max_value) {
-            max_value = values[i];
-        }
-    }
+    GraphDrawConfig graph_config = {
+        .graph_type = GRAPH_TYPE_BAR,
+        .dot_size = dot_size,
+        .interpolation_steps = settings->DotHorizontalGap,
+        .bars_from_zero = true,
+        .default_color = theme_get_theme()->WeatherTextColor,
+        .color_for_value = rain_color_for_value,
+        .color_context = NULL,
+    };
 
-    int rows = bounds.size.h / (dot_size + 1);
-    if (rows < 1) {
-        rows = 1;
-    }
-
-    graphics_context_set_fill_color(ctx, theme_get_theme()->WeatherTextColor);
-
-    for (int i = 0; i < value_count; i++) {
-        int x;
-        if (value_count == 1) {
-            x = 0;
-        } else {
-            x = (i * (bounds.size.w - dot_size)) / (value_count - 1);
-        }
-
-        int bar_rows = (values[i] * rows) / max_value;
-        if (values[i] > 0 && bar_rows == 0) {
-            bar_rows = 1;
-        }
-
-        for (int r = 0; r < bar_rows; r++) {
-            int y = bounds.size.h - dot_size - (r * (dot_size + 1));
-            if (y < 0) {
-                break;
-            }
-            graphics_fill_rect(ctx, GRect(x, y, dot_size, dot_size), 0, GCornerNone);
-        }
-    }
+    graph_draw_series(ctx, bounds, values, value_count, &graph_config);
 }
 
 void update_rain_forecast() {

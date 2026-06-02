@@ -21,6 +21,7 @@ void destroy_temperature_forecast_layer(Layer *layer) {
 
 #include "../clay_settings.h"
 #include "forecast_series.h"
+#include "graph_utils.h"
 #include "../theme.h"
 #include "weather.h"
 
@@ -30,12 +31,33 @@ void destroy_temperature_forecast_layer(Layer *layer) {
 static Layer *s_layers[MAX_TEMPERATURE_FORECAST_LAYERS];
 static int s_layer_count = 0;
 
-static void draw_dot(GContext *ctx, const GRect bounds, const int x, const int y, const int dot_size) {
-    if (x < 0 || y < 0 || x + dot_size > bounds.size.w || y + dot_size > bounds.size.h) {
-        return;
+static GColor temperature_color_for_value(
+    const int value,
+    const int min_value,
+    const int max_value,
+    void *context
+) {
+    (void) context;
+
+#if defined(PBL_COLOR)
+    if (max_value <= min_value) {
+        return theme_get_theme()->WeatherTextColor;
     }
 
-    graphics_fill_rect(ctx, GRect(x, y, dot_size, dot_size), 0, GCornerNone);
+    const int percent = ((value - min_value) * 100) / (max_value - min_value);
+    if (percent >= 70) {
+        return GColorRed;
+    }
+    if (percent >= 35) {
+        return GColorChromeYellow;
+    }
+    return GColorVividCerulean;
+#else
+    (void) value;
+    (void) min_value;
+    (void) max_value;
+    return theme_get_theme()->WeatherTextColor;
+#endif
 }
 
 static void update_proc(Layer *layer, GContext *ctx) {
@@ -58,50 +80,17 @@ static void update_proc(Layer *layer, GContext *ctx) {
         value_count = 1;
     }
 
-    int min_value = values[0];
-    int max_value = values[0];
-    for (int i = 1; i < value_count; i++) {
-        if (values[i] < min_value) {
-            min_value = values[i];
-        }
-        if (values[i] > max_value) {
-            max_value = values[i];
-        }
-    }
+    GraphDrawConfig graph_config = {
+        .graph_type = GRAPH_TYPE_LINE,
+        .dot_size = dot_size,
+        .interpolation_steps = point_gap,
+        .bars_from_zero = false,
+        .default_color = theme_get_theme()->WeatherTextColor,
+        .color_for_value = temperature_color_for_value,
+        .color_context = NULL,
+    };
 
-    int drawable_height = bounds.size.h - dot_size;
-    if (drawable_height < 1) {
-        drawable_height = 1;
-    }
-
-    graphics_context_set_fill_color(ctx, theme_get_theme()->WeatherTextColor);
-
-    for (int i = 0; i < value_count; i++) {
-        int x;
-        if (value_count == 1) {
-            x = 0;
-        } else {
-            x = (i * (bounds.size.w - dot_size)) / (value_count - 1);
-        }
-
-        int y;
-        if (max_value == min_value) {
-            y = drawable_height / 2;
-        } else {
-            const int normalized = (values[i] - min_value) * drawable_height / (max_value - min_value);
-            y = drawable_height - normalized;
-        }
-
-        draw_dot(ctx, bounds, x, y, dot_size);
-
-        // Add a small horizontal tail to improve readability on sparse point sets.
-        if (point_gap > 1 && i < value_count - 1) {
-            int tail_x = x + dot_size;
-            if (tail_x + dot_size <= bounds.size.w) {
-                draw_dot(ctx, bounds, tail_x, y, 1);
-            }
-        }
-    }
+    graph_draw_series(ctx, bounds, values, value_count, &graph_config);
 }
 
 void update_temperature_forecast() {
