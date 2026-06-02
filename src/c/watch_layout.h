@@ -10,7 +10,8 @@ typedef enum WidgetId {
     WIDGET_TIME = 2,
     WIDGET_STEPCOUNT = 3,
     WIDGET_BATTERY_BAR = 4,
-    WIDGET_COUNT = 5
+    WIDGET_HEARTRATE = 5,
+    WIDGET_COUNT = 6
 } WidgetId;
 
 // A single row in the layout.

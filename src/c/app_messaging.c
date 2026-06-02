@@ -79,6 +79,13 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         s_settings->StepcountTextColor = stepcount_text_color;
     }
 
+    // Heartrate Layer Colors
+    Tuple *heartrate_text_color_t = dict_find(iterator, MESSAGE_KEY_HeartrateTextColor);
+    if (heartrate_text_color_t) {
+        GColor heartrate_text_color = GColorFromHEX(heartrate_text_color_t->value->int32);
+        s_settings->HeartrateTextColor = heartrate_text_color;
+    }
+
     // Read Slider preferences
     Tuple *dot_count_t = dict_find(iterator, MESSAGE_KEY_SliderDigitWidth);
     if (dot_count_t) {

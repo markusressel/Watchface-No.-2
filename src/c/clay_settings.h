@@ -3,7 +3,7 @@
 // Persistent storage key
 #define SETTINGS_KEY 1
 #define SETTINGS_VERSION_KEY 2
-#define SETTINGS_VERSION 7
+#define SETTINGS_VERSION 8
 
 // Define our settings struct
 typedef struct ClaySettings {
@@ -24,6 +24,9 @@ typedef struct ClaySettings {
 
     // Stepcount Layer
     GColor StepcountTextColor;
+
+    // Heartrate Layer
+    GColor HeartrateTextColor;
 
     char ThemeValue[10];
 

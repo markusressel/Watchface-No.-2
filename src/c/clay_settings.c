@@ -20,13 +20,14 @@ void clay_log_settings_debug(const char *context_label) {
 
     APP_LOG(
         APP_LOG_LEVEL_DEBUG,
-        "%s colors bg=%lu time=%lu date=%lu weather=%lu step=%lu batt_frame=%lu batt_fill=%lu",
+        "%s colors bg=%lu time=%lu date=%lu weather=%lu step=%lu hr=%lu batt_frame=%lu batt_fill=%lu",
         label,
         (unsigned long) settings.BackgroundColor.argb,
         (unsigned long) settings.TimeTextColor.argb,
         (unsigned long) settings.DateTextColor.argb,
         (unsigned long) settings.WeatherTextColor.argb,
         (unsigned long) settings.StepcountTextColor.argb,
+        (unsigned long) settings.HeartrateTextColor.argb,
         (unsigned long) settings.BatteryFrameColor.argb,
         (unsigned long) settings.BatteryFillColor.argb
     );
@@ -60,7 +61,7 @@ void clay_log_settings_debug(const char *context_label) {
 }
 
 static bool is_row_widget_valid(const int widget) {
-    return widget == 0 || widget == 1 || widget == 2 || widget == 3 || widget == 4;
+    return widget == 0 || widget == 1 || widget == 2 || widget == 3 || widget == 4 || widget == 5;
 }
 
 static int layout_row_count_max_for_platform() {
@@ -131,6 +132,9 @@ static void clay_default_settings() {
 
     // Stepcount layer
     settings.StepcountTextColor = textColor;
+
+    // Heartrate layer
+    settings.HeartrateTextColor = textColor;
 
     settings.ShowYear = false;
     settings.ShowSeconds = false;

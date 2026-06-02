@@ -6,7 +6,7 @@
 #include "../dotted_text_layer.h"
 #include "../layer_factory.h"
 
-#define MAX_STEPCOUNT_LAYERS 5
+#define MAX_STEPCOUNT_LAYERS 7
 
 // Registry of all created stepcount layers
 typedef struct {

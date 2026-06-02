@@ -46,6 +46,9 @@ static void set_colors() {
 
   // Stepcount Layer
   s_theme.StepcountTextColor = mainTextColor;
+
+  // Heartrate Layer
+  s_theme.HeartrateTextColor = mainTextColor;
 }
 
 Theme *theme_get_theme() {

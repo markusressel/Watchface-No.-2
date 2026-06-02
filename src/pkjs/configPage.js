@@ -108,6 +108,16 @@ module.exports = [
         "messageKey": "StepcountTextColor",
         "defaultValue": "0xFFFFFF",
         "label": "Stepcount Text Color"
+      },
+      {
+        "type": "text",
+        "defaultValue": "Heartrate"
+      },
+      {
+        "type": "color",
+        "messageKey": "HeartrateTextColor",
+        "defaultValue": "0xFFFFFF",
+        "label": "Heartrate Text Color"
       }
     ]
   },
@@ -254,7 +264,8 @@ module.exports = [
           { "label": "Date",     "value": 1 },
           { "label": "Time",     "value": 2 },
           { "label": "Stepcount","value": 3 },
-          { "label": "Battery",  "value": 4 }
+          { "label": "Battery",  "value": 4 },
+          { "label": "Heartrate","value": 5 }
         ]
       },
       {
@@ -267,7 +278,8 @@ module.exports = [
           { "label": "Date",     "value": 1 },
           { "label": "Time",     "value": 2 },
           { "label": "Stepcount","value": 3 },
-          { "label": "Battery",  "value": 4 }
+          { "label": "Battery",  "value": 4 },
+          { "label": "Heartrate","value": 5 }
         ]
       },
       {
@@ -280,7 +292,8 @@ module.exports = [
           { "label": "Date",     "value": 1 },
           { "label": "Time",     "value": 2 },
           { "label": "Stepcount","value": 3 },
-          { "label": "Battery",  "value": 4 }
+          { "label": "Battery",  "value": 4 },
+          { "label": "Heartrate","value": 5 }
         ]
       },
       {
@@ -293,7 +306,8 @@ module.exports = [
           { "label": "Date",     "value": 1 },
           { "label": "Time",     "value": 2 },
           { "label": "Stepcount","value": 3 },
-          { "label": "Battery",  "value": 4 }
+          { "label": "Battery",  "value": 4 },
+          { "label": "Heartrate","value": 5 }
         ]
       },
       {
@@ -306,7 +320,8 @@ module.exports = [
           { "label": "Date",     "value": 1 },
           { "label": "Time",     "value": 2 },
           { "label": "Stepcount","value": 3 },
-          { "label": "Battery",  "value": 4 }
+          { "label": "Battery",  "value": 4 },
+          { "label": "Heartrate","value": 5 }
         ]
       },
       {
@@ -319,7 +334,8 @@ module.exports = [
           { "label": "Date",     "value": 1 },
           { "label": "Time",     "value": 2 },
           { "label": "Stepcount","value": 3 },
-          { "label": "Battery",  "value": 4 }
+          { "label": "Battery",  "value": 4 },
+          { "label": "Heartrate","value": 5 }
         ]
       },
       {
@@ -332,7 +348,8 @@ module.exports = [
           { "label": "Date",     "value": 1 },
           { "label": "Time",     "value": 2 },
           { "label": "Stepcount","value": 3 },
-          { "label": "Battery",  "value": 4 }
+          { "label": "Battery",  "value": 4 },
+          { "label": "Heartrate","value": 5 }
         ]
       }
     ]

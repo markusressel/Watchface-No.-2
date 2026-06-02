@@ -29,6 +29,9 @@ typedef struct Theme {
     // Stepcount layer
     GColor StepcountTextColor;
 
+    // Heartrate layer
+    GColor HeartrateTextColor;
+
     // Fonts
     GFont TimeFont;
 } __attribute__((__packed__)

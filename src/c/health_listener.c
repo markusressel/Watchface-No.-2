@@ -2,6 +2,7 @@
 #define EXTERN
 #include "health_listener.h"
 #include "layer/stepcount.h"
+#include "layer/heartrate.h"
 
 static bool registered = false;
 
@@ -16,6 +17,7 @@ static void health_handler(HealthEventType event, void *context) {
             APP_LOG(APP_LOG_LEVEL_DEBUG, "stepcount: %d", s_step_count);
 
             update_stepcount();
+            update_heartrate();
             break;
         case HealthEventMovementUpdate:
             APP_LOG(APP_LOG_LEVEL_INFO, "New HealthService HealthEventMovementUpdate event");
@@ -31,6 +33,11 @@ static void health_handler(HealthEventType event, void *context) {
             break;
         case HealthEventHeartRateUpdate:
             APP_LOG(APP_LOG_LEVEL_INFO, "New HealthService HealthEventHeartRateUpdate event");
+            s_heartrate_bpm = health_service_peek_current_value(HealthMetricHeartRateBPM);
+
+            APP_LOG(APP_LOG_LEVEL_DEBUG, "heartrate: %d", s_heartrate_bpm);
+
+            update_heartrate();
             break;
         case HealthEventMetricAlert:
             APP_LOG(APP_LOG_LEVEL_INFO, "New HealthService HealthEventMetricAlert event");
@@ -60,6 +67,7 @@ void register_health_event_listener() {
     s_step_count = health_service_peek_current_value(HealthMetricStepCount);
 
     APP_LOG(APP_LOG_LEVEL_DEBUG, "stepcount: %d", s_step_count);
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "heartrate: %d", s_heartrate_bpm);
 
     registered = true;
 #else

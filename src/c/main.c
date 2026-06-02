@@ -12,6 +12,7 @@
 #include "layer/weather.h"
 #include "app_messaging.h"
 #include "layer/stepcount.h"
+#include "layer/heartrate.h"
 #include "health_listener.h"
 
 // Main Window
@@ -64,6 +65,8 @@ static void main_window_load(Window *window) {
                 break;
             case WIDGET_STEPCOUNT: s_row_layers[i] = create_stepcount_layer(builder);
                 break;
+            case WIDGET_HEARTRATE: s_row_layers[i] = create_heartrate_layer(builder);
+                break;
             case WIDGET_BATTERY_BAR: s_row_layers[i] = create_battery_bar_layer(builder);
                 break;
             default: break;
@@ -100,6 +103,8 @@ static void main_window_unload(Window *window) {
                     break;
                 case WIDGET_STEPCOUNT: destroy_stepcount_layer(s_row_layers[i]);
                     break;
+                case WIDGET_HEARTRATE: destroy_heartrate_layer(s_row_layers[i]);
+                    break;
                 case WIDGET_BATTERY_BAR: destroy_battery_bar_layer(s_row_layers[i]);
                     break;
                 default: break;
@@ -132,6 +137,7 @@ static void apply_theme_from_settings() {
         custom_theme.BatteryFillColor = s_settings->BatteryFillColor;
         custom_theme.WeatherTextColor = s_settings->WeatherTextColor;
         custom_theme.StepcountTextColor = s_settings->StepcountTextColor;
+        custom_theme.HeartrateTextColor = s_settings->HeartrateTextColor;
 
         init_custom_theme(custom_theme, s_settings->ShowSeconds);
     } else {
