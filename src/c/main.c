@@ -19,13 +19,6 @@ static Window *s_main_window;
 
 static ClaySettings *s_settings;
 
-// Emery (time 2 hardware) supports up to 7 rows, others up to 5.
-#ifdef PBL_PLATFORM_EMERY
-#define MAX_LAYOUT_ROW_COUNT 7
-#else
-#define MAX_LAYOUT_ROW_COUNT 5
-#endif
-
 // Layout is built at runtime from settings (see build_layout_from_settings).
 static WatchLayout s_layout;
 
@@ -42,9 +35,6 @@ static int clamp_layout_row_count(const int row_count) {
     const int min_rows = 5;
     if (row_count < min_rows) {
         return min_rows;
-    }
-    if (row_count > MAX_LAYOUT_ROW_COUNT) {
-        return MAX_LAYOUT_ROW_COUNT;
     }
     return row_count;
 }
