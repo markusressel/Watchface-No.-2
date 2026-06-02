@@ -111,7 +111,7 @@ void clay_load_settings() {
     // Load the default settings
     clay_default_settings();
 
-    // Migrate/reset settings when struct layout changes across versions.
+    // Migrate/reset settings when the struct layout changes across versions.
     if (!persist_exists(SETTINGS_VERSION_KEY) ||
         persist_read_int(SETTINGS_VERSION_KEY) != SETTINGS_VERSION) {
         clay_save_settings();

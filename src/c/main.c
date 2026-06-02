@@ -31,16 +31,8 @@ static void init_row_layers() {
     }
 }
 
-static int clamp_layout_row_count(const int row_count) {
-    const int min_rows = 5;
-    if (row_count < min_rows) {
-        return min_rows;
-    }
-    return row_count;
-}
-
 static void build_layout_from_settings() {
-    const int row_count = clamp_layout_row_count(s_settings->LayoutRowCount);
+    const int row_count = s_settings->LayoutRowCount;
 
     s_layout = (WatchLayout){
         .row_count = row_count,
