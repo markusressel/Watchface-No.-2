@@ -32,238 +32,168 @@ static int clamp_layout_row_count(const int row_count) {
     return row_count;
 }
 
-static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
-    // Read clay configuration properties
+static bool apply_cstring_setting(
+    DictionaryIterator *iterator,
+    const uint32_t message_key,
+    char *destination,
+    const size_t destination_size
+) {
+    Tuple *tuple = dict_find(iterator, message_key);
+    if (!tuple || destination_size == 0) {
+        return false;
+    }
 
+    const char *value = tuple->value->cstring;
+    if (!value) {
+        destination[0] = '\0';
+        return true;
+    }
+
+    strncpy(destination, value, destination_size - 1);
+    destination[destination_size - 1] = '\0';
+    return true;
+}
+
+static bool apply_color_setting(
+    DictionaryIterator *iterator,
+    const uint32_t message_key,
+    GColor *destination
+) {
+    Tuple *tuple = dict_find(iterator, message_key);
+    if (!tuple) {
+        return false;
+    }
+
+    *destination = GColorFromHEX(tuple->value->int32);
+    return true;
+}
+
+static bool apply_int_setting(
+    DictionaryIterator *iterator,
+    const uint32_t message_key,
+    int *destination
+) {
+    Tuple *tuple = dict_find(iterator, message_key);
+    if (!tuple) {
+        return false;
+    }
+
+    *destination = tuple_to_int(tuple);
+    return true;
+}
+
+static bool apply_int_setting_clamped(
+    DictionaryIterator *iterator,
+    const uint32_t message_key,
+    int *destination,
+    int (*clamp_fn)(int)
+) {
+    Tuple *tuple = dict_find(iterator, message_key);
+    if (!tuple) {
+        return false;
+    }
+
+    int value = tuple_to_int(tuple);
+    *destination = clamp_fn ? clamp_fn(value) : value;
+    return true;
+}
+
+static bool apply_bool_setting(
+    DictionaryIterator *iterator,
+    const uint32_t message_key,
+    bool *destination
+) {
+    Tuple *tuple = dict_find(iterator, message_key);
+    if (!tuple) {
+        return false;
+    }
+
+    *destination = tuple_to_int(tuple) == 1;
+    return true;
+}
+
+static void copy_tuple_cstring_to_buffer(
+    DictionaryIterator *iterator,
+    const uint32_t message_key,
+    char *destination,
+    const size_t destination_size
+) {
+    if (destination_size == 0) {
+        return;
+    }
+
+    Tuple *tuple = dict_find(iterator, message_key);
+    if (!tuple) {
+        return;
+    }
+
+    strncpy(destination, tuple->value->cstring, destination_size - 1);
+    destination[destination_size - 1] = '\0';
+}
+
+static bool read_configuration_properties(
+    DictionaryIterator *iterator
+) {
     s_settings = clay_get_settings();
 
-    // Read theme
-    Tuple *theme_t = dict_find(iterator, MESSAGE_KEY_Theme);
-    if (theme_t) {
-        char *theme = theme_t->value->cstring;
-        strcpy(s_settings->ThemeValue, theme);
-    }
+    bool has_settings_update = false;
 
-    // Read color preferences
-    Tuple *bg_color_t = dict_find(iterator, MESSAGE_KEY_BackgroundColor);
-    if (bg_color_t) {
-        GColor bg_color = GColorFromHEX(bg_color_t->value->int32);
-        // APP_LOG(APP_LOG_LEVEL_DEBUG, "bg_color: old: %lu new: %lu", settings.BackgroundColor, bg_color);
-        s_settings->BackgroundColor = bg_color;
-    }
+#define APPLY_STRING(KEY, FIELD) has_settings_update |= apply_cstring_setting(iterator, (KEY), s_settings->FIELD, sizeof(s_settings->FIELD))
+#define APPLY_COLOR(KEY, FIELD) has_settings_update |= apply_color_setting(iterator, (KEY), &s_settings->FIELD)
+#define APPLY_INT(KEY, FIELD) do { int _v = 0; if (apply_int_setting(iterator, (KEY), &_v)) { s_settings->FIELD = _v; has_settings_update = true; } } while (0)
+#define APPLY_INT_CLAMPED(KEY, FIELD, CLAMP_FN) do { int _v = 0; if (apply_int_setting_clamped(iterator, (KEY), &_v, (CLAMP_FN))) { s_settings->FIELD = _v; has_settings_update = true; } } while (0)
+#define APPLY_BOOL(KEY, FIELD) do { bool _v = false; if (apply_bool_setting(iterator, (KEY), &_v)) { s_settings->FIELD = _v; has_settings_update = true; } } while (0)
 
-    // Time Layer Colors
-    Tuple *text_color_time_t = dict_find(iterator, MESSAGE_KEY_TimeTextColor);
-    if (text_color_time_t) {
-        GColor text_color_time = GColorFromHEX(text_color_time_t->value->int32);
-        s_settings->TimeTextColor = text_color_time;
-    }
+    APPLY_STRING(MESSAGE_KEY_Theme, ThemeValue);
 
-    // Date Layer Colors
-    Tuple *text_color_date_t = dict_find(iterator, MESSAGE_KEY_DateTextColor);
-    if (text_color_date_t) {
-        GColor text_color_date = GColorFromHEX(text_color_date_t->value->int32);
-        s_settings->DateTextColor = text_color_date;
-    }
+    APPLY_COLOR(MESSAGE_KEY_BackgroundColor, BackgroundColor);
+    APPLY_COLOR(MESSAGE_KEY_TimeTextColor, TimeTextColor);
+    APPLY_COLOR(MESSAGE_KEY_DateTextColor, DateTextColor);
+    APPLY_COLOR(MESSAGE_KEY_BatteryFrameColor, BatteryFrameColor);
+    APPLY_COLOR(MESSAGE_KEY_BatteryFillColor, BatteryFillColor);
+    APPLY_COLOR(MESSAGE_KEY_WeatherTextColor, WeatherTextColor);
+    APPLY_COLOR(MESSAGE_KEY_StepcountTextColor, StepcountTextColor);
+    APPLY_COLOR(MESSAGE_KEY_HeartrateTextColor, HeartrateTextColor);
 
-    // Battery Bar Layer Colors
-    Tuple *battery_frame_color_t = dict_find(iterator, MESSAGE_KEY_BatteryFrameColor);
-    if (battery_frame_color_t) {
-        GColor battery_frame_color = GColorFromHEX(battery_frame_color_t->value->int32);
-        s_settings->BatteryFrameColor = battery_frame_color;
-    }
+    APPLY_INT(MESSAGE_KEY_SliderDigitWidth, DigitWidth);
+    APPLY_INT(MESSAGE_KEY_SliderDotWidth, DotWidth);
+    APPLY_INT(MESSAGE_KEY_SliderDotHeight, DotHeight);
+    APPLY_INT(MESSAGE_KEY_SliderDotHorizontalGap, DotHorizontalGap);
+    APPLY_INT(MESSAGE_KEY_SliderDotVerticalGap, DotVerticalGap);
+    APPLY_BOOL(MESSAGE_KEY_ToggleDotAutoScale, DotAutoScale);
 
-    Tuple *battery_fill_color_t = dict_find(iterator, MESSAGE_KEY_BatteryFillColor);
-    if (battery_fill_color_t) {
-        GColor battery_fill_color = GColorFromHEX(battery_fill_color_t->value->int32);
-        s_settings->BatteryFillColor = battery_fill_color;
-    }
-
-    // Weather Layer Colors
-    Tuple *weather_text_color_t = dict_find(iterator, MESSAGE_KEY_WeatherTextColor);
-    if (weather_text_color_t) {
-        GColor weather_text_color = GColorFromHEX(weather_text_color_t->value->int32);
-        s_settings->WeatherTextColor = weather_text_color;
-    }
-
-    // Stepcount Layer Colors
-    Tuple *stepcount_text_color_t = dict_find(iterator, MESSAGE_KEY_StepcountTextColor);
-    if (stepcount_text_color_t) {
-        GColor stepcount_text_color = GColorFromHEX(stepcount_text_color_t->value->int32);
-        s_settings->StepcountTextColor = stepcount_text_color;
-    }
-
-    // Heartrate Layer Colors
-    Tuple *heartrate_text_color_t = dict_find(iterator, MESSAGE_KEY_HeartrateTextColor);
-    if (heartrate_text_color_t) {
-        GColor heartrate_text_color = GColorFromHEX(heartrate_text_color_t->value->int32);
-        s_settings->HeartrateTextColor = heartrate_text_color;
-    }
-
-    // Read Slider preferences
-    Tuple *dot_count_t = dict_find(iterator, MESSAGE_KEY_SliderDigitWidth);
-    if (dot_count_t) {
-        int dot_count = dot_count_t->value->int32;
-        s_settings->DigitWidth = dot_count;
-    }
-
-    Tuple *dot_width_t = dict_find(iterator, MESSAGE_KEY_SliderDotWidth);
-    if (dot_width_t) {
-        int dot_width = dot_width_t->value->int32;
-        s_settings->DotWidth = dot_width;
-    }
-
-    Tuple *dot_height_t = dict_find(iterator, MESSAGE_KEY_SliderDotHeight);
-    if (dot_height_t) {
-        int dot_height = dot_height_t->value->int32;
-        s_settings->DotHeight = dot_height;
-    }
-
-    Tuple *dot_horizontal_gap_t = dict_find(iterator, MESSAGE_KEY_SliderDotHorizontalGap);
-    if (dot_horizontal_gap_t) {
-        int dot_horizontal_gap = dot_horizontal_gap_t->value->int32;
-        s_settings->DotHorizontalGap = dot_horizontal_gap;
-    }
-
-    Tuple *dot_vertical_gap_t = dict_find(iterator, MESSAGE_KEY_SliderDotVerticalGap);
-    if (dot_vertical_gap_t) {
-        int dot_vertical_gap = dot_vertical_gap_t->value->int32;
-        s_settings->DotVerticalGap = dot_vertical_gap;
-    }
-
-    Tuple *dot_auto_scale_t = dict_find(iterator, MESSAGE_KEY_ToggleDotAutoScale);
-    if (dot_auto_scale_t) {
-        s_settings->DotAutoScale = dot_auto_scale_t->value->int32 == 1;
-    }
-
-    Tuple *dot_scale_percent_t = dict_find(iterator, MESSAGE_KEY_SliderDotScaleFactorPercent);
-    if (dot_scale_percent_t) {
-        int dot_scale_percent = dot_scale_percent_t->value->int32;
-        s_settings->DotScaleFactor = (float) dot_scale_percent / 100.0f;
-    }
-
-
-    // Read boolean preferences
-    Tuple *show_year_t = dict_find(iterator, MESSAGE_KEY_ShowYear);
-    if (show_year_t) {
-        bool show_year = show_year_t->value->int32 == 1;
-        s_settings->ShowYear = show_year;
-    }
-
-    Tuple *show_seconds_t = dict_find(iterator, MESSAGE_KEY_ShowSeconds);
-    if (show_seconds_t) {
-        bool show_seconds = show_seconds_t->value->int32 == 1;
-        s_settings->ShowSeconds = show_seconds;
-    }
-
-    Tuple *show_weekday_t = dict_find(iterator, MESSAGE_KEY_ShowWeekdayAbbreviation);
-    if (show_weekday_t) {
-        bool show_weekday = show_weekday_t->value->int32 == 1;
-        s_settings->ShowWeekdayAbbreviation = show_weekday;
-    }
-
-    Tuple *weekday_uppercase_t = dict_find(iterator, MESSAGE_KEY_WeekdayAbbreviationUppercase);
-    if (weekday_uppercase_t) {
-        bool weekday_uppercase = weekday_uppercase_t->value->int32 == 1;
-        s_settings->WeekdayAbbreviationUppercase = weekday_uppercase;
-    }
-
-    Tuple *row0_t = dict_find(iterator, MESSAGE_KEY_Row0Widget);
-    if (row0_t) {
-        int value = tuple_to_int(row0_t);
-        if (s_settings->Row0Widget != value) {
-            s_settings->Row0Widget = value;
+    {
+        int dot_scale_percent = 0;
+        if (apply_int_setting(iterator, MESSAGE_KEY_SliderDotScaleFactorPercent, &dot_scale_percent)) {
+            s_settings->DotScaleFactor = (float) dot_scale_percent / 100.0f;
+            has_settings_update = true;
         }
     }
 
-    Tuple *row1_t = dict_find(iterator, MESSAGE_KEY_Row1Widget);
-    if (row1_t) {
-        int value = tuple_to_int(row1_t);
-        if (s_settings->Row1Widget != value) {
-            s_settings->Row1Widget = value;
-        }
-    }
+    APPLY_BOOL(MESSAGE_KEY_ShowYear, ShowYear);
+    APPLY_BOOL(MESSAGE_KEY_ShowSeconds, ShowSeconds);
+    APPLY_BOOL(MESSAGE_KEY_ShowWeekdayAbbreviation, ShowWeekdayAbbreviation);
+    APPLY_BOOL(MESSAGE_KEY_WeekdayAbbreviationUppercase, WeekdayAbbreviationUppercase);
 
-    Tuple *row2_t = dict_find(iterator, MESSAGE_KEY_Row2Widget);
-    if (row2_t) {
-        int value = tuple_to_int(row2_t);
-        if (s_settings->Row2Widget != value) {
-            s_settings->Row2Widget = value;
-        }
-    }
+    APPLY_INT(MESSAGE_KEY_Row0Widget, Row0Widget);
+    APPLY_INT(MESSAGE_KEY_Row1Widget, Row1Widget);
+    APPLY_INT(MESSAGE_KEY_Row2Widget, Row2Widget);
+    APPLY_INT(MESSAGE_KEY_Row3Widget, Row3Widget);
+    APPLY_INT(MESSAGE_KEY_Row4Widget, Row4Widget);
+    APPLY_INT(MESSAGE_KEY_Row5Widget, Row5Widget);
+    APPLY_INT(MESSAGE_KEY_Row6Widget, Row6Widget);
+    APPLY_INT_CLAMPED(MESSAGE_KEY_LayoutRowCount, LayoutRowCount, clamp_layout_row_count);
 
-    Tuple *row3_t = dict_find(iterator, MESSAGE_KEY_Row3Widget);
-    if (row3_t) {
-        int value = tuple_to_int(row3_t);
-        if (s_settings->Row3Widget != value) {
-            s_settings->Row3Widget = value;
-        }
-    }
+#undef APPLY_STRING
+#undef APPLY_COLOR
+#undef APPLY_INT
+#undef APPLY_INT_CLAMPED
+#undef APPLY_BOOL
 
-    Tuple *row4_t = dict_find(iterator, MESSAGE_KEY_Row4Widget);
-    if (row4_t) {
-        int value = tuple_to_int(row4_t);
-        if (s_settings->Row4Widget != value) {
-            s_settings->Row4Widget = value;
-        }
-    }
+    return has_settings_update;
+}
 
-    Tuple *row5_t = dict_find(iterator, MESSAGE_KEY_Row5Widget);
-    if (row5_t) {
-        int value = tuple_to_int(row5_t);
-        if (s_settings->Row5Widget != value) {
-            s_settings->Row5Widget = value;
-        }
-    }
-
-    Tuple *row6_t = dict_find(iterator, MESSAGE_KEY_Row6Widget);
-    if (row6_t) {
-        int value = tuple_to_int(row6_t);
-        if (s_settings->Row6Widget != value) {
-            s_settings->Row6Widget = value;
-        }
-    }
-
-    Tuple *layout_row_count_t = dict_find(iterator, MESSAGE_KEY_LayoutRowCount);
-    if (layout_row_count_t) {
-        int value = clamp_layout_row_count(tuple_to_int(layout_row_count_t));
-        if (s_settings->LayoutRowCount != value) {
-            s_settings->LayoutRowCount = value;
-        }
-    }
-
-    const bool has_settings_update =
-        theme_t ||
-        bg_color_t ||
-        text_color_time_t ||
-        text_color_date_t ||
-        battery_frame_color_t ||
-        battery_fill_color_t ||
-        weather_text_color_t ||
-        stepcount_text_color_t ||
-        heartrate_text_color_t ||
-        dot_count_t ||
-        dot_width_t ||
-        dot_height_t ||
-        dot_horizontal_gap_t ||
-        dot_vertical_gap_t ||
-        dot_auto_scale_t ||
-        dot_scale_percent_t ||
-        show_year_t ||
-        show_seconds_t ||
-        show_weekday_t ||
-        weekday_uppercase_t ||
-        row0_t ||
-        row1_t ||
-        row2_t ||
-        row3_t ||
-        row4_t ||
-        row5_t ||
-        row6_t ||
-        layout_row_count_t;
-
-    // Read weather data
-
+static void read_weather_data(DictionaryIterator *iterator) {
     // Read tuples for data
     Tuple *temp_cur_tuple = dict_find(iterator, MESSAGE_KEY_WEATHER_TEMPERATURE_CURRENT);
     Tuple *temp_min_tuple = dict_find(iterator, MESSAGE_KEY_WEATHER_TEMPERATURE_MIN);
@@ -292,20 +222,20 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
             weatherData->RainPopPercent = rain_pop_percent_tuple->value->int32;
         }
         if (temp_forecast_encoded_tuple) {
-            strncpy(
+            copy_tuple_cstring_to_buffer(
+                iterator,
+                MESSAGE_KEY_WEATHER_TEMP_FORECAST_ENCODED,
                 weatherData->TemperatureForecastEncoded,
-                temp_forecast_encoded_tuple->value->cstring,
-                sizeof(weatherData->TemperatureForecastEncoded) - 1
+                sizeof(weatherData->TemperatureForecastEncoded)
             );
-            weatherData->TemperatureForecastEncoded[sizeof(weatherData->TemperatureForecastEncoded) - 1] = '\0';
         }
         if (rain_forecast_encoded_tuple) {
-            strncpy(
+            copy_tuple_cstring_to_buffer(
+                iterator,
+                MESSAGE_KEY_WEATHER_RAIN_FORECAST_MM_X10_ENCODED,
                 weatherData->RainForecastMmX10Encoded,
-                rain_forecast_encoded_tuple->value->cstring,
-                sizeof(weatherData->RainForecastMmX10Encoded) - 1
+                sizeof(weatherData->RainForecastMmX10Encoded)
             );
-            weatherData->RainForecastMmX10Encoded[sizeof(weatherData->RainForecastMmX10Encoded) - 1] = '\0';
         }
 
         APP_LOG(
@@ -324,13 +254,15 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
         update_weather();
     }
+}
+
+static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
+    const bool has_settings_update = read_configuration_properties(iterator);
+    read_weather_data(iterator);
 
     if (has_settings_update) {
         clay_log_settings_debug("received settings update");
-
-        // persist data
         clay_save_settings();
-
         main_reload_layout();
     }
 }
