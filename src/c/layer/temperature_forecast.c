@@ -20,6 +20,7 @@ void destroy_temperature_forecast_layer(Layer *layer) {
 #include <string.h>
 
 #include "../clay_settings.h"
+#include "forecast_series.h"
 #include "../theme.h"
 #include "weather.h"
 
@@ -28,75 +29,6 @@ void destroy_temperature_forecast_layer(Layer *layer) {
 
 static Layer *s_layers[MAX_TEMPERATURE_FORECAST_LAYERS];
 static int s_layer_count = 0;
-
-static size_t bounded_cstring_length(const char *value, const size_t capacity) {
-    if (!value || capacity == 0) {
-        return 0;
-    }
-
-    size_t length = 0;
-    while (length < capacity && value[length] != '\0') {
-        length++;
-    }
-
-    return length;
-}
-
-static int parse_int_series(
-    const char *encoded,
-    const size_t encoded_capacity,
-    int *out_values,
-    const int max_values
-) {
-    if (!encoded || encoded_capacity == 0 || !out_values || max_values <= 0 || encoded[0] == '\0') {
-        return 0;
-    }
-
-    // Never scan beyond the fixed WeatherData buffer even if persisted data is corrupt.
-    const size_t encoded_length = bounded_cstring_length(encoded, encoded_capacity);
-    if (encoded_length == 0 || encoded_length >= encoded_capacity) {
-        return 0;
-    }
-
-    int count = 0;
-    size_t index = 0;
-
-    while (index < encoded_length && count < max_values) {
-        bool is_negative = false;
-        if (encoded[index] == '-') {
-            is_negative = true;
-            index++;
-        }
-
-        bool has_digit = false;
-        int value = 0;
-        while (index < encoded_length && encoded[index] >= '0' && encoded[index] <= '9') {
-            has_digit = true;
-            value = (value * 10) + (encoded[index] - '0');
-            index++;
-        }
-
-        if (!has_digit) {
-            break;
-        }
-
-        out_values[count++] = is_negative ? -value : value;
-
-        if (index >= encoded_length) {
-            break;
-        }
-
-        if (encoded[index] == ',') {
-            index++;
-            continue;
-        }
-
-        // Unexpected separator, stop parsing remaining values.
-        break;
-    }
-
-    return count;
-}
 
 static void draw_dot(GContext *ctx, const GRect bounds, const int x, const int y, const int dot_size) {
     if (x < 0 || y < 0 || x + dot_size > bounds.size.w || y + dot_size > bounds.size.h) {
@@ -115,7 +47,7 @@ static void update_proc(Layer *layer, GContext *ctx) {
     const int point_gap = settings->DotHorizontalGap > 0 ? settings->DotHorizontalGap : 1;
 
     int values[MAX_FORECAST_POINTS] = {0};
-    int value_count = parse_int_series(
+    int value_count = forecast_parse_int_series(
         weather_data->TemperatureForecastEncoded,
         sizeof(weather_data->TemperatureForecastEncoded),
         values,

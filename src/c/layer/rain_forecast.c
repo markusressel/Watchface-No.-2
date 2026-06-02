@@ -20,6 +20,7 @@ void destroy_rain_forecast_layer(Layer *layer) {
 #include <stdlib.h>
 
 #include "../clay_settings.h"
+#include "forecast_series.h"
 #include "../theme.h"
 #include "weather.h"
 
@@ -29,36 +30,6 @@ void destroy_rain_forecast_layer(Layer *layer) {
 static Layer *s_layers[MAX_RAIN_FORECAST_LAYERS];
 static int s_layer_count = 0;
 
-static int parse_int_series(const char *encoded, int *out_values, const int max_values) {
-    if (!encoded || !out_values || max_values <= 0 || encoded[0] == '\0') {
-        return 0;
-    }
-
-    const char *cursor = encoded;
-    int count = 0;
-
-    while (*cursor != '\0' && count < max_values) {
-        char *end = NULL;
-        long value = strtol(cursor, &end, 10);
-        if (end == cursor) {
-            break;
-        }
-
-        out_values[count++] = (int) value;
-
-        if (*end == ',') {
-            cursor = end + 1;
-        } else {
-            cursor = end;
-            if (*cursor != '\0') {
-                break;
-            }
-        }
-    }
-
-    return count;
-}
-
 static void update_proc(Layer *layer, GContext *ctx) {
     const GRect bounds = layer_get_bounds(layer);
     WeatherData *weather_data = weather_get_data();
@@ -67,7 +38,12 @@ static void update_proc(Layer *layer, GContext *ctx) {
     const int dot_size = settings->DotHeight > 1 ? settings->DotHeight : 1;
 
     int values[MAX_FORECAST_POINTS] = {0};
-    int value_count = parse_int_series(weather_data->RainForecastMmX10Encoded, values, MAX_FORECAST_POINTS);
+    int value_count = forecast_parse_int_series(
+        weather_data->RainForecastMmX10Encoded,
+        sizeof(weather_data->RainForecastMmX10Encoded),
+        values,
+        MAX_FORECAST_POINTS
+    );
     if (value_count <= 0) {
         values[0] = weather_data->RainNextHourMmX10;
         value_count = 1;
