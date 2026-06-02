@@ -151,6 +151,8 @@ static void clay_default_settings() {
     settings.DotScaleFactor = 1.0f;
     settings.DotAutoScale = true;
 
+    settings.LayoutRowCount = layout_row_count_max_for_platform() == 7 ? 7 : 5;
+
     // Row layout defaults: Weather, Date, Time, Stepcount, Battery.
     settings.Row0Widget = 0; // WIDGET_WEATHER
     settings.Row1Widget = 1; // WIDGET_DATE
@@ -173,6 +175,7 @@ void clay_load_settings() {
     // Migrate/reset settings when the struct layout changes across versions.
     if (!persist_exists(SETTINGS_VERSION_KEY) ||
         persist_read_int(SETTINGS_VERSION_KEY) != SETTINGS_VERSION) {
+        clay_sanitize_settings();
         clay_save_settings();
         return;
     }
@@ -181,6 +184,7 @@ void clay_load_settings() {
         const int bytes = persist_read_data(SETTINGS_KEY, &settings, sizeof(settings));
         if (bytes != sizeof(settings)) {
             clay_default_settings();
+            clay_sanitize_settings();
             clay_save_settings();
             return;
         }

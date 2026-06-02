@@ -33,7 +33,10 @@ static void init_row_layers() {
 }
 
 static void build_layout_from_settings() {
-    const int row_count = s_settings->LayoutRowCount;
+    int row_count = s_settings->LayoutRowCount;
+    if (row_count < 5) {
+        row_count = 5;
+    }
 
     s_layout = (WatchLayout){
         .row_count = row_count,

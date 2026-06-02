@@ -1,5 +1,9 @@
 var config = require('./config');
 
+var WEATHER_UPDATE_INTERVAL_MS = 1800000;
+var WEATHER_LAST_FETCH_KEY = 'weather-last-fetch-ts';
+var WEATHER_LAST_DATA_KEY = 'weather-last-data';
+
 function kelvin_to_celsius(kelvin) {
   if (typeof kelvin !== 'number') {
     return 0;
@@ -14,6 +18,51 @@ function one_decimal_to_int(value) {
   }
 
   return Math.round(value * 10);
+}
+
+function get_cached_weather_data() {
+  try {
+    var cached = localStorage.getItem(WEATHER_LAST_DATA_KEY);
+    return cached ? JSON.parse(cached) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function cache_weather_data(dictionary) {
+  try {
+    localStorage.setItem(WEATHER_LAST_DATA_KEY, JSON.stringify(dictionary));
+    localStorage.setItem(WEATHER_LAST_FETCH_KEY, String(Date.now()));
+  } catch (e) {
+    console.log('Could not cache weather data: ' + e);
+  }
+}
+
+function should_fetch_weather_from_api() {
+  var cached = get_cached_weather_data();
+  if (!cached) {
+    return true;
+  }
+
+  var lastFetchRaw = localStorage.getItem(WEATHER_LAST_FETCH_KEY);
+  var lastFetch = parseInt(lastFetchRaw, 10);
+  if (!lastFetchRaw || isNaN(lastFetch)) {
+    return true;
+  }
+
+  return (Date.now() - lastFetch) >= WEATHER_UPDATE_INTERVAL_MS;
+}
+
+function send_weather_to_watch(dictionary, successMessage, errorMessage) {
+  Pebble.sendAppMessage(
+    dictionary,
+    function(e) {
+      console.log(successMessage);
+    },
+    function(e) {
+      console.log(errorMessage);
+    }
+  );
 }
 
 function pick_closest_entry_to_now(entries) {
@@ -112,14 +161,13 @@ function locationSuccess(pos) {
         "WEATHER_RAIN_POP_PERCENT": popPercent
       };
 
+      cache_weather_data(dictionary);
+
       // Send to Pebble
-      Pebble.sendAppMessage(dictionary,
-        function(e) {
-          console.log("Weather info sent to Pebble successfully!");
-        },
-        function(e) {
-          console.log("Error sending weather info to Pebble!");
-        }
+      send_weather_to_watch(
+        dictionary,
+        "Weather info sent to Pebble successfully!",
+        "Error sending weather info to Pebble!"
       );
     }      
   );
@@ -146,18 +194,30 @@ function getWeather() {
       "WEATHER_RAIN_POP_PERCENT": 0
     };
     
-    Pebble.sendAppMessage(clearDictionary,
-      function(e) {
-        console.log("Weather data cleared successfully!");
-      },
-      function(e) {
-        console.log("Error clearing weather data!");
-      }
+    cache_weather_data(clearDictionary);
+
+    send_weather_to_watch(
+      clearDictionary,
+      "Weather data cleared successfully!",
+      "Error clearing weather data!"
     );
-    
+
     return;
   }
-  
+
+  if (!should_fetch_weather_from_api()) {
+    var cachedDictionary = get_cached_weather_data();
+    if (cachedDictionary) {
+      console.log('Using cached weather data, skipping API call.');
+      send_weather_to_watch(
+        cachedDictionary,
+        'Cached weather data sent to Pebble successfully!',
+        'Error sending cached weather data to Pebble!'
+      );
+      return;
+    }
+  }
+
   navigator.geolocation.getCurrentPosition(
     locationSuccess,
     locationError,

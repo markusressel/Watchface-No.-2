@@ -18,6 +18,19 @@ static int tuple_to_int(const Tuple *tuple) {
     return tuple->value->int32;
 }
 
+static int clamp_layout_row_count(const int row_count) {
+    const int max_rows = 7;
+    const int min_rows = 5;
+
+    if (row_count < min_rows) {
+        return min_rows;
+    }
+    if (row_count > max_rows) {
+        return max_rows;
+    }
+    return row_count;
+}
+
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
     // Read clay configuration properties
 
@@ -212,11 +225,41 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
     Tuple *layout_row_count_t = dict_find(iterator, MESSAGE_KEY_LayoutRowCount);
     if (layout_row_count_t) {
-        int value = tuple_to_int(layout_row_count_t);
+        int value = clamp_layout_row_count(tuple_to_int(layout_row_count_t));
         if (s_settings->LayoutRowCount != value) {
             s_settings->LayoutRowCount = value;
         }
     }
+
+    const bool has_settings_update =
+        theme_t ||
+        bg_color_t ||
+        text_color_time_t ||
+        text_color_date_t ||
+        battery_frame_color_t ||
+        battery_fill_color_t ||
+        weather_text_color_t ||
+        stepcount_text_color_t ||
+        heartrate_text_color_t ||
+        dot_count_t ||
+        dot_width_t ||
+        dot_height_t ||
+        dot_horizontal_gap_t ||
+        dot_vertical_gap_t ||
+        dot_auto_scale_t ||
+        dot_scale_percent_t ||
+        show_year_t ||
+        show_seconds_t ||
+        show_weekday_t ||
+        weekday_uppercase_t ||
+        row0_t ||
+        row1_t ||
+        row2_t ||
+        row3_t ||
+        row4_t ||
+        row5_t ||
+        row6_t ||
+        layout_row_count_t;
 
     // Read weather data
 
@@ -257,12 +300,14 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         update_weather();
     }
 
-    clay_log_settings_debug("received settings update");
+    if (has_settings_update) {
+        clay_log_settings_debug("received settings update");
 
-    // persist data
-    clay_save_settings();
+        // persist data
+        clay_save_settings();
 
-    main_reload_layout();
+        main_reload_layout();
+    }
 }
 
 static void inbox_dropped_callback(AppMessageResult reason, void *context) {
