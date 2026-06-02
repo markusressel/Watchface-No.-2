@@ -8,30 +8,6 @@ static bool is_row_widget_valid(const int widget) {
     return widget == 0 || widget == 1 || widget == 2 || widget == 3 || widget == 4;
 }
 
-static int row_widget_at_index(const ClaySettings *current, const int row_index) {
-    switch (row_index) {
-        case 0: return current->Row0Widget;
-        case 1: return current->Row1Widget;
-        case 2: return current->Row2Widget;
-        case 3: return current->Row3Widget;
-        case 4: return current->Row4Widget;
-        case 5: return current->Row5Widget;
-        case 6: return current->Row6Widget;
-        default: return 2;
-    }
-}
-
-static void ensure_time_widget_in_active_rows() {
-    for (int i = 0; i < settings.LayoutRowCount; i++) {
-        if (row_widget_at_index(&settings, i) == 2) {
-            return;
-        }
-    }
-
-    // Keep time visible when the user removed it from all active rows.
-    settings.Row2Widget = 2;
-}
-
 static int layout_row_count_max_for_platform() {
 #ifdef PBL_PLATFORM_EMERY
     return 7;
@@ -77,8 +53,6 @@ static void clay_sanitize_settings() {
     if (!is_row_widget_valid(settings.Row4Widget)) settings.Row4Widget = 4;
     if (!is_row_widget_valid(settings.Row5Widget)) settings.Row5Widget = 3;
     if (!is_row_widget_valid(settings.Row6Widget)) settings.Row6Widget = 3;
-
-    ensure_time_widget_in_active_rows();
 }
 
 // Initialize the default settings
