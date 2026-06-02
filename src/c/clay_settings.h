@@ -42,7 +42,7 @@ typedef struct ClaySettings {
     bool WeekdayAbbreviationUppercase;
 
     // Row layout (WidgetId values)
-    int LayoutRowCount; // total rows including time row (clamped per platform)
+    int LayoutRowCount; // total rows including time row
     int Row0Widget; // row index 0
     int Row1Widget; // row index 1
     int Row2Widget; // row index 2

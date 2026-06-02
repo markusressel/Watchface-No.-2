@@ -93,12 +93,6 @@ static void clay_default_settings() {
     settings.DotAutoScale = true;
 
     // Row layout defaults: Weather, Date, Time, Stepcount, Battery.
-    // On emery, default to 7 rows; on others, keep 5.
-#ifdef PBL_PLATFORM_EMERY
-    settings.LayoutRowCount = 7;
-#else
-    settings.LayoutRowCount = 5;
-#endif
     settings.Row0Widget = 0; // WIDGET_WEATHER
     settings.Row1Widget = 1; // WIDGET_DATE
     settings.Row2Widget = 2; // WIDGET_TIME
