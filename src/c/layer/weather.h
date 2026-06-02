@@ -1,9 +1,10 @@
 #pragma once
 #include <pebble.h>
 #include "../layer_factory.h"
+#include "../persist_keys.h"
 
 // Persistent storage key
-#define WEATHER_DATA_KEY 2
+#define WEATHER_DATA_KEY PERSIST_KEY_WEATHER_DATA
 
 typedef struct WeatherData {
     int CurrentTemperature;

@@ -1,8 +1,10 @@
 #pragma once
 
+#include "persist_keys.h"
+
 // Persistent storage key
-#define SETTINGS_KEY 1
-#define SETTINGS_VERSION_KEY 2
+#define SETTINGS_KEY PERSIST_KEY_SETTINGS
+#define SETTINGS_VERSION_KEY PERSIST_KEY_SETTINGS_VERSION
 #define SETTINGS_VERSION 8
 
 // Define our settings struct
