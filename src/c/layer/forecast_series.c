@@ -130,6 +130,18 @@ void draw_temperature_forecast_graph(GContext *ctx, const GRect bounds, WeatherD
     graph_draw_series(ctx, bounds, values, value_count, &graph_config);
 }
 
+
+#if defined(PBL_COLOR)
+static const GraphColorStop s_rain_color_stops[] = {
+    {.value = -50, .color = GColorVividCerulean},
+    {.value = -10, .color = GColorPictonBlue},
+    {.value = 0, .color = GColorLightGray},
+    {.value = 15, .color = GColorPictonBlue},
+    {.value = 40, .color = GColorBlueMoon},
+    {.value = 80, .color = GColorBlueMoon},
+};
+#endif
+
 void draw_rain_forecast_graph(GContext *ctx, const GRect bounds, WeatherData *weather_data, int maxPoints, GColor defaultColor) {
     // ClaySettings *settings = clay_get_settings();
 
@@ -158,8 +170,17 @@ void draw_rain_forecast_graph(GContext *ctx, const GRect bounds, WeatherData *we
         .fill_area_under_line = true,
         .interpolate_color_stops = false,
         .default_color = defaultColor,
-        .color_stops = NULL,
-        .color_stop_count = 0,
+#if defined(PBL_COLOR)
+        s_rain_color_stops,
+#else
+        NULL,
+#endif
+        .color_stop_count =
+#if defined(PBL_COLOR)
+        (int) (sizeof(s_rain_color_stops) / sizeof(s_rain_color_stops[0])),
+#else
+        0,
+#endif
         .color_for_value = NULL,
         .color_context = NULL,
     };

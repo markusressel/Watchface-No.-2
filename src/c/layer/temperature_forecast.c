@@ -36,8 +36,8 @@ static void update_proc(Layer *layer, GContext *ctx) {
     const GRect bounds = layer_get_bounds(layer);
     WeatherData *weather_data = weather_get_data();
 
-    draw_temperature_forecast_graph(ctx, bounds, weather_data, MAX_FORECAST_POINTS, theme_get_theme()->WeatherTextColor);
     draw_rain_forecast_graph(ctx, bounds, weather_data, MAX_FORECAST_POINTS, GColorBlue);
+    draw_temperature_forecast_graph(ctx, bounds, weather_data, MAX_FORECAST_POINTS, theme_get_theme()->WeatherTextColor);
 }
 
 void update_temperature_forecast() {
