@@ -18,9 +18,7 @@ void destroy_rain_forecast_layer(Layer *layer) {
 
 #include <pebble.h>
 
-#include "../clay_settings.h"
 #include "forecast_series.h"
-#include "graph_utils.h"
 #include "../theme.h"
 #include "weather.h"
 
@@ -34,7 +32,6 @@ static int s_layer_count = 0;
 static void update_proc(Layer *layer, GContext *ctx) {
     const GRect bounds = layer_get_bounds(layer);
     WeatherData *weather_data = weather_get_data();
-    ClaySettings *settings = clay_get_settings();
 
     draw_rain_forecast_graph(ctx, bounds, weather_data, MAX_FORECAST_POINTS, theme_get_theme()->WeatherTextColor);
 }
