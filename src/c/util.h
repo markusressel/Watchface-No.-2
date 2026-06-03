@@ -1,7 +1,4 @@
-#pragma once
-#include <stdio.h>
-
-inline void format_int_array(char *buf, size_t buf_len, const int *arr, int count) {
+void format_int_array(char *buf, size_t buf_len, const int *arr, const int count) {
     if (buf_len == 0) return;
 
     size_t written = snprintf(buf, buf_len, "[");
@@ -19,5 +16,23 @@ inline void format_int_array(char *buf, size_t buf_len, const int *arr, int coun
         // Force a closing bracket at the very end if we ran out of space
         buf[buf_len - 2] = ']';
         buf[buf_len - 1] = '\0';
+    }
+}
+
+void log_int_array_chunked(const char *prefix, const int *arr, const int count) {
+    const int batch_size = 8; // 8 items with commas safely stays way under the 100-char limit
+
+    for (int i = 0; i < count; i += batch_size) {
+        char chunk_buf[64];
+        size_t written = 0;
+
+        int end = (i + batch_size > count) ? count : i + batch_size;
+        for (int j = i; j < end; j++) {
+            written += snprintf(chunk_buf + written, sizeof(chunk_buf) - written,
+                                "%d%s", arr[j], (j < end - 1) ? ", " : "");
+        }
+
+        // Log this batch contextually
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "%s [%d-%d]: [%s]", prefix, i, end - 1, chunk_buf);
     }
 }

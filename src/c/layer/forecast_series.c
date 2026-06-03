@@ -103,10 +103,9 @@ void draw_temperature_forecast_graph(
         value_count = 1;
     }
 
-    // Format the array into a temporary string buffer
-    char values_str[256];
-    format_int_array(values_str, sizeof(values_str), values, value_count);
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Parsed %d temperature values: %s", value_count, values_str);
+    char log_prefix[48];
+    snprintf(log_prefix, sizeof(log_prefix), "Parsed %d temp values", value_count);
+    log_int_array_chunked(log_prefix, values, value_count);
 
     GraphDrawConfig graph_config = {
         .graph_type = GRAPH_TYPE_LINE,
@@ -175,10 +174,9 @@ void draw_rain_forecast_graph(
         value_count = 1;
     }
 
-    // Format the array into a temporary string buffer
-    char values_str[256];
-    format_int_array(values_str, sizeof(values_str), values, value_count);
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Parsed %d rain values: %s", value_count, values_str);
+    char log_prefix[48];
+    snprintf(log_prefix, sizeof(log_prefix), "Parsed %d rain values", value_count);
+    log_int_array_chunked(log_prefix, values, value_count);
 
     GraphDrawConfig graph_config = {
         .graph_type = GRAPH_TYPE_LINE,
