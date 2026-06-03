@@ -44,11 +44,11 @@ static const Glyph s_chars[128] = {
 
     [':'] = {
         .width = 1, .pixels = {
-                    {_, _, _, _, _},
-                    {X, _, _, _, _},
-                    {_, _, _, _, _},
-                    {X, _, _, _, _},
-                    {_, _, _, _, _}
+            {_, _, _, _, _},
+            {X, _, _, _, _},
+            {_, _, _, _, _},
+            {X, _, _, _, _},
+            {_, _, _, _, _}
         }
     },
 
@@ -318,8 +318,7 @@ static const Glyph s_numbers[3][10] = {
     /* Size 3 */
     {
         {
-            .width = 3,
-            {
+            .width = 3, .pixels = {
                 {X,X,X,_,_},
                 {X,_,X,_,_},
                 {X,_,X,_,_},
@@ -328,7 +327,7 @@ static const Glyph s_numbers[3][10] = {
             },
         },
         {
-            .width = 2, {
+            .width = 2, .pixels = {
                 {X,X,_,_,_},
                 {_,X,_,_,_},
                 {_,X,_,_,_},
@@ -337,8 +336,7 @@ static const Glyph s_numbers[3][10] = {
             },
         },
         {
-            .width = 3,
-            .pixels = {
+            .width = 3, .pixels = {
                 {X,X,X,_,_},
                 {_,_,X,_,_},
                 {X,X,X,_,_},
@@ -356,8 +354,7 @@ static const Glyph s_numbers[3][10] = {
             },
         },
         {
-            .width = 3,
-            .pixels = {
+            .width = 3, .pixels = {
                 {X,_,X,_,_},
                 {X,_,X,_,_},
                 {X,X,X,_,_},
@@ -375,8 +372,7 @@ static const Glyph s_numbers[3][10] = {
             },
         },
         {
-            .width = 3,
-            .pixels = {
+            .width = 3, .pixels = {
                 {X,X,X,_,_},
                 {X,_,_,_,_},
                 {X,X,X,_,_},
@@ -394,8 +390,7 @@ static const Glyph s_numbers[3][10] = {
             },
         },
         {
-            .width = 3,
-            .pixels = {
+            .width = 3, .pixels = {
                 {X,X,X,_,_},
                 {X,_,X,_,_},
                 {X,X,X,_,_},
@@ -416,8 +411,7 @@ static const Glyph s_numbers[3][10] = {
     /* Size 4 */
     {
         {
-            .width = 4,
-            .pixels = {
+            .width = 4, .pixels = {
                 {X,X,X,X,_},
                 {X,_,_,X,_},
                 {X,_,_,X,_},
@@ -426,7 +420,7 @@ static const Glyph s_numbers[3][10] = {
             },
         },
         {
-            2, .pixels = {
+            .width = 2, .pixels = {
                 {X,X,_,_,_},
                 {_,X,_,_,_},
                 {_,X,_,_,_},
@@ -435,8 +429,7 @@ static const Glyph s_numbers[3][10] = {
             },
         },
         {
-            .width = 4,
-            .pixels = {
+            .width = 4, .pixels = {
                 {X,X,X,X,_},
                 {_,_,_,X,_},
                 {X,X,X,X,_},
@@ -454,8 +447,7 @@ static const Glyph s_numbers[3][10] = {
             },
         },
         {
-            .width = 4,
-            .pixels = {
+            .width = 4, .pixels = {
                 {X,_,_,X,_},
                 {X,_,_,X,_},
                 {X,X,X,X,_},
@@ -473,8 +465,7 @@ static const Glyph s_numbers[3][10] = {
             },
         },
         {
-            .width = 4,
-            .pixels = {
+            .width = 4, .pixels = {
                 {X,X,X,X,_},
                 {X,_,_,_,_},
                 {X,X,X,X,_},
@@ -492,8 +483,7 @@ static const Glyph s_numbers[3][10] = {
             },
         },
         {
-            .width = 4,
-            .pixels = {
+            .width = 4, .pixels = {
                 {X,X,X,X,_},
                 {X,_,_,X,_},
                 {X,X,X,X,_},
@@ -514,8 +504,7 @@ static const Glyph s_numbers[3][10] = {
     /* Size 5 */
     {
         {
-            .width = 5,
-            .pixels = {
+            .width = 5, .pixels = {
                 {X,X,X,X,X},
                 {X,_,_,_,X},
                 {X,_,_,_,X},
@@ -524,7 +513,7 @@ static const Glyph s_numbers[3][10] = {
             },
         },
         {
-            2, .pixels = {
+            .width = 2, .pixels = {
                 {X,X,_,_,_},
                 {_,X,_,_,_},
                 {_,X,_,_,_},
@@ -533,8 +522,7 @@ static const Glyph s_numbers[3][10] = {
             },
         },
         {
-            .width = 5,
-            .pixels = {
+            .width = 5, .pixels = {
                 {X,X,X,X,X},
                 {_,_,_,_,X},
                 {X,X,X,X,X},
@@ -552,8 +540,7 @@ static const Glyph s_numbers[3][10] = {
             },
         },
         {
-            .width = 5,
-            .pixels = {
+            .width = 5, .pixels = {
                 {X,_,_,_,X},
                 {X,_,_,_,X},
                 {X,X,X,X,X},
@@ -571,8 +558,7 @@ static const Glyph s_numbers[3][10] = {
             },
         },
         {
-            .width = 5,
-            .pixels = {
+            .width = 5, .pixels = {
                 {X,X,X,X,X},
                 {X,_,_,_,_},
                 {X,X,X,X,X},
@@ -590,8 +576,7 @@ static const Glyph s_numbers[3][10] = {
             },
         },
         {
-            .width = 5,
-            .pixels = {
+            .width = 5, .pixels = {
                 {X,X,X,X,X},
                 {X,_,_,_,X},
                 {X,X,X,X,X},
