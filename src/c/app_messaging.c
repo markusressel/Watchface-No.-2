@@ -2,6 +2,7 @@
 #include <string.h>
 #include "app_messaging.h"
 #include "main.h"
+#include "layer/forecast_series.h"
 #include "layer/weather.h"
 #include "clay_settings.h"
 
@@ -112,23 +113,18 @@ static bool apply_bool_setting(
     return true;
 }
 
-static void copy_tuple_cstring_to_buffer(
-    DictionaryIterator *iterator,
-    const uint32_t message_key,
-    char *destination,
-    const size_t destination_size
-) {
-    if (destination_size == 0) {
-        return;
+static int parse_forecast_tuple_to_array(const Tuple *tuple, int *destination, const int max_values) {
+    if (!tuple || tuple->type != TUPLE_CSTRING || !destination || max_values <= 0) {
+        return 0;
     }
 
-    Tuple *tuple = dict_find(iterator, message_key);
-    if (!tuple || tuple->type != TUPLE_CSTRING) {
-        return;
+    const char *value = tuple->value->cstring;
+    if (!value) {
+        return 0;
     }
 
-    strncpy(destination, tuple->value->cstring, destination_size - 1);
-    destination[destination_size - 1] = '\0';
+    const size_t capacity = tuple->length > 0 ? tuple->length : (strlen(value) + 1);
+    return forecast_parse_int_series(value, capacity, destination, max_values);
 }
 
 static bool read_configuration_properties(
@@ -232,19 +228,17 @@ static void read_weather_data(DictionaryIterator *iterator) {
             weatherData->RainPopPercent = rain_pop_percent_tuple->value->int32;
         }
         if (temp_forecast_encoded_tuple) {
-            copy_tuple_cstring_to_buffer(
-                iterator,
-                MESSAGE_KEY_WEATHER_TEMP_FORECAST_ENCODED,
-                weatherData->TemperatureForecastEncoded,
-                sizeof(weatherData->TemperatureForecastEncoded)
+            weatherData->TemperatureForecastCount = parse_forecast_tuple_to_array(
+                temp_forecast_encoded_tuple,
+                weatherData->TemperatureForecast,
+                WEATHER_FORECAST_MAX_POINTS
             );
         }
         if (rain_forecast_encoded_tuple) {
-            copy_tuple_cstring_to_buffer(
-                iterator,
-                MESSAGE_KEY_WEATHER_RAIN_FORECAST_MM_X10_ENCODED,
-                weatherData->RainForecastMmX10Encoded,
-                sizeof(weatherData->RainForecastMmX10Encoded)
+            weatherData->RainForecastMmX10Count = parse_forecast_tuple_to_array(
+                rain_forecast_encoded_tuple,
+                weatherData->RainForecastMmX10,
+                WEATHER_FORECAST_MAX_POINTS
             );
         }
 
@@ -257,9 +251,9 @@ static void read_weather_data(DictionaryIterator *iterator) {
         );
         APP_LOG(
             APP_LOG_LEVEL_DEBUG,
-            "weather forecast arrays: temp='%s' rain='%s'",
-            weatherData->TemperatureForecastEncoded,
-            weatherData->RainForecastMmX10Encoded
+            "weather forecast points: temp=%d rain=%d",
+            weatherData->TemperatureForecastCount,
+            weatherData->RainForecastMmX10Count
         );
 
         update_weather();

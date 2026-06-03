@@ -4,7 +4,6 @@
 #include "graph_utils.h"
 #include "weather.h"
 
-size_t forecast_bounded_cstring_length(const char *value, size_t capacity);
 
 int forecast_parse_int_series(
     const char *encoded,

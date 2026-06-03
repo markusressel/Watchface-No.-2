@@ -20,21 +20,31 @@ static const WeatherData s_mock_weather_data_template = {
     .MinTemperature = 19,
     .RainNextHourMmX10 = 0,
     .RainPopPercent = 0,
-    .TemperatureForecastEncoded = "18,20,22,24,23,21,19,17,16,15,17,20,23,26,28,30,29,27,25,24,26,28,31,33,34,32,30,28,27,25,22,19,16,13,10,8,7,6,5,4,2,0,-2,-4,-3,-1,1,3,5,7",
-    .RainForecastMmX10Encoded = "0,0,0,0,0,5,10,8,3,0,0,0,0,0,0,20,50,100,30,5,0,0,0,0,0,0,10,30,80,20,0,5,15,25,20,10,5,0,0,0,0,0,0,5,10,15,10,5,0,0",
+    .TemperatureForecastCount = WEATHER_FORECAST_MAX_POINTS,
+    .TemperatureForecast = {
+        18, 20, 22, 24, 23, 21, 19, 17, 16, 15, 17, 20, 23, 26, 28, 30, 29, 27, 25, 24, 26, 28, 31, 33, 34, 32, 30, 28, 27, 25, 22, 19, 16, 13, 10, 8, 7, 6, 5, 4, 2, 0, -2, -4, -3,
+        -1, 1, 3, 5, 7
+    },
+    .RainForecastMmX10Count = WEATHER_FORECAST_MAX_POINTS,
+    .RainForecastMmX10 = {
+        0, 0, 0, 0, 0, 5, 10, 8, 3, 0, 0, 0, 0, 0, 0, 20, 50, 100, 30, 5, 0, 0, 0, 0, 0, 0, 10, 30, 80, 20, 0, 5, 15, 25, 20, 10, 5, 0, 0, 0, 0, 0, 0, 5, 10, 15, 10, 5, 0, 0
+    },
     .CurrentConditions = "Mock",
 };
 
-static void sanitize_weather_strings() {
-    if (memchr(weatherData.TemperatureForecastEncoded, '\0', sizeof(weatherData.TemperatureForecastEncoded)) == NULL) {
-        weatherData.TemperatureForecastEncoded[0] = '\0';
+static int clamp_forecast_count(const int value) {
+    if (value < 0) {
+        return 0;
     }
-    weatherData.TemperatureForecastEncoded[sizeof(weatherData.TemperatureForecastEncoded) - 1] = '\0';
+    if (value > WEATHER_FORECAST_MAX_POINTS) {
+        return WEATHER_FORECAST_MAX_POINTS;
+    }
+    return value;
+}
 
-    if (memchr(weatherData.RainForecastMmX10Encoded, '\0', sizeof(weatherData.RainForecastMmX10Encoded)) == NULL) {
-        weatherData.RainForecastMmX10Encoded[0] = '\0';
-    }
-    weatherData.RainForecastMmX10Encoded[sizeof(weatherData.RainForecastMmX10Encoded) - 1] = '\0';
+static void sanitize_weather_data() {
+    weatherData.TemperatureForecastCount = clamp_forecast_count(weatherData.TemperatureForecastCount);
+    weatherData.RainForecastMmX10Count = clamp_forecast_count(weatherData.RainForecastMmX10Count);
 
     if (memchr(weatherData.CurrentConditions, '\0', sizeof(weatherData.CurrentConditions)) == NULL) {
         weatherData.CurrentConditions[0] = '\0';
@@ -78,7 +88,7 @@ static void restore_saved_weather_data() {
         return;
     }
 
-    sanitize_weather_strings();
+    sanitize_weather_data();
 }
 
 static void save_current_weather_data() {

@@ -3,7 +3,7 @@
 #include "weather.h"
 #include "../util.h"
 
-size_t forecast_bounded_cstring_length(const char *value, const size_t capacity) {
+static size_t forecast_bounded_cstring_length(const char *value, const size_t capacity) {
     if (!value || capacity == 0) {
         return 0;
     }
@@ -92,12 +92,13 @@ void draw_temperature_forecast_graph(
 
     int values[maxPoints];
     memset(values, 0, sizeof(values));
-    int value_count = forecast_parse_int_series(
-        weather_data->TemperatureForecastEncoded,
-        sizeof(weather_data->TemperatureForecastEncoded),
-        values,
-        maxPoints
-    );
+    int value_count = weather_data->TemperatureForecastCount;
+    if (value_count > maxPoints) {
+        value_count = maxPoints;
+    }
+    if (value_count > 0) {
+        memcpy(values, weather_data->TemperatureForecast, sizeof(int) * value_count);
+    }
     if (value_count <= 0) {
         values[0] = weather_data->CurrentTemperature;
         value_count = 1;
@@ -163,12 +164,13 @@ void draw_rain_forecast_graph(
 
     int values[maxPoints];
     memset(values, 0, sizeof(values));
-    int value_count = forecast_parse_int_series(
-        weather_data->RainForecastMmX10Encoded,
-        sizeof(weather_data->RainForecastMmX10Encoded),
-        values,
-        maxPoints
-    );
+    int value_count = weather_data->RainForecastMmX10Count;
+    if (value_count > maxPoints) {
+        value_count = maxPoints;
+    }
+    if (value_count > 0) {
+        memcpy(values, weather_data->RainForecastMmX10, sizeof(int) * value_count);
+    }
     if (value_count <= 0) {
         values[0] = weather_data->RainNextHourMmX10;
         value_count = 1;
