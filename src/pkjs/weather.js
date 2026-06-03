@@ -5,7 +5,7 @@ var WEATHER_UPDATE_INTERVAL_MINUTES = 30;
 var WEATHER_UPDATE_INTERVAL_MS = WEATHER_UPDATE_INTERVAL_MINUTES * 60 * 1000;
 var WEATHER_LAST_FETCH_KEY = 'weather-last-fetch-ts';
 var WEATHER_LAST_DATA_KEY = 'weather-last-data';
-var FORECAST_POINT_COUNT = 10;
+var FORECAST_POINT_COUNT = 100;
 
 function process_timeline_payload(json, sourceLabel) {
     if (!json || !json.data || json.data.length === 0) {
@@ -217,22 +217,21 @@ function day_min_max_from_timeline(entries, referenceEntry, timezoneOffsetSecond
     return {minKelvin: minKelvin, maxKelvin: maxKelvin};
 }
 
-function build_condensed_series(entries, extractor, count) {
+function build_condensed_series(entries, extractor, maxCount) {
     var samples = [];
     if (!entries || entries.length === 0) {
         return samples;
     }
 
-    var targetCount = count;
-    if (entries.length <= targetCount) {
+    if (entries.length <= maxCount) {
         for (var i = 0; i < entries.length; i++) {
             samples.push(extractor(entries[i]));
         }
         return samples;
     }
 
-    for (var n = 0; n < targetCount; n++) {
-        var idx = Math.round((n * (entries.length - 1)) / (targetCount - 1));
+    for (var n = 0; n < maxCount; n++) {
+        var idx = Math.round((n * (entries.length - 1)) / (maxCount - 1));
         samples.push(extractor(entries[idx]));
     }
 
