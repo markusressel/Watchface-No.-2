@@ -7,20 +7,23 @@ let WEATHER_LAST_FETCH_KEY = 'weather-last-fetch-ts';
 let WEATHER_LAST_DATA_KEY = 'weather-last-data';
 let FORECAST_POINT_COUNT = 100;
 
-function createWeatherData(
-    temperatureCurrent, temperatureMin, temperatureMax, conditions,
-    rainMm, popPercent,
-    temperatureForecastSeries, rainForecastSeries
-) {
-    return {
-        'WEATHER_TEMPERATURE_CURRENT': temperatureCurrent,
-        'WEATHER_TEMPERATURE_MIN': temperatureMin,
-        'WEATHER_TEMPERATURE_MAX': temperatureMax,
-        'WEATHER_CONDITION': conditions,
-        'WEATHER_RAIN_NEXT_HOUR_MM_X10': one_decimal_to_int(rainMm),
-        'WEATHER_RAIN_POP_PERCENT': popPercent,
-        'WEATHER_TEMP_FORECAST_ENCODED': encode_number_array(temperatureForecastSeries),
-        'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': encode_number_array(rainForecastSeries)
+
+function request_simulated_weather_data() {
+    let weatherData = process_timeline_payload(timelineSimulation, 'simulation/timeline.json');
+    cache_weather_data(weatherData);
+    send_weather_to_watch(
+        weatherData,
+        'Weather info sent to Pebble successfully!',
+        'Error sending weather info to Pebble!'
+    );
+}
+
+function cache_weather_data(dictionary) {
+    try {
+        localStorage.setItem(WEATHER_LAST_DATA_KEY, JSON.stringify(dictionary));
+        localStorage.setItem(WEATHER_LAST_FETCH_KEY, String(Date.now()));
+    } catch (e) {
+        console.log('Could not cache weather data: ' + e);
     }
 }
 
@@ -89,15 +92,27 @@ function process_timeline_payload(json, sourceLabel) {
     )
 }
 
-function request_simulated_weather_data() {
-    let weatherData = process_timeline_payload(timelineSimulation, 'simulation/timeline.json');
-    cache_weather_data(weatherData);
-    send_weather_to_watch(
-        weatherData,
-        'Weather info sent to Pebble successfully!',
-        'Error sending weather info to Pebble!'
-    );
+function pick_closest_entry_to_now(entries) {
+    if (!entries || entries.length === 0) {
+        return null;
+    }
+
+    let nowUtc = Math.floor(Date.now() / 1000);
+    let best = entries[0];
+    let bestDistance = Math.abs((best.dt || 0) - nowUtc);
+
+    for (let i = 1; i < entries.length; i++) {
+        let candidate = entries[i];
+        let distance = Math.abs((candidate.dt || 0) - nowUtc);
+        if (distance < bestDistance) {
+            best = candidate;
+            bestDistance = distance;
+        }
+    }
+
+    return best;
 }
+
 
 function kelvin_to_celsius(kelvin) {
     if (typeof kelvin !== 'number') {
@@ -107,13 +122,6 @@ function kelvin_to_celsius(kelvin) {
     return Math.round(kelvin - 273.15);
 }
 
-function one_decimal_to_int(value) {
-    if (typeof value !== 'number') {
-        return 0;
-    }
-
-    return Math.round(value * 10);
-}
 
 function get_cached_weather_data() {
     try {
@@ -124,14 +132,6 @@ function get_cached_weather_data() {
     }
 }
 
-function cache_weather_data(dictionary) {
-    try {
-        localStorage.setItem(WEATHER_LAST_DATA_KEY, JSON.stringify(dictionary));
-        localStorage.setItem(WEATHER_LAST_FETCH_KEY, String(Date.now()));
-    } catch (e) {
-        console.log('Could not cache weather data: ' + e);
-    }
-}
 
 function should_fetch_weather_from_api() {
     let cached = get_cached_weather_data();
@@ -158,27 +158,6 @@ function send_weather_to_watch(dictionary, successMessage, errorMessage) {
             console.log(errorMessage);
         }
     );
-}
-
-function pick_closest_entry_to_now(entries) {
-    if (!entries || entries.length === 0) {
-        return null;
-    }
-
-    let nowUtc = Math.floor(Date.now() / 1000);
-    let best = entries[0];
-    let bestDistance = Math.abs((best.dt || 0) - nowUtc);
-
-    for (let i = 1; i < entries.length; i++) {
-        let candidate = entries[i];
-        let distance = Math.abs((candidate.dt || 0) - nowUtc);
-        if (distance < bestDistance) {
-            best = candidate;
-            bestDistance = distance;
-        }
-    }
-
-    return best;
 }
 
 function local_day_index(utcTimestamp, timezoneOffsetSeconds) {
@@ -251,10 +230,6 @@ function build_condensed_series(entries, extractor, maxCount) {
     }
 
     return samples;
-}
-
-function encode_number_array(values) {
-    return values.join(',');
 }
 
 let xhrRequest = function (url, type, callback) {
@@ -361,6 +336,36 @@ function getWeather() {
         {timeout: 15000, maximumAge: 60000}
     );
 }
+
+function createWeatherData(
+    temperatureCurrent, temperatureMin, temperatureMax, conditions,
+    rainMm, popPercent,
+    temperatureForecastSeries, rainForecastSeries
+) {
+    return {
+        'WEATHER_TEMPERATURE_CURRENT': temperatureCurrent,
+        'WEATHER_TEMPERATURE_MIN': temperatureMin,
+        'WEATHER_TEMPERATURE_MAX': temperatureMax,
+        'WEATHER_CONDITION': conditions,
+        'WEATHER_RAIN_NEXT_HOUR_MM_X10': one_decimal_to_int(rainMm),
+        'WEATHER_RAIN_POP_PERCENT': popPercent,
+        'WEATHER_TEMP_FORECAST_ENCODED': encode_number_array(temperatureForecastSeries),
+        'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': encode_number_array(rainForecastSeries)
+    }
+}
+
+function one_decimal_to_int(value) {
+    if (typeof value !== 'number') {
+        return 0;
+    }
+
+    return Math.round(value * 10);
+}
+
+function encode_number_array(values) {
+    return values.join(',');
+}
+
 
 module.exports.getWeather = getWeather;
 module.exports.setSimulationModeEnabled = config.setWeatherSimulationEnabled;
