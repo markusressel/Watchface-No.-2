@@ -243,3 +243,11 @@ void destroy_weather_layer(Layer *layer) {
 
     dotted_text_layer_destroy(dotted_text_layer_to_destroy);
 }
+
+void deinit_weather_data() {
+    if (weatherData.is_dynamic_alloc) {
+        free(weatherData.TemperatureForecast);
+        free(weatherData.RainForecastMmX10);
+        weatherData.is_dynamic_alloc = false;
+    }
+}

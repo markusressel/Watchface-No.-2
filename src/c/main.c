@@ -200,6 +200,8 @@ static void init() {
 
 // deinitializes the watchface
 static void deinit() {
+    deinit_weather_data();
+
     // Destroy Window
     window_destroy(s_main_window);
 }

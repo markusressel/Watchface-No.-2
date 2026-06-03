@@ -30,3 +30,5 @@ Layer *create_weather_layer(LayerBuilder builder);
 
 // destroy the layer
 void destroy_weather_layer(Layer * layer);
+
+void deinit_weather_data();
