@@ -16,7 +16,7 @@ int forecast_parse_int_series(
 void draw_temperature_forecast_graph(
     GContext *ctx,
     GRect bounds,
-    WeatherData *weather_data,
+    const WeatherData *weather_data,
     int maxPoints,
     GColor defaultColor
 );
@@ -24,7 +24,7 @@ void draw_temperature_forecast_graph(
 void draw_rain_forecast_graph(
     GContext *ctx,
     GRect bounds,
-    WeatherData *weather_data,
+    const WeatherData *weather_data,
     int maxPoints,
     GColor defaultColor
 );

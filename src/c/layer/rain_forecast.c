@@ -23,7 +23,7 @@ void destroy_rain_forecast_layer(Layer *layer) {
 #include "weather.h"
 
 #define MAX_RAIN_FORECAST_LAYERS 7
-#define MAX_FORECAST_POINTS 24
+#define MAX_FORECAST_POINTS 50
 
 static Layer *s_layers[MAX_RAIN_FORECAST_LAYERS];
 static int s_layer_count = 0;

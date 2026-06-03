@@ -1,6 +1,7 @@
 #include "forecast_series.h"
 #include "graph_utils.h"
 #include "weather.h"
+#include "../util.h"
 
 size_t forecast_bounded_cstring_length(const char *value, const size_t capacity) {
     if (!value || capacity == 0) {
@@ -35,6 +36,11 @@ int forecast_parse_int_series(
     size_t index = 0;
 
     while (index < encoded_length && count < max_values) {
+        // Skip whitespace or leading commas if any
+        while (index < encoded_length && (encoded[index] == ' ' || encoded[index] == ',')) {
+            index++;
+        }
+
         bool is_negative = false;
         if (encoded[index] == '-') {
             is_negative = true;
@@ -54,18 +60,6 @@ int forecast_parse_int_series(
         }
 
         out_values[count++] = is_negative ? -value : value;
-
-        if (index >= encoded_length) {
-            break;
-        }
-
-        if (encoded[index] == ',') {
-            index++;
-            continue;
-        }
-
-        // Unexpected separator, stop parsing remaining values.
-        break;
     }
 
     return count;
@@ -83,7 +77,12 @@ static const GraphColorStop s_temperature_color_stops[] = {
 };
 #endif
 
-void draw_temperature_forecast_graph(GContext *ctx, const GRect bounds, WeatherData *weather_data, int maxPoints, GColor defaultColor) {
+void draw_temperature_forecast_graph(
+    GContext *ctx,
+    const GRect bounds,
+    const WeatherData *weather_data,
+    const int maxPoints,
+    const GColor defaultColor) {
     // ClaySettings *settings = clay_get_settings();
 
     // const int dot_size = settings->DotHeight > 1 ? settings->DotHeight : 1;
@@ -103,6 +102,11 @@ void draw_temperature_forecast_graph(GContext *ctx, const GRect bounds, WeatherD
         values[0] = weather_data->CurrentTemperature;
         value_count = 1;
     }
+
+    // Format the array into a temporary string buffer
+    char values_str[256];
+    format_int_array(values_str, sizeof(values_str), values, value_count);
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Parsed %d temperature values: %s", value_count, values_str);
 
     GraphDrawConfig graph_config = {
         .graph_type = GRAPH_TYPE_LINE,
@@ -144,7 +148,13 @@ static const GraphColorStop s_rain_color_stops[] = {
 };
 #endif
 
-void draw_rain_forecast_graph(GContext *ctx, const GRect bounds, WeatherData *weather_data, int maxPoints, GColor defaultColor) {
+void draw_rain_forecast_graph(
+    GContext *ctx,
+    const GRect bounds,
+    const WeatherData *weather_data,
+    const int maxPoints,
+    const GColor defaultColor
+) {
     // ClaySettings *settings = clay_get_settings();
 
     // const int dot_size = settings->DotHeight > 1 ? settings->DotHeight : 1;
@@ -165,6 +175,11 @@ void draw_rain_forecast_graph(GContext *ctx, const GRect bounds, WeatherData *we
         value_count = 1;
     }
 
+    // Format the array into a temporary string buffer
+    char values_str[256];
+    format_int_array(values_str, sizeof(values_str), values, value_count);
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Parsed %d rain values: %s", value_count, values_str);
+
     GraphDrawConfig graph_config = {
         .graph_type = GRAPH_TYPE_LINE,
         .dot_size = dot_size,
@@ -174,9 +189,9 @@ void draw_rain_forecast_graph(GContext *ctx, const GRect bounds, WeatherData *we
         .interpolate_color_stops = false,
         .default_color = defaultColor,
 #if defined(PBL_COLOR)
-        s_rain_color_stops,
+        .color_stops = s_rain_color_stops,
 #else
-        NULL,
+        .color_stops = NULL,
 #endif
         .color_stop_count =
 #if defined(PBL_COLOR)

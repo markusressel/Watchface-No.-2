@@ -30,8 +30,8 @@ kill:
 wipe: kill
     pebble wipe
 
-deploy: build
-    pebble install --phone 192.168.2.159 --logs
+[arg("platform", pattern="phone|basalt|chalk|diorite|emery|flint")]
+deploy platform: (run platform) (logs platform)
 
 [arg("platform", pattern="phone|basalt|chalk|diorite|emery|flint")]
 logs platform:

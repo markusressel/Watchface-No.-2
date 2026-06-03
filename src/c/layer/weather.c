@@ -21,8 +21,8 @@ static const WeatherData s_mock_weather_data_template = {
     .MinTemperature = 19,
     .RainNextHourMmX10 = 0,
     .RainPopPercent = 0,
-    .TemperatureForecastEncoded = "27,26,25,24,21,19,19,19,18,16",
-    .RainForecastMmX10Encoded = "0,3,5,6,3,1,0,10,25,50",
+    .TemperatureForecastEncoded = "18,20,22,24,23,21,19,17,16,15,17,20,23,26,28,30,29,27,25,24,26,28,31,33,34,32,30,28,27,25,22,19,16,13,10,8,7,6,5,4,2,0,-2,-4,-3,-1,1,3,5,7",
+    .RainForecastMmX10Encoded = "0,0,0,0,0,5,10,8,3,0,0,0,0,0,0,20,50,100,30,5,0,0,0,0,0,0,10,30,80,20,0,5,15,25,20,10,5,0,0,0,0,0,0,5,10,15,10,5,0,0",
     .CurrentConditions = "Mock",
 };
 
