@@ -1,315 +1,321 @@
 #include "pixel_matrix_drawer.h"
 
 // Visual macros to "draw" the pixels in the code
-#define X true
-#define _ false
+#define X 1
+#define _ 0
+// Helper Makros to keep the "X" vs "_" code notation while
+// using bit-packing for in-memory representation (instead of a bool-matrix).
+// This uses about 75% less memory.
+#define ROW(a, b, c, d, e) ((a << 4) | (b << 3) | (c << 2) | (d << 1) | e)
+#define MATRIX(r0, r1, r2, r3, r4) ((r0 << 20) | (r1 << 15) | (r2 << 10) | (r3 << 5) | r4)
 
 // Struct to bundle a character's matrix and its width together
 typedef struct {
     int width;
-    bool pixels[5][5];
+    // Bit-Packing to store the full 5x5 matrix in a single integer
+    uint32_t pixels;
 } Glyph;
 
 // Default fallback character (Full 5x5 block)
 static const Glyph s_default = {
-    .width = 5, .pixels = {
-        {X, X, X, X, X},
-        {X, X, X, X, X},
-        {X, X, X, X, X},
-        {X, X, X, X, X},
-        {X, X, X, X, X}
-    }
+    .width = 5, .pixels = MATRIX(
+        ROW(X, X, X, X, X),
+        ROW(X, X, X, X, X),
+        ROW(X, X, X, X, X),
+        ROW(X, X, X, X, X),
+        ROW(X, X, X, X, X)
+    )
 };
 // 1. All standard characters in a single lookup table
 static const Glyph s_chars[128] = {
     ['.'] = {
-        .width = 1, .pixels = {
-            {_, _, _, _, _},
-            {_, _, _, _, _},
-            {_, _, _, _, _},
-            {_, _, _, _, _},
-            {X, _, _, _, _}
-        }
+        .width = 1, .pixels = MATRIX(
+            ROW(_, _, _, _, _),
+            ROW(_, _, _, _, _),
+            ROW(_, _, _, _, _),
+            ROW(_, _, _, _, _),
+            ROW(X, _, _, _, _)
+        )
     },
 
     [','] = {
-        .width = 1, .pixels = {
-            {_, _, _, _, _},
-            {_, _, _, _, _},
-            {_, _, _, _, _},
-            {X, _, _, _, _},
-            {X, _, _, _, _}
-        }
+        .width = 1, .pixels = MATRIX(
+            ROW(_, _, _, _, _),
+            ROW(_, _, _, _, _),
+            ROW(_, _, _, _, _),
+            ROW(X, _, _, _, _),
+            ROW(X, _, _, _, _)
+        )
     },
 
     [':'] = {
-        .width = 1, .pixels = {
-            {_, _, _, _, _},
-            {X, _, _, _, _},
-            {_, _, _, _, _},
-            {X, _, _, _, _},
-            {_, _, _, _, _}
-        }
+        .width = 1, .pixels = MATRIX(
+            ROW(_, _, _, _, _),
+            ROW(X, _, _, _, _),
+            ROW(_, _, _, _, _),
+            ROW(X, _, _, _, _),
+            ROW(_, _, _, _, _)
+        )
     },
 
     ['|'] = {
-        .width = 3, .pixels = {
-            {_, X, _, _, _},
-            {_, X, _, _, _},
-            {_, X, _, _, _},
-            {_, X, _, _, _},
-            {_, X, _, _, _}
-        }
+        .width = 3, .pixels = MATRIX(
+            ROW(_, X, _, _, _),
+            ROW(_, X, _, _, _),
+            ROW(_, X, _, _, _),
+            ROW(_, X, _, _, _),
+            ROW(_, X, _, _, _)
+        )
     },
 
     ['-'] = {
-        .width = 5, .pixels = {
-            {_, _, _, _, _},
-            {_, _, _, _, _},
-            {X, X, X, X, X},
-            {_, _, _, _, _},
-            {_, _, _, _, _}
-        }
+        .width = 5, .pixels = MATRIX(
+            ROW(_, _, _, _, _),
+            ROW(_, _, _, _, _),
+            ROW(X, X, X, X, X),
+            ROW(_, _, _, _, _),
+            ROW(_, _, _, _, _)
+        )
     },
 
     [' '] = {
-        .width = 1, .pixels = {
-            {_, _, _, _, _},
-            {_, _, _, _, _},
-            {_, _, _, _, _},
-            {_, _, _, _, _},
-            {_, _, _, _, _}
-        }
+        .width = 1, .pixels = MATRIX(
+            ROW(_, _, _, _, _),
+            ROW(_, _, _, _, _),
+            ROW(_, _, _, _, _),
+            ROW(_, _, _, _, _),
+            ROW(_, _, _, _, _)
+        )
     },
 
     ['C'] = {
-        .width = 5, .pixels = {
-            {X, X, X, X, X},
-            {X, _, _, _, _},
-            {X, _, _, _, _},
-            {X, _, _, _, _},
-            {X, X, X, X, X}
-        }
+        .width = 5, .pixels = MATRIX(
+            ROW(X, X, X, X, X),
+            ROW(X, _, _, _, _),
+            ROW(X, _, _, _, _),
+            ROW(X, _, _, _, _),
+            ROW(X, X, X, X, X)
+        )
     },
 
     ['c'] = {
-        .width = 5, .pixels = {
-            {_, _, _, _, _},
-            {_, _, _, _, _},
-            {X, X, X, X, X},
-            {X, _, _, _, _},
-            {X, X, X, X, X}
-        }
+        .width = 5, .pixels = MATRIX(
+            ROW(_, _, _, _, _),
+            ROW(_, _, _, _, _),
+            ROW(X, X, X, X, X),
+            ROW(X, _, _, _, _),
+            ROW(X, X, X, X, X)
+        )
     },
 
     ['M'] = {
-        .width = 3, .pixels = {
-            {X, _, X, _, _},
-            {X, X, X, _, _},
-            {X, _, X, _, _},
-            {X, _, X, _, _},
-            {X, _, X, _, _}
-        }
+        .width = 3, .pixels = MATRIX(
+            ROW(X, _, X, _, _),
+            ROW(X, X, X, _, _),
+            ROW(X, _, X, _, _),
+            ROW(X, _, X, _, _),
+            ROW(X, _, X, _, _)
+        )
     },
 
     ['O'] = {
-        .width = 3, .pixels = {
-            {X, X, X, _, _},
-            {X, _, X, _, _},
-            {X, _, X, _, _},
-            {X, _, X, _, _},
-            {X, X, X, _, _}
-        }
+        .width = 3, .pixels = MATRIX(
+            ROW(X, X, X, _, _),
+            ROW(X, _, X, _, _),
+            ROW(X, _, X, _, _),
+            ROW(X, _, X, _, _),
+            ROW(X, X, X, _, _)
+        )
     },
 
     ['o'] = {
-        .width = 3, .pixels = {
-            {_, _, _, _, _},
-            {_, _, _, _, _},
-            {X, X, X, _, _},
-            {X, _, X, _, _},
-            {X, X, X, _, _}
-        }
+        .width = 3, .pixels = MATRIX(
+            ROW(_, _, _, _, _),
+            ROW(_, _, _, _, _),
+            ROW(X, X, X, _, _),
+            ROW(X, _, X, _, _),
+            ROW(X, X, X, _, _)
+        )
     },
 
     ['I'] = {
-        .width = 1, .pixels = {
-            {X, _, _, _, _},
-            {X, _, _, _, _},
-            {X, _, _, _, _},
-            {X, _, _, _, _},
-            {X, _, _, _, _}
-        }
+        .width = 1, .pixels = MATRIX(
+            ROW(X, _, _, _, _),
+            ROW(X, _, _, _, _),
+            ROW(X, _, _, _, _),
+            ROW(X, _, _, _, _),
+            ROW(X, _, _, _, _)
+        )
     },
 
     ['i'] = {
-        .width = 1, .pixels = {
-            {_, _, _, _, _},
-            {X, _, _, _, _},
-            {_, _, _, _, _},
-            {X, _, _, _, _},
-            {X, _, _, _, _}
-        }
+        .width = 1, .pixels = MATRIX(
+            ROW(_, _, _, _, _),
+            ROW(X, _, _, _, _),
+            ROW(_, _, _, _, _),
+            ROW(X, _, _, _, _),
+            ROW(X, _, _, _, _)
+        )
     },
 
     ['D'] = {
-        .width = 3, .pixels = {
-            {X, X, _, _, _},
-            {X, _, X, _, _},
-            {X, _, X, _, _},
-            {X, _, X, _, _},
-            {X, X, _, _, _}
-        }
+        .width = 3, .pixels = MATRIX(
+            ROW(X, X, _, _, _),
+            ROW(X, _, X, _, _),
+            ROW(X, _, X, _, _),
+            ROW(X, _, X, _, _),
+            ROW(X, X, _, _, _)
+        )
     },
 
     ['T'] = {
-        .width = 3, .pixels = {
-            {X, X, X, _, _},
-            {_, X, _, _, _},
-            {_, X, _, _, _},
-            {_, X, _, _, _},
-            {_, X, _, _, _}
-        }
+        .width = 3, .pixels = MATRIX(
+            ROW(X, X, X, _, _),
+            ROW(_, X, _, _, _),
+            ROW(_, X, _, _, _),
+            ROW(_, X, _, _, _),
+            ROW(_, X, _, _, _)
+        )
     },
 
     ['H'] = {
-        .width = 3, .pixels = {
-            {X, _, X, _, _},
-            {X, _, X, _, _},
-            {X, X, X, _, _},
-            {X, _, X, _, _},
-            {X, _, X, _, _}
-        }
+        .width = 3, .pixels = MATRIX(
+            ROW(X, _, X, _, _),
+            ROW(X, _, X, _, _),
+            ROW(X, X, X, _, _),
+            ROW(X, _, X, _, _),
+            ROW(X, _, X, _, _)
+        )
     },
 
     ['h'] = {
-        .width = 3, .pixels = {
-            {X, _, _, _, _},
-            {X, _, _, _, _},
-            {X, X, X, _, _},
-            {X, _, X, _, _},
-            {X, _, X, _, _}
-        }
+        .width = 3, .pixels = MATRIX(
+            ROW(X, _, _, _, _),
+            ROW(X, _, _, _, _),
+            ROW(X, X, X, _, _),
+            ROW(X, _, X, _, _),
+            ROW(X, _, X, _, _)
+        )
     },
 
     ['F'] = {
-        .width = 3, .pixels = {
-            {X, X, X, _, _},
-            {X, _, _, _, _},
-            {X, X, X, _, _},
-            {X, _, _, _, _},
-            {X, _, _, _, _}
-        }
+        .width = 3, .pixels = MATRIX(
+            ROW(X, X, X, _, _),
+            ROW(X, _, _, _, _),
+            ROW(X, X, X, _, _),
+            ROW(X, _, _, _, _),
+            ROW(X, _, _, _, _)
+        )
     },
 
     ['R'] = {
-        .width = 3, .pixels = {
-            {X, X, X, _, _},
-            {X, _, X, _, _},
-            {X, X, X, _, _},
-            {X, X, _, _, _},
-            {X, _, X, _, _}
-        }
+        .width = 3, .pixels = MATRIX(
+            ROW(X, X, X, _, _),
+            ROW(X, _, X, _, _),
+            ROW(X, X, X, _, _),
+            ROW(X, X, _, _, _),
+            ROW(X, _, X, _, _)
+        )
     },
 
     ['r'] = {
-        .width = 2, .pixels = {
-            {_, _, X, _, _},
-            {_, _, _, _, _},
-            {X, X, _, _, _},
-            {X, _, _, _, _},
-            {X, _, _, _, _}
-        }
+        .width = 2, .pixels = MATRIX(
+            ROW(_, _, X, _, _),
+            ROW(_, _, _, _, _),
+            ROW(X, X, _, _, _),
+            ROW(X, _, _, _, _),
+            ROW(X, _, _, _, _)
+        )
     },
 
     ['S'] = {
-        .width = 3, .pixels = {
-            {X, X, X, _, _},
-            {X, _, _, _, _},
-            {X, X, X, _, _},
-            {_, _, X, _, _},
-            {X, X, X, _, _}
-        }
+        .width = 3, .pixels = MATRIX(
+            ROW(X, X, X, _, _),
+            ROW(X, _, _, _, _),
+            ROW(X, X, X, _, _),
+            ROW(_, _, X, _, _),
+            ROW(X, X, X, _, _)
+        )
     },
 
     ['A'] = {
-        .width = 3, .pixels = {
-            {X, X, X, _, _},
-            {X, _, X, _, _},
-            {X, X, X, _, _},
-            {X, _, X, _, _},
-            {X, _, X, _, _}
-        }
+        .width = 3, .pixels = MATRIX(
+            ROW(X, X, X, _, _),
+            ROW(X, _, X, _, _),
+            ROW(X, X, X, _, _),
+            ROW(X, _, X, _, _),
+            ROW(X, _, X, _, _)
+        )
     },
 
     ['a'] = {
-        .width = 3, .pixels = {
-            {_, _, _, _, _},
-            {_, _, _, _, _},
-            {_, X, X, _, _},
-            {X, _, X, _, _},
-            {X, X, X, _, _}
-        }
+        .width = 3, .pixels = MATRIX(
+            ROW(_, _, _, _, _),
+            ROW(_, _, _, _, _),
+            ROW(_, X, X, _, _),
+            ROW(X, _, X, _, _),
+            ROW(X, X, X, _, _)
+        )
     },
 
     ['U'] = {
-        .width = 3, .pixels = {
-            {X, _, X, _, _},
-            {X, _, X, _, _},
-            {X, _, X, _, _},
-            {X, _, X, _, _},
-            {X, X, X, _, _}
-        }
+        .width = 3, .pixels = MATRIX(
+            ROW(X, _, X, _, _),
+            ROW(X, _, X, _, _),
+            ROW(X, _, X, _, _),
+            ROW(X, _, X, _, _),
+            ROW(X, X, X, _, _)
+        )
     },
 
     ['u'] = {
-        .width = 3, .pixels = {
-            {_, _, _, _, _},
-            {_, _, _, _, _},
-            {X, _, X, _, _},
-            {X, _, X, _, _},
-            {X, X, X, _, _}
-        }
+        .width = 3, .pixels = MATRIX(
+            ROW(_, _, _, _, _),
+            ROW(_, _, _, _, _),
+            ROW(X, _, X, _, _),
+            ROW(X, _, X, _, _),
+            ROW(X, X, X, _, _)
+        )
     },
 
     ['W'] = {
-        .width = 3, .pixels = {
-            {X, _, X, _, _},
-            {X, _, X, _, _},
-            {X, _, X, _, _},
-            {X, X, X, _, _},
-            {X, _, X, _, _}
-        }
+        .width = 3, .pixels = MATRIX(
+            ROW(X, _, X, _, _),
+            ROW(X, _, X, _, _),
+            ROW(X, _, X, _, _),
+            ROW(X, X, X, _, _),
+            ROW(X, _, X, _, _)
+        )
     },
 
     ['E'] = {
-        .width = 3, .pixels = {
-            {X, X, X, _, _},
-            {X, _, _, _, _},
-            {X, X, X, _, _},
-            {X, _, _, _, _},
-            {X, X, X, _, _}
-        }
+        .width = 3, .pixels = MATRIX(
+            ROW(X, X, X, _, _),
+            ROW(X, _, _, _, _),
+            ROW(X, X, X, _, _),
+            ROW(X, _, _, _, _),
+            ROW(X, X, X, _, _)
+        )
     },
 
     ['e'] = {
-        .width = 3, .pixels = {
-            {_, _, _, _, _},
-            {X, X, X, _, _},
-            {X, X, X, _, _},
-            {X, _, _, _, _},
-            {X, X, X, _, _}
-        }
+        .width = 3, .pixels = MATRIX(
+            ROW(_, _, _, _, _),
+            ROW(X, X, X, _, _),
+            ROW(X, X, X, _, _),
+            ROW(X, _, _, _, _),
+            ROW(X, X, X, _, _)
+        )
     },
 
     ['/'] = {
-        .width = 3, .pixels = {
-            {_, _, X, _, _},
-            {_, X, _, _, _},
-            {_, X, _, _, _},
-            {X, _, _, _, _},
-            {X, _, _, _, _}
-        }
+        .width = 3, .pixels = MATRIX(
+            ROW(_, _, X, _, _),
+            ROW(_, X, _, _, _),
+            ROW(_, X, _, _, _),
+            ROW(X, _, _, _, _),
+            ROW(X, _, _, _, _)
+        )
     }
 };
 
@@ -318,280 +324,280 @@ static const Glyph s_numbers[3][10] = {
     /* Size 3 */
     {
         {
-            .width = 3, .pixels = {
-                {X,X,X,_,_},
-                {X,_,X,_,_},
-                {X,_,X,_,_},
-                {X,_,X,_,_},
-                {X,X,X,_,_}
-            },
+            .width = 3, .pixels = MATRIX(
+                ROW(X,X,X,_,_),
+                ROW(X,_,X,_,_),
+                ROW(X,_,X,_,_),
+                ROW(X,_,X,_,_),
+                ROW(X,X,X,_,_)
+            ),
         },
         {
-            .width = 2, .pixels = {
-                {X,X,_,_,_},
-                {_,X,_,_,_},
-                {_,X,_,_,_},
-                {_,X,_,_,_},
-                {_,X,_,_,_}
-            },
+            .width = 2, .pixels = MATRIX(
+                ROW(X,X,_,_,_),
+                ROW(_,X,_,_,_),
+                ROW(_,X,_,_,_),
+                ROW(_,X,_,_,_),
+                ROW(_,X,_,_,_)
+            ),
         },
         {
-            .width = 3, .pixels = {
-                {X,X,X,_,_},
-                {_,_,X,_,_},
-                {X,X,X,_,_},
-                {X,_,_,_,_},
-                {X,X,X,_,_}
-            },
+            .width = 3, .pixels = MATRIX(
+                ROW(X,X,X,_,_),
+                ROW(_,_,X,_,_),
+                ROW(X,X,X,_,_),
+                ROW(X,_,_,_,_),
+                ROW(X,X,X,_,_)
+            ),
         },
         {
-            .width = 3, .pixels = {
-                {X,X,X,_,_},
-                {_,_,X,_,_},
-                {_,X,X,_,_},
-                {_,_,X,_,_},
-                {X,X,X,_,_}
-            },
+            .width = 3, .pixels = MATRIX(
+                ROW(X,X,X,_,_),
+                ROW(_,_,X,_,_),
+                ROW(_,X,X,_,_),
+                ROW(_,_,X,_,_),
+                ROW(X,X,X,_,_)
+            ),
         },
         {
-            .width = 3, .pixels = {
-                {X,_,X,_,_},
-                {X,_,X,_,_},
-                {X,X,X,_,_},
-                {_,_,X,_,_},
-                {_,_,X,_,_}
-            },
+            .width = 3, .pixels = MATRIX(
+                ROW(X,_,X,_,_),
+                ROW(X,_,X,_,_),
+                ROW(X,X,X,_,_),
+                ROW(_,_,X,_,_),
+                ROW(_,_,X,_,_)
+            ),
         },
         {
-            .width = 3, .pixels = {
-                {X,X,X,_,_},
-                {X,_,_,_,_},
-                {X,X,X,_,_},
-                {_,_,X,_,_},
-                {X,X,X,_,_}
-            },
+            .width = 3, .pixels = MATRIX(
+                ROW(X,X,X,_,_),
+                ROW(X,_,_,_,_),
+                ROW(X,X,X,_,_),
+                ROW(_,_,X,_,_),
+                ROW(X,X,X,_,_)
+            ),
         },
         {
-            .width = 3, .pixels = {
-                {X,X,X,_,_},
-                {X,_,_,_,_},
-                {X,X,X,_,_},
-                {X,_,X,_,_},
-                {X,X,X,_,_}
-            },
+            .width = 3, .pixels = MATRIX(
+                ROW(X,X,X,_,_),
+                ROW(X,_,_,_,_),
+                ROW(X,X,X,_,_),
+                ROW(X,_,X,_,_),
+                ROW(X,X,X,_,_)
+            ),
         },
         {
-            .width = 3, .pixels = {
-                {X,X,X,_,_},
-                {_,_,X,_,_},
-                {_,_,X,_,_},
-                {_,_,X,_,_},
-                {_,_,X,_,_}
-            },
+            .width = 3, .pixels = MATRIX(
+                ROW(X,X,X,_,_),
+                ROW(_,_,X,_,_),
+                ROW(_,_,X,_,_),
+                ROW(_,_,X,_,_),
+                ROW(_,_,X,_,_)
+            ),
         },
         {
-            .width = 3, .pixels = {
-                {X,X,X,_,_},
-                {X,_,X,_,_},
-                {X,X,X,_,_},
-                {X,_,X,_,_},
-                {X,X,X,_,_}
-            },
+            .width = 3, .pixels = MATRIX(
+                ROW(X,X,X,_,_),
+                ROW(X,_,X,_,_),
+                ROW(X,X,X,_,_),
+                ROW(X,_,X,_,_),
+                ROW(X,X,X,_,_)
+            ),
         },
         {
-            .width = 3, .pixels = {
-                {X,X,X,_,_},
-                {X,_,X,_,_},
-                {X,X,X,_,_},
-                {_,_,X,_,_},
-                {X,X,X,_,_}
-            },
+            .width = 3, .pixels = MATRIX(
+                ROW(X,X,X,_,_),
+                ROW(X,_,X,_,_),
+                ROW(X,X,X,_,_),
+                ROW(_,_,X,_,_),
+                ROW(X,X,X,_,_)
+            ),
         }
     },
     /* Size 4 */
     {
         {
-            .width = 4, .pixels = {
-                {X,X,X,X,_},
-                {X,_,_,X,_},
-                {X,_,_,X,_},
-                {X,_,_,X,_},
-                {X,X,X,X,_}
-            },
+            .width = 4, .pixels = MATRIX(
+                ROW(X,X,X,X,_),
+                ROW(X,_,_,X,_),
+                ROW(X,_,_,X,_),
+                ROW(X,_,_,X,_),
+                ROW(X,X,X,X,_)
+            ),
         },
         {
-            .width = 2, .pixels = {
-                {X,X,_,_,_},
-                {_,X,_,_,_},
-                {_,X,_,_,_},
-                {_,X,_,_,_},
-                {_,X,_,_,_}
-            },
+            .width = 2, .pixels = MATRIX(
+                ROW(X,X,_,_,_),
+                ROW(_,X,_,_,_),
+                ROW(_,X,_,_,_),
+                ROW(_,X,_,_,_),
+                ROW(_,X,_,_,_)
+            ),
         },
         {
-            .width = 4, .pixels = {
-                {X,X,X,X,_},
-                {_,_,_,X,_},
-                {X,X,X,X,_},
-                {X,_,_,_,_},
-                {X,X,X,X,_}
-            },
+            .width = 4, .pixels = MATRIX(
+                ROW(X,X,X,X,_),
+                ROW(_,_,_,X,_),
+                ROW(X,X,X,X,_),
+                ROW(X,_,_,_,_),
+                ROW(X,X,X,X,_)
+            ),
         },
         {
-            .width = 4, .pixels = {
-                {X,X,X,X,_},
-                {_,_,_,X,_},
-                {_,X,X,X,_},
-                {_,_,_,X,_},
-                {X,X,X,X,_}
-            },
+            .width = 4, .pixels = MATRIX(
+                ROW(X,X,X,X,_),
+                ROW(_,_,_,X,_),
+                ROW(_,X,X,X,_),
+                ROW(_,_,_,X,_),
+                ROW(X,X,X,X,_)
+            ),
         },
         {
-            .width = 4, .pixels = {
-                {X,_,_,X,_},
-                {X,_,_,X,_},
-                {X,X,X,X,_},
-                {_,_,_,X,_},
-                {_,_,_,X,_}
-            },
+            .width = 4, .pixels = MATRIX(
+                ROW(X,_,_,X,_),
+                ROW(X,_,_,X,_),
+                ROW(X,X,X,X,_),
+                ROW(_,_,_,X,_),
+                ROW(_,_,_,X,_)
+            ),
         },
         {
-            .width = 4, .pixels = {
-                {X,X,X,X,_},
-                {X,_,_,_,_},
-                {X,X,X,X,_},
-                {_,_,_,X,_},
-                {X,X,X,X,_}
-            },
+            .width = 4, .pixels = MATRIX(
+                ROW(X,X,X,X,_),
+                ROW(X,_,_,_,_),
+                ROW(X,X,X,X,_),
+                ROW(_,_,_,X,_),
+                ROW(X,X,X,X,_)
+            ),
         },
         {
-            .width = 4, .pixels = {
-                {X,X,X,X,_},
-                {X,_,_,_,_},
-                {X,X,X,X,_},
-                {X,_,_,X,_},
-                {X,X,X,X,_}
-            },
+            .width = 4, .pixels = MATRIX(
+                ROW(X,X,X,X,_),
+                ROW(X,_,_,_,_),
+                ROW(X,X,X,X,_),
+                ROW(X,_,_,X,_),
+                ROW(X,X,X,X,_)
+            ),
         },
         {
-            .width = 4, .pixels = {
-                {X,X,X,X,_},
-                {_,_,_,X,_},
-                {_,_,_,X,_},
-                {_,_,_,X,_},
-                {_,_,_,X,_}
-            },
+            .width = 4, .pixels = MATRIX(
+                ROW(X,X,X,X,_),
+                ROW(_,_,_,X,_),
+                ROW(_,_,_,X,_),
+                ROW(_,_,_,X,_),
+                ROW(_,_,_,X,_)
+            ),
         },
         {
-            .width = 4, .pixels = {
-                {X,X,X,X,_},
-                {X,_,_,X,_},
-                {X,X,X,X,_},
-                {X,_,_,X,_},
-                {X,X,X,X,_}
-            },
+            .width = 4, .pixels = MATRIX(
+                ROW(X,X,X,X,_),
+                ROW(X,_,_,X,_),
+                ROW(X,X,X,X,_),
+                ROW(X,_,_,X,_),
+                ROW(X,X,X,X,_)
+            ),
         },
         {
-            .width = 4, .pixels = {
-                {X,X,X,X,_},
-                {X,_,_,X,_},
-                {X,X,X,X,_},
-                {_,_,_,X,_},
-                {X,X,X,X,_}
-            },
+            .width = 4, .pixels = MATRIX(
+                ROW(X,X,X,X,_),
+                ROW(X,_,_,X,_),
+                ROW(X,X,X,X,_),
+                ROW(_,_,_,X,_),
+                ROW(X,X,X,X,_)
+            ),
         }
     },
     /* Size 5 */
     {
         {
-            .width = 5, .pixels = {
-                {X,X,X,X,X},
-                {X,_,_,_,X},
-                {X,_,_,_,X},
-                {X,_,_,_,X},
-                {X,X,X,X,X}
-            },
+            .width = 5, .pixels = MATRIX(
+                ROW(X,X,X,X,X),
+                ROW(X,_,_,_,X),
+                ROW(X,_,_,_,X),
+                ROW(X,_,_,_,X),
+                ROW(X,X,X,X,X)
+            ),
         },
         {
-            .width = 2, .pixels = {
-                {X,X,_,_,_},
-                {_,X,_,_,_},
-                {_,X,_,_,_},
-                {_,X,_,_,_},
-                {_,X,_,_,_}
-            },
+            .width = 2, .pixels = MATRIX(
+                ROW(X,X,_,_,_),
+                ROW(_,X,_,_,_),
+                ROW(_,X,_,_,_),
+                ROW(_,X,_,_,_),
+                ROW(_,X,_,_,_)
+            ),
         },
         {
-            .width = 5, .pixels = {
-                {X,X,X,X,X},
-                {_,_,_,_,X},
-                {X,X,X,X,X},
-                {X,_,_,_,_},
-                {X,X,X,X,X}
-            },
+            .width = 5, .pixels = MATRIX(
+                ROW(X,X,X,X,X),
+                ROW(_,_,_,_,X),
+                ROW(X,X,X,X,X),
+                ROW(X,_,_,_,_),
+                ROW(X,X,X,X,X)
+            ),
         },
         {
-            .width = 5, .pixels = {
-                {X,X,X,X,X},
-                {_,_,_,_,X},
-                {_,X,X,X,X},
-                {_,_,_,_,X},
-                {X,X,X,X,X}
-            },
+            .width = 5, .pixels = MATRIX(
+                ROW(X,X,X,X,X),
+                ROW(_,_,_,_,X),
+                ROW(_,X,X,X,X),
+                ROW(_,_,_,_,X),
+                ROW(X,X,X,X,X)
+            ),
         },
         {
-            .width = 5, .pixels = {
-                {X,_,_,_,X},
-                {X,_,_,_,X},
-                {X,X,X,X,X},
-                {_,_,_,_,X},
-                {_,_,_,_,X}
-            },
+            .width = 5, .pixels = MATRIX(
+                ROW(X,_,_,_,X),
+                ROW(X,_,_,_,X),
+                ROW(X,X,X,X,X),
+                ROW(_,_,_,_,X),
+                ROW(_,_,_,_,X)
+            ),
         },
         {
-            .width = 5, .pixels = {
-                {X,X,X,X,X},
-                {X,_,_,_,_},
-                {X,X,X,X,X},
-                {_,_,_,_,X},
-                {X,X,X,X,X}
-            },
+            .width = 5, .pixels = MATRIX(
+                ROW(X,X,X,X,X),
+                ROW(X,_,_,_,_),
+                ROW(X,X,X,X,X),
+                ROW(_,_,_,_,X),
+                ROW(X,X,X,X,X)
+            ),
         },
         {
-            .width = 5, .pixels = {
-                {X,X,X,X,X},
-                {X,_,_,_,_},
-                {X,X,X,X,X},
-                {X,_,_,_,X},
-                {X,X,X,X,X}
-            },
+            .width = 5, .pixels = MATRIX(
+                ROW(X,X,X,X,X),
+                ROW(X,_,_,_,_),
+                ROW(X,X,X,X,X),
+                ROW(X,_,_,_,X),
+                ROW(X,X,X,X,X)
+            ),
         },
         {
-            .width = 5, .pixels = {
-                {X,X,X,X,X},
-                {_,_,_,_,X},
-                {_,_,_,_,X},
-                {_,_,_,_,X},
-                {_,_,_,_,X}
-            },
+            .width = 5, .pixels = MATRIX(
+                ROW(X,X,X,X,X),
+                ROW(_, _, _, _, X),
+                ROW(_, _, _, _, X),
+                ROW(_, _, _, _, X),
+                ROW(_, _, _, _, X)
+            ),
         },
         {
-            .width = 5, .pixels = {
-                {X,X,X,X,X},
-                {X,_,_,_,X},
-                {X,X,X,X,X},
-                {X,_,_,_,X},
-                {X,X,X,X,X}
-            },
+            .width = 5, .pixels = MATRIX(
+                ROW(X,X,X,X,X),
+                ROW(X, _, _, _, X),
+                ROW(X, X, X, X, X),
+                ROW(X, _, _, _, X),
+                ROW(X, X, X, X, X)
+            ),
         },
         {
-            .width = 5, .pixels = {
-                {X,X,X,X,X},
-                {X,_,_,_,X},
-                {X,X,X,X,X},
-                {_,_,_,_,X},
-                {X,X,X,X,X}
-            },
+            .width = 5, .pixels = MATRIX(
+                ROW(X,X,X,X,X),
+                ROW(X, _, _, _, X),
+                ROW(X, X, X, X, X),
+                ROW(_, _, _, _, X),
+                ROW(X, X, X, X, X)
+            ),
         }
     }
 };
@@ -613,7 +619,7 @@ static Glyph glyph_for_char(const char character, const int digit_size) {
     return glyph;
 }
 
-int pixel_matrix_drawer_char_width(char character, int digit_size) {
+int pixel_matrix_drawer_char_width(const char character, const int digit_size) {
     if (!character) return 0;
     return glyph_for_char(character, digit_size).width;
 }
@@ -629,8 +635,10 @@ int pixel_matrix_drawer_draw_char(
 
     for (int row = 0; row < 5; row++) {
         for (int col = 0; col < glyph.width; col++) {
+            const int bit_index = 24 - (row * 5 + col);
+
             // Skip if pixel is false ('_')
-            if (!glyph.pixels[row][col]) {
+            if (!((glyph.pixels >> bit_index) & 1)) {
                 continue;
             }
 
