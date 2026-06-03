@@ -660,3 +660,5 @@ int pixel_matrix_drawer_draw_char(
 // Undefine the macros so they don't leak into other files
 #undef X
 #undef _
+#undef MATRIX
+#undef ROW
