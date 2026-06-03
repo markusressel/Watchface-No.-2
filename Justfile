@@ -5,10 +5,10 @@ setup:
 [arg("platform", pattern="phone|basalt|chalk|diorite|emery|flint")]
 screenshot platform:
     #!/usr/bin/env bash
-    if [[ "{{platform}}" == "phone" ]]; then \
+    if [[ "{{ platform }}" == "phone" ]]; then \
       pebble screenshot --phone 192.168.2.159; \
     else \
-      pebble screenshot --emulator "{{platform}}"; \
+      pebble screenshot --emulator "{{ platform }}"; \
     fi
 
 build:
@@ -17,12 +17,12 @@ build:
 clean-emulator platforms: kill wipe
 
 [arg("platforms", pattern="phone|basalt|chalk|diorite|emery|flint")]
-run *platforms: build
-    ./scripts/run.py {{platforms}}
+run *platforms:
+    ./scripts/run.py {{ platforms }}
 
 [arg("platform", pattern="basalt|chalk|diorite|emery|flint")]
 app-config platform:
-    pebble emu-app-config --emulator "{{platform}}"
+    pebble emu-app-config --emulator "{{ platform }}"
 
 kill:
     pebble kill
@@ -36,10 +36,10 @@ deploy: build
 [arg("platform", pattern="phone|basalt|chalk|diorite|emery|flint")]
 logs platform:
     #!/usr/bin/env bash
-    if [[ "{{platform}}" == "phone" ]]; then \
+    if [[ "{{ platform }}" == "phone" ]]; then \
       pebble logs --phone 192.168.2.159; \
     else \
-      pebble logs --emulator "{{platform}}"; \
+      pebble logs --emulator "{{ platform }}"; \
     fi
 
 clean:
