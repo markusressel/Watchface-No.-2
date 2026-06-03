@@ -6,6 +6,8 @@
 #include "layer/weather.h"
 #include "clay_settings.h"
 
+#define WEATHER_FORECAST_MAX_POINTS 100
+
 static ClaySettings *s_settings;
 
 static int tuple_to_int(const Tuple *tuple) {
@@ -227,19 +229,52 @@ static void read_weather_data(DictionaryIterator *iterator) {
         if (rain_pop_percent_tuple) {
             weatherData->RainPopPercent = rain_pop_percent_tuple->value->int32;
         }
-        if (temp_forecast_encoded_tuple) {
-            weatherData->TemperatureForecastCount = parse_forecast_tuple_to_array(
-                temp_forecast_encoded_tuple,
-                weatherData->TemperatureForecast,
-                WEATHER_FORECAST_MAX_POINTS
-            );
+
+        // 1. ONLY free the arrays if they were genuinely allocated via malloc
+        if (weatherData->is_dynamic_alloc) {
+            if (weatherData->TemperatureForecast) {
+                free(weatherData->TemperatureForecast);
+            }
+            if (weatherData->RainForecastMmX10) {
+                free(weatherData->RainForecastMmX10);
+            }
+            weatherData->is_dynamic_alloc = false; // Reset the flag
         }
+
+        // 2. Always safely break the pointer connections so they don't point to abandoned memory
+        weatherData->TemperatureForecast = NULL;
+        weatherData->TemperatureForecastCount = 0;
+        weatherData->RainForecastMmX10 = NULL;
+        weatherData->RainForecastMmX10Count = 0;
+
+        // 3. Handle Temperature Forecast Processing
+        if (temp_forecast_encoded_tuple) {
+            int scratch_buffer[WEATHER_FORECAST_MAX_POINTS];
+            int count = parse_forecast_tuple_to_array(temp_forecast_encoded_tuple, scratch_buffer, WEATHER_FORECAST_MAX_POINTS);
+
+            if (count > 0) {
+                weatherData->TemperatureForecast = malloc(count * sizeof(int));
+                if (weatherData->TemperatureForecast) {
+                    memcpy(weatherData->TemperatureForecast, scratch_buffer, count * sizeof(int));
+                    weatherData->TemperatureForecastCount = count;
+                    weatherData->is_dynamic_alloc = true; // Set flag because malloc succeeded
+                }
+            }
+        }
+
+        // 4. Handle Rain Forecast Processing
         if (rain_forecast_encoded_tuple) {
-            weatherData->RainForecastMmX10Count = parse_forecast_tuple_to_array(
-                rain_forecast_encoded_tuple,
-                weatherData->RainForecastMmX10,
-                WEATHER_FORECAST_MAX_POINTS
-            );
+            int scratch_buffer[WEATHER_FORECAST_MAX_POINTS];
+            int count = parse_forecast_tuple_to_array(rain_forecast_encoded_tuple, scratch_buffer, WEATHER_FORECAST_MAX_POINTS);
+
+            if (count > 0) {
+                weatherData->RainForecastMmX10 = malloc(count * sizeof(int));
+                if (weatherData->RainForecastMmX10) {
+                    memcpy(weatherData->RainForecastMmX10, scratch_buffer, count * sizeof(int));
+                    weatherData->RainForecastMmX10Count = count;
+                    weatherData->is_dynamic_alloc = true; // Set flag because malloc succeeded
+                }
+            }
         }
 
         APP_LOG(

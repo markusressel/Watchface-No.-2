@@ -36,15 +36,21 @@ int forecast_parse_int_series(
     size_t index = 0;
 
     while (index < encoded_length && count < max_values) {
-        // Skip whitespace or leading commas if any
+        // Skip whitespace and delimiters.
         while (index < encoded_length && (encoded[index] == ' ' || encoded[index] == ',')) {
             index++;
+        }
+        if (index >= encoded_length) {
+            break;
         }
 
         bool is_negative = false;
         if (encoded[index] == '-') {
             is_negative = true;
             index++;
+        }
+        if (index >= encoded_length) {
+            break;
         }
 
         bool has_digit = false;
@@ -56,10 +62,19 @@ int forecast_parse_int_series(
         }
 
         if (!has_digit) {
-            break;
+            // Ignore malformed token content and continue with next comma-separated value.
+            while (index < encoded_length && encoded[index] != ',') {
+                index++;
+            }
+            continue;
         }
 
         out_values[count++] = is_negative ? -value : value;
+
+        // If a token has trailing junk (e.g. "12abc"), skip to next separator.
+        while (index < encoded_length && encoded[index] != ',' && encoded[index] != ' ') {
+            index++;
+        }
     }
 
     return count;
@@ -82,31 +97,28 @@ void draw_temperature_forecast_graph(
     const GRect bounds,
     const WeatherData *weather_data,
     const int maxPoints,
-    const GColor defaultColor) {
-    // ClaySettings *settings = clay_get_settings();
-
-    // const int dot_size = settings->DotHeight > 1 ? settings->DotHeight : 1;
+    const GColor defaultColor
+) {
     const int dot_size = 1;
-    // const int min_interpolated_dot_distance = settings->DotHorizontalGap > 0 ? settings->DotHorizontalGap : 1;
     const int min_interpolated_dot_distance = 0;
 
-    int values[maxPoints];
-    memset(values, 0, sizeof(values));
     int value_count = weather_data->TemperatureForecastCount;
-    if (value_count > maxPoints) {
+    const int *render_values = weather_data->TemperatureForecast;
+    int fallback_value[1]; // Ultra-lightweight fallback array
+
+    // Defensive check: if count is zero OR the pointer is missing, drop to fallback
+    if (value_count <= 0 || !render_values) {
+        fallback_value[0] = weather_data->CurrentTemperature;
+        render_values = fallback_value;
+        value_count = 1;
+    } else if (value_count > maxPoints) {
         value_count = maxPoints;
     }
-    if (value_count > 0) {
-        memcpy(values, weather_data->TemperatureForecast, sizeof(int) * value_count);
-    }
-    if (value_count <= 0) {
-        values[0] = weather_data->CurrentTemperature;
-        value_count = 1;
-    }
 
+    // Stack-safe logging (passing the direct pointer context)
     char log_prefix[48];
-    snprintf(log_prefix, sizeof(log_prefix), "Parsed %d temp values", value_count);
-    log_int_array_chunked(log_prefix, values, value_count);
+    snprintf(log_prefix, sizeof(log_prefix), "Rendering %d temp values", value_count);
+    log_int_array_chunked(log_prefix, render_values, value_count);
 
     GraphDrawConfig graph_config = {
         .graph_type = GRAPH_TYPE_LINE,
@@ -132,7 +144,8 @@ void draw_temperature_forecast_graph(
         .color_context = NULL,
     };
 
-    graph_draw_series(ctx, bounds, values, value_count, &graph_config);
+    // Cast const away safely for the drawing framework api
+    graph_draw_series(ctx, bounds, (int *) render_values, value_count, &graph_config);
 }
 
 
@@ -155,30 +168,25 @@ void draw_rain_forecast_graph(
     const int maxPoints,
     const GColor defaultColor
 ) {
-    // ClaySettings *settings = clay_get_settings();
-
-    // const int dot_size = settings->DotHeight > 1 ? settings->DotHeight : 1;
     const int dot_size = 1;
-    // const int min_interpolated_dot_distance = settings->DotHorizontalGap > 0 ? settings->DotHorizontalGap : 1;
     const int min_interpolated_dot_distance = 0;
 
-    int values[maxPoints];
-    memset(values, 0, sizeof(values));
     int value_count = weather_data->RainForecastMmX10Count;
-    if (value_count > maxPoints) {
-        value_count = maxPoints;
-    }
-    if (value_count > 0) {
-        memcpy(values, weather_data->RainForecastMmX10, sizeof(int) * value_count);
-    }
-    if (value_count <= 0) {
-        values[0] = weather_data->RainNextHourMmX10;
+    const int *render_values = weather_data->RainForecastMmX10;
+    int fallback_value[1]; // Ultra-lightweight fallback array
+
+    // Defensive check: if count is zero OR the pointer is missing, drop to fallback
+    if (value_count <= 0 || !render_values) {
+        fallback_value[0] = weather_data->RainNextHourMmX10;
+        render_values = fallback_value;
         value_count = 1;
+    } else if (value_count > maxPoints) {
+        value_count = maxPoints;
     }
 
     char log_prefix[48];
-    snprintf(log_prefix, sizeof(log_prefix), "Parsed %d rain values", value_count);
-    log_int_array_chunked(log_prefix, values, value_count);
+    snprintf(log_prefix, sizeof(log_prefix), "Rendering %d rain values", value_count);
+    log_int_array_chunked(log_prefix, render_values, value_count);
 
     GraphDrawConfig graph_config = {
         .graph_type = GRAPH_TYPE_LINE,
@@ -203,5 +211,5 @@ void draw_rain_forecast_graph(
         .color_context = NULL,
     };
 
-    graph_draw_series(ctx, bounds, values, value_count, &graph_config);
+    graph_draw_series(ctx, bounds, (int *) render_values, value_count, &graph_config);
 }
