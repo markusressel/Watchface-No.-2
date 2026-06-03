@@ -161,7 +161,7 @@ static void clay_default_settings() {
     settings.Row3Widget = WIDGET_STEPCOUNT;
     settings.Row4Widget = WIDGET_BATTERY_BAR;
     settings.Row5Widget = WIDGET_HEARTRATE;
-    settings.Row6Widget = WIDGET_TEMPERATURE_FORECAST;
+    settings.Row6Widget = WIDGET_WEATHER_FORECAST;
 }
 
 ClaySettings *clay_get_settings() {

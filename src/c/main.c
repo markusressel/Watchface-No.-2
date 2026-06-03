@@ -13,8 +13,7 @@
 #include "app_messaging.h"
 #include "layer/stepcount.h"
 #include "layer/heartrate.h"
-#include "layer/temperature_forecast.h"
-#include "layer/rain_forecast.h"
+#include "layer/weather_forecast.h"
 #include "health_listener.h"
 #include "layer/widget.h"
 
@@ -73,9 +72,7 @@ static void main_window_load(Window *window) {
                 break;
             case WIDGET_HEARTRATE: s_row_layers[i] = create_heartrate_layer(builder);
                 break;
-            case WIDGET_TEMPERATURE_FORECAST: s_row_layers[i] = create_temperature_forecast_layer(builder);
-                break;
-            case WIDGET_RAIN_FORECAST: s_row_layers[i] = create_rain_forecast_layer(builder);
+            case WIDGET_WEATHER_FORECAST: s_row_layers[i] = create_temperature_forecast_layer(builder);
                 break;
             case WIDGET_BATTERY_BAR: s_row_layers[i] = create_battery_bar_layer(builder);
                 break;
@@ -115,9 +112,7 @@ static void main_window_unload(Window *window) {
                     break;
                 case WIDGET_HEARTRATE: destroy_heartrate_layer(s_row_layers[i]);
                     break;
-                case WIDGET_TEMPERATURE_FORECAST: destroy_temperature_forecast_layer(s_row_layers[i]);
-                    break;
-                case WIDGET_RAIN_FORECAST: destroy_rain_forecast_layer(s_row_layers[i]);
+                case WIDGET_WEATHER_FORECAST: destroy_temperature_forecast_layer(s_row_layers[i]);
                     break;
                 case WIDGET_BATTERY_BAR: destroy_battery_bar_layer(s_row_layers[i]);
                     break;

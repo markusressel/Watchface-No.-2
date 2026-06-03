@@ -1,4 +1,4 @@
-#include "temperature_forecast.h"
+#include "weather_forecast.h"
 
 #if defined(PBL_PLATFORM_APLITE)
 

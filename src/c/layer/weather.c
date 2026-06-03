@@ -5,8 +5,7 @@
 #include "../clay_settings.h"
 #include "../dotted_text_layer.h"
 #include "../layer_factory.h"
-#include "temperature_forecast.h"
-#include "rain_forecast.h"
+#include "weather_forecast.h"
 
 #define MAX_WEATHER_LAYERS 7
 
@@ -158,7 +157,6 @@ static void update_all_weather_layers() {
     }
 
     update_temperature_forecast();
-    update_rain_forecast();
 }
 
 // Backward compatible wrapper (called by app messaging or other code)
