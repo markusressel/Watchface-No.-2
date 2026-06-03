@@ -232,41 +232,86 @@ function build_condensed_series(entries, extractor, maxCount) {
     return samples;
 }
 
-let xhrRequest = function (url, type, callback) {
-    let xhr = new XMLHttpRequest();
-    xhr.onload = function () {
-        callback(this.responseText);
-    };
-    xhr.open(type, url);
-    xhr.send();
+let xhrRequest = function (url, type) {
+    return new Promise(function (resolve, reject) {
+        let xhr = new XMLHttpRequest();
+        xhr.onload = function () {
+            resolve(this.responseText);
+        };
+        xhr.onerror = function () {
+            reject(new Error("Network error"));
+        };
+        xhr.open(type, url);
+        xhr.send();
+    });
 };
 
-function fetch_weather_data(latitude, longitude) {
-    // Construct URL
-    let url = "https://api.openweathermap.org/data/4.0/onecall/timeline/15min?lat=" +
-        latitude +
-        "&lon=" + longitude +
-        "&appid=" + config.getWeatherApiKey();
+/**
+ * Constructs a URL with query parameters.
+ * @param {string} baseUrl - The base URL.
+ * @param {object} queryParams - An object containing key-value pairs for query parameters.
+ * @returns {string} The constructed URL.
+ */
+function createUrl(baseUrl, queryParams) {
+    let url = baseUrl;
+    let params = [];
+    for (const key in queryParams) {
+        if (queryParams.hasOwnProperty(key)) {
+            params.push(`${key}=${queryParams[key]}`);
+        }
+    }
+    if (params.length > 0) {
+        url += '?' + params.join('&');
+    }
+    return url;
+}
+
+/**
+ * Fetches weather data from the OpenWeatherMap API.
+ * @param {number} latitude - The latitude coordinate for weather data.
+ * @param {number} longitude - The longitude coordinate for weather data.
+ * @param {function} onSuccess - Callback function to handle successful weather data retrieval.
+ * @param {function} onError - Callback function to handle errors during weather data retrieval.
+ */
+function fetch_weather_data(latitude, longitude, onSuccess, onError) {
+    const baseUrl = "https://api.openweathermap.org/data/4.0/onecall/timeline/15min";
+    const queryParams = {
+        lat: latitude,
+        lon: longitude,
+        appid: config.getWeatherApiKey()
+    };
+    let url = createUrl(baseUrl, queryParams);
 
     console.log("Weather request URL is: " + url);
 
-    // Send request to OpenWeatherMap
-    xhrRequest(url, 'GET',
-        function (responseText) {
+    xhrRequest(url, 'GET')
+        .then(function (responseText) {
             try {
                 let json = JSON.parse(responseText);
                 let weatherData = process_timeline_payload(json, 'api/openweathermap');
-                cache_weather_data(weatherData);
-                send_weather_to_watch(
-                    weatherData,
-                    'Weather info sent to Pebble successfully!',
-                    'Error sending weather info to Pebble!'
-                );
+                if (!weatherData) {
+                    if (typeof onError === 'function') {
+                        onError(new Error('No weather data available in API response'));
+                    }
+                    return;
+                }
+
+                if (typeof onSuccess === 'function') {
+                    onSuccess(weatherData);
+                }
             } catch (error) {
                 console.log('Error parsing API weather response: ' + error);
+                if (typeof onError === 'function') {
+                    onError(error);
+                }
             }
-        }
-    );
+        })
+        .catch(function (error) {
+            console.log('Error fetching weather data: ' + error);
+            if (typeof onError === 'function') {
+                onError(error);
+            }
+        });
 }
 
 /**
@@ -328,7 +373,21 @@ function getWeather() {
 
     navigator.geolocation.getCurrentPosition(
         function (pos) {
-            fetch_weather_data(pos.coords.latitude, pos.coords.longitude);
+            fetch_weather_data(
+                pos.coords.latitude,
+                pos.coords.longitude,
+                function (weatherData) {
+                    cache_weather_data(weatherData);
+                    send_weather_to_watch(
+                        weatherData,
+                        'Weather info sent to Pebble successfully!',
+                        'Error sending weather info to Pebble!'
+                    );
+                },
+                function (error) {
+                    console.log('Error fetching weather data: ' + error);
+                }
+            );
         },
         function (err) {
             console.log("Error requesting location!");
@@ -354,6 +413,12 @@ function createWeatherData(
     }
 }
 
+/**
+ * Converts a number with one decimal place (e.g. 1.2) to an integer (e.g. 12) by multiplying by 10 and rounding.
+ * This allows us to send decimal values in an integer format, which is necessary because Pebble's AppMessage system does not support floating-point numbers.
+ * @param {number} value - The number to convert.
+ * @returns {number} The converted integer value.
+ */
 function one_decimal_to_int(value) {
     if (typeof value !== 'number') {
         return 0;
@@ -362,6 +427,11 @@ function one_decimal_to_int(value) {
     return Math.round(value * 10);
 }
 
+/**
+ * Encodes an array of numbers into a comma-separated string for transmission via Pebble's AppMessage system, which does not support arrays.
+ * @param {number[]} values - The array of numbers to encode.
+ * @returns {string} The encoded string.
+ */
 function encode_number_array(values) {
     return values.join(',');
 }
