@@ -628,7 +628,8 @@ int pixel_matrix_drawer_draw_char(
     GContext *ctx, const GPoint point_zero, const char character,
     const int dot_width, const int dot_height,
     const int gap_size_horizontal, const int gap_size_vertical,
-    const bool align_right, const int digit_size) {
+    const bool align_right, const int digit_size
+) {
     if (!character) return 0;
 
     Glyph glyph = glyph_for_char(character, digit_size);
