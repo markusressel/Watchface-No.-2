@@ -40,6 +40,8 @@ These are the components to choose from:
 Colors can be changed for each component individually through the configuration page in the Pebble app.
 After saving your modified settings, the watchface will reload automatically.
 
+[Color Table](COLORS.md) for reference.
+
 # Settings
 
 <img src="/screenshots/Settings1.png" width="300"><img src="/screenshots/Settings2.png" width="306">

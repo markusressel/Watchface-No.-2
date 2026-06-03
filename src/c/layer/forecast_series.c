@@ -136,7 +136,7 @@ static const GraphColorStop s_rain_color_stops[] = {
     {.value = -50, .color = GColorVividCerulean},
     {.value = -10, .color = GColorPictonBlue},
     {.value = 0, .color = GColorLightGray},
-    {.value = 15, .color = GColorPictonBlue},
+    {.value = 1, .color = GColorPictonBlue},
     {.value = 40, .color = GColorBlueMoon},
     {.value = 80, .color = GColorBlueMoon},
 };
