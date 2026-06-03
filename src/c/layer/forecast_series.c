@@ -109,6 +109,7 @@ void draw_temperature_forecast_graph(GContext *ctx, const GRect bounds, WeatherD
         .dot_size = dot_size,
         .min_interpolated_dot_distance_px = min_interpolated_dot_distance,
         .fill_area_under_line = false,
+        .suppress_exact_zero_value = false,
         .interpolate_color_stops = true,
         .default_color = defaultColor,
         .color_stops =
@@ -136,9 +137,10 @@ static const GraphColorStop s_rain_color_stops[] = {
     {.value = -50, .color = GColorVividCerulean},
     {.value = -10, .color = GColorPictonBlue},
     {.value = 0, .color = GColorLightGray},
-    {.value = 1, .color = GColorPictonBlue},
-    {.value = 40, .color = GColorBlueMoon},
-    {.value = 80, .color = GColorBlueMoon},
+    {.value = 3, .color = GColorPictonBlue},
+    {.value = 10, .color = GColorBlueMoon},
+    {.value = 50, .color = GColorBlue},
+    {.value = 100, .color = GColorDukeBlue},
 };
 #endif
 
@@ -168,6 +170,7 @@ void draw_rain_forecast_graph(GContext *ctx, const GRect bounds, WeatherData *we
         .dot_size = dot_size,
         .min_interpolated_dot_distance_px = min_interpolated_dot_distance,
         .fill_area_under_line = true,
+        .suppress_exact_zero_value = true,
         .interpolate_color_stops = false,
         .default_color = defaultColor,
 #if defined(PBL_COLOR)

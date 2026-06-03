@@ -25,6 +25,7 @@ typedef struct GraphDrawConfig {
     int dot_size;
     int min_interpolated_dot_distance_px;
     bool fill_area_under_line;
+    bool suppress_exact_zero_value;
     bool interpolate_color_stops;
     GColor default_color;
     const GraphColorStop *color_stops;
