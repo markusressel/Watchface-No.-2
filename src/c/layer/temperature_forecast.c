@@ -31,63 +31,13 @@ void destroy_temperature_forecast_layer(Layer *layer) {
 static Layer *s_layers[MAX_TEMPERATURE_FORECAST_LAYERS];
 static int s_layer_count = 0;
 
-#if defined(PBL_COLOR)
-static const GraphColorStop s_temperature_color_stops[] = {
-    {.value = -25, .color = GColorMagenta},
-    {.value = -12, .color = GColorBlueMoon},
-    {.value = -1, .color = GColorPictonBlue},
-    {.value = 0, .color = GColorGreen},
-    {.value = 15, .color = GColorChromeYellow},
-    {.value = 30, .color = GColorRed},
-};
-#endif
 
 static void update_proc(Layer *layer, GContext *ctx) {
     const GRect bounds = layer_get_bounds(layer);
     WeatherData *weather_data = weather_get_data();
-    ClaySettings *settings = clay_get_settings();
 
-    // const int dot_size = settings->DotHeight > 1 ? settings->DotHeight : 1;
-    const int dot_size = 1;
-    // const int min_interpolated_dot_distance = settings->DotHorizontalGap > 0 ? settings->DotHorizontalGap : 1;
-    const int min_interpolated_dot_distance = 0;
-
-    int values[MAX_FORECAST_POINTS] = {0};
-    int value_count = forecast_parse_int_series(
-        weather_data->TemperatureForecastEncoded,
-        sizeof(weather_data->TemperatureForecastEncoded),
-        values,
-        MAX_FORECAST_POINTS
-    );
-    if (value_count <= 0) {
-        values[0] = weather_data->CurrentTemperature;
-        value_count = 1;
-    }
-
-    GraphDrawConfig graph_config = {
-        .graph_type = GRAPH_TYPE_LINE,
-        .dot_size = dot_size,
-        .min_interpolated_dot_distance_px = min_interpolated_dot_distance,
-        .fill_area_under_line = true,
-        .interpolate_color_stops = true,
-        .default_color = theme_get_theme()->WeatherTextColor,
-        .color_stops =
-#if defined(PBL_COLOR)
-            s_temperature_color_stops,
-#else
-            NULL,
-#endif
-        .color_stop_count =
-#if defined(PBL_COLOR)
-            (int) (sizeof(s_temperature_color_stops) / sizeof(s_temperature_color_stops[0])),
-#else
-            0,
-#endif
-        .color_for_value = NULL,
-        .color_context = NULL,
-    };
-
-    graph_draw_series(ctx, bounds, values, value_count, &graph_config);
+    draw_temperature_forecast_graph(ctx, bounds, weather_data, MAX_FORECAST_POINTS, theme_get_theme()->WeatherTextColor);
+    draw_rain_forecast_graph(ctx, bounds, weather_data, MAX_FORECAST_POINTS, GColorBlue);
 }
 
 void update_temperature_forecast() {

@@ -10,18 +10,30 @@ static int clamp_int(const int value, const int min_value, const int max_value) 
     return value;
 }
 
+#if defined(PBL_COLOR)
+static int channel2_to_8(const int value2) {
+    return clamp_int(value2, 0, 3) * 85;
+}
+
+static int channel8_to_2(const int value8) {
+    const int clamped = clamp_int(value8, 0, 255);
+    // Round to the nearest Pebble 2-bit channel bucket.
+    return (clamped + 42) / 85;
+}
+#endif
+
 static GColor interpolate_color(const GColor from, const GColor to, const int t_scaled) {
 #if defined(PBL_COLOR)
     const int t = clamp_int(t_scaled, 0, 1000);
-    const int from_a = (from.argb >> 6) & 0x3;
-    const int from_r = (from.argb >> 4) & 0x3;
-    const int from_g = (from.argb >> 2) & 0x3;
-    const int from_b = from.argb & 0x3;
+    const int from_a = channel2_to_8((from.argb >> 6) & 0x3);
+    const int from_r = channel2_to_8((from.argb >> 4) & 0x3);
+    const int from_g = channel2_to_8((from.argb >> 2) & 0x3);
+    const int from_b = channel2_to_8(from.argb & 0x3);
 
-    const int to_a = (to.argb >> 6) & 0x3;
-    const int to_r = (to.argb >> 4) & 0x3;
-    const int to_g = (to.argb >> 2) & 0x3;
-    const int to_b = to.argb & 0x3;
+    const int to_a = channel2_to_8((to.argb >> 6) & 0x3);
+    const int to_r = channel2_to_8((to.argb >> 4) & 0x3);
+    const int to_g = channel2_to_8((to.argb >> 2) & 0x3);
+    const int to_b = channel2_to_8(to.argb & 0x3);
 
     const int out_a = from_a + ((to_a - from_a) * t) / 1000;
     const int out_r = from_r + ((to_r - from_r) * t) / 1000;
@@ -29,7 +41,12 @@ static GColor interpolate_color(const GColor from, const GColor to, const int t_
     const int out_b = from_b + ((to_b - from_b) * t) / 1000;
 
     GColor out = GColorBlack;
-    out.argb = (uint8_t) ((out_a << 6) | (out_r << 4) | (out_g << 2) | out_b);
+    out.argb = (uint8_t) (
+        (channel8_to_2(out_a) << 6) |
+        (channel8_to_2(out_r) << 4) |
+        (channel8_to_2(out_g) << 2) |
+        channel8_to_2(out_b)
+    );
     return out;
 #else
     (void) to;
@@ -59,10 +76,17 @@ static GColor graph_color_for_stops(
         return config->color_stops[last].color;
     }
 
+    // Exact stop value should always resolve to the exact configured color.
+    for (int s = 0; s <= last; s++) {
+        if (value == config->color_stops[s].value) {
+            return config->color_stops[s].color;
+        }
+    }
+
     for (int i = 0; i < last; i++) {
         const GraphColorStop left = config->color_stops[i];
         const GraphColorStop right = config->color_stops[i + 1];
-        if (value < left.value || value > right.value) {
+        if (value <= left.value || value >= right.value) {
             continue;
         }
 

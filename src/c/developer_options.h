@@ -9,5 +9,5 @@ typedef struct DeveloperOptions {
 // Set values here manually when debugging visuals.
 static const DeveloperOptions DEV_OPTIONS = {
     .ShowLayerBounds = false,
-    .UseMockWeatherData = true,
+    .UseMockWeatherData = false,
 };
