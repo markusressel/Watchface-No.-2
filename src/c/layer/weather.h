@@ -5,6 +5,7 @@
 
 // Persistent storage key
 #define WEATHER_DATA_KEY PERSIST_KEY_WEATHER_DATA
+#define WEATHER_FORECAST_MAX_POINTS 100
 
 typedef struct WeatherData {
     int CurrentTemperature;

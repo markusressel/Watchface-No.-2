@@ -6,7 +6,6 @@
 #include "layer/weather.h"
 #include "clay_settings.h"
 
-#define WEATHER_FORECAST_MAX_POINTS 100
 
 static ClaySettings *s_settings;
 
