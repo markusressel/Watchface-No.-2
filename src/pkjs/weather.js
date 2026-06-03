@@ -7,6 +7,23 @@ var WEATHER_LAST_FETCH_KEY = 'weather-last-fetch-ts';
 var WEATHER_LAST_DATA_KEY = 'weather-last-data';
 var FORECAST_POINT_COUNT = 100;
 
+function createWeatherData(
+    temperatureCurrent, temperatureMin, temperatureMax, conditions,
+    rainMm, popPercent,
+    temperatureForecastSeries, rainForecastSeries
+) {
+    return {
+        'WEATHER_TEMPERATURE_CURRENT': temperatureCurrent,
+        'WEATHER_TEMPERATURE_MIN': temperatureMin,
+        'WEATHER_TEMPERATURE_MAX': temperatureMax,
+        'WEATHER_CONDITION': conditions,
+        'WEATHER_RAIN_NEXT_HOUR_MM_X10': one_decimal_to_int(rainMm),
+        'WEATHER_RAIN_POP_PERCENT': popPercent,
+        'WEATHER_TEMP_FORECAST_ENCODED': encode_number_array(temperatureForecastSeries),
+        'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': encode_number_array(rainForecastSeries)
+    }
+}
+
 function process_timeline_payload(json, sourceLabel) {
     if (!json || !json.data || json.data.length === 0) {
         console.log('No timeline data available from ' + sourceLabel + '.');
@@ -60,16 +77,16 @@ function process_timeline_payload(json, sourceLabel) {
     );
 
     // Assemble dictionary using our keys
-    var dictionary = {
-        'WEATHER_TEMPERATURE_CURRENT': temperatureCurrent,
-        'WEATHER_TEMPERATURE_MIN': temperatureMin,
-        'WEATHER_TEMPERATURE_MAX': temperatureMax,
-        'WEATHER_CONDITION': conditions,
-        'WEATHER_RAIN_NEXT_HOUR_MM_X10': one_decimal_to_int(rainMm),
-        'WEATHER_RAIN_POP_PERCENT': popPercent,
-        'WEATHER_TEMP_FORECAST_ENCODED': encode_number_array(temperatureForecastSeries),
-        'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': encode_number_array(rainForecastSeries)
-    };
+    var dictionary = createWeatherData(
+        temperatureCurrent,
+        temperatureMin,
+        temperatureMax,
+        conditions,
+        rainMm,
+        popPercent,
+        temperatureForecastSeries,
+        rainForecastSeries
+    );
 
     cache_weather_data(dictionary);
 
@@ -291,16 +308,16 @@ function getWeather() {
         console.log("No OpenWeatherMap API key configured. Clearing weather data.");
 
         // Send empty weather data to clear the display on the watchface
-        var clearDictionary = {
-            "WEATHER_TEMPERATURE_CURRENT": 0,
-            "WEATHER_TEMPERATURE_MIN": 0,
-            "WEATHER_TEMPERATURE_MAX": 0,
-            "WEATHER_CONDITION": "",
-            "WEATHER_RAIN_NEXT_HOUR_MM_X10": 0,
-            "WEATHER_RAIN_POP_PERCENT": 0,
-            "WEATHER_TEMP_FORECAST_ENCODED": "",
-            "WEATHER_RAIN_FORECAST_MM_X10_ENCODED": ""
-        };
+        var clearDictionary = createWeatherData(
+            0,
+            0,
+            0,
+            '',
+            0,
+            0,
+            [],
+            []
+        );
 
         cache_weather_data(clearDictionary);
 
