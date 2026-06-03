@@ -31,7 +31,8 @@ wipe: kill
     pebble wipe
 
 [arg("platform", pattern="phone|basalt|chalk|diorite|emery|flint")]
-deploy platform: (run platform) (logs platform)
+deploy platform:
+    ./scripts/run.py {{ platform }} --logs
 
 [arg("platform", pattern="phone|basalt|chalk|diorite|emery|flint")]
 logs platform:
