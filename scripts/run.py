@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import os
 import subprocess
 import sys
@@ -6,17 +7,26 @@ from multiprocessing import Pool
 from typing import List
 
 PHONE_IP = "192.168.2.159"
+VALID_PLATFORMS = ["phone", "basalt", "chalk", "diorite", "emery", "flint"]
 
 
-def build_emu():
+def build_emu(debug_build: bool):
     emu_env = os.environ.copy()
     emu_env["PEBBLE_EMULATOR_BUILD"] = "1"
+    if debug_build:
+        emu_env.pop("PEBBLE_RELEASE", None)
+    else:
+        emu_env["PEBBLE_RELEASE"] = "1"
     subprocess.run(["pebble", "build"], env=emu_env, check=True)
 
 
-def build_real():
+def build_real(debug_build: bool):
     real_env = os.environ.copy()
     real_env.pop("PEBBLE_EMULATOR_BUILD", None)
+    if debug_build:
+        real_env.pop("PEBBLE_RELEASE", None)
+    else:
+        real_env["PEBBLE_RELEASE"] = "1"
     subprocess.run(["pebble", "build"], env=real_env, check=True)
 
 
@@ -36,19 +46,18 @@ def deploy_emu(platform: str, follow_logs: bool):
     subprocess.run(args, check=True)
 
 
-def build_and_deploy(platforms: List[str], follow_logs: bool):
+def build_and_deploy(platforms: List[str], follow_logs: bool, debug_build: bool):
     # Split targets since emulator and hardware builds require different CFLAGS
     hardware_targets = [p for p in platforms if p == "phone"]
     emulator_targets = [p for p in platforms if p != "phone"]
 
     # 1. Handle Emulator Targets
     if emulator_targets:
-        print("🛠️  Building project for Emulator (PEBBLE_EMULATOR_BUILD=1)...")
-        emu_env = os.environ.copy()
-        emu_env["PEBBLE_EMULATOR_BUILD"] = "1"
+        mode = "Debug" if debug_build else "Release"
+        print(f"🛠️  Building project for Emulator ({mode}, PEBBLE_EMULATOR_BUILD=1)...")
 
         # Explicitly compile the emulator-flavored .pbw first
-        build_emu()
+        build_emu(debug_build)
 
         # Deploy to the requested emulators in parallel
         with Pool(len(emulator_targets)) as p:
@@ -56,10 +65,11 @@ def build_and_deploy(platforms: List[str], follow_logs: bool):
 
     # 2. Handle Physical Hardware Targets
     if hardware_targets:
-        print("🛠️  Building project for Hardware (Production)...")
+        mode = "Debug" if debug_build else "Release"
+        print(f"🛠️  Building project for Hardware ({mode})...")
 
         # Explicitly compile the production-flavored .pbw
-        build_real()
+        build_real(debug_build)
 
         for target in hardware_targets:
             print(f"📱 Deploying to {target}...")
@@ -67,20 +77,23 @@ def build_and_deploy(platforms: List[str], follow_logs: bool):
 
 
 if __name__ == "__main__":
-    platforms = sys.argv[1:]
-    if not platforms:
-        print("Error: No platforms specified.")
+    parser = argparse.ArgumentParser(description="Build and deploy Pebble app to emulators and/or phone")
+    parser.add_argument("platforms", nargs="+", choices=VALID_PLATFORMS)
+    parser.add_argument("--logs", action="store_true", help="Follow logs after install (single target only)")
+
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--debug", action="store_true", help="Build debug variant")
+    mode.add_argument("--release", action="store_true", help="Build release variant (default)")
+
+    args = parser.parse_args()
+
+    if args.logs and len(args.platforms) > 1:
+        print("The --logs flag can only be used with a single target.")
         sys.exit(1)
 
-    # "--logs" flag
-    follow_logs = False
-    if "--logs" in platforms:
-        platforms.remove("--logs")
-        if len(platforms) > 1:
-            print("The --logs flag can only be used with a single target.")
-            sys.exit(1)
-        follow_logs = True
+    debug_build = args.debug
 
-    print(f"🚀 Processing targets: {', '.join(platforms)}")
-    build_and_deploy(platforms, follow_logs)
+    print(f"🚀 Processing targets: {', '.join(args.platforms)}")
+    print(f"🔧 Build mode: {'debug' if debug_build else 'release'}")
+    build_and_deploy(args.platforms, args.logs, debug_build)
     print("✅ All targets processed!")

@@ -3,6 +3,20 @@
 #include "weather.h"
 #include "../util.h"
 
+#ifndef FORECAST_RENDER_LOGGING
+#define FORECAST_RENDER_LOGGING 0
+#endif
+
+#if FORECAST_RENDER_LOGGING
+#define FORECAST_LOG_SERIES(LABEL, COUNT, VALUES) do { \
+    char _log_prefix[48]; \
+    snprintf(_log_prefix, sizeof(_log_prefix), "Rendering %d %s values", (COUNT), (LABEL)); \
+    log_int_array_chunked(_log_prefix, (VALUES), (COUNT)); \
+} while (0)
+#else
+#define FORECAST_LOG_SERIES(LABEL, COUNT, VALUES) do { } while (0)
+#endif
+
 static size_t forecast_bounded_cstring_length(const char *value, const size_t capacity) {
     if (!value || capacity == 0) {
         return 0;
@@ -115,10 +129,7 @@ void draw_temperature_forecast_graph(
         value_count = maxPoints;
     }
 
-    // Stack-safe logging (passing the direct pointer context)
-    char log_prefix[48];
-    snprintf(log_prefix, sizeof(log_prefix), "Rendering %d temp values", value_count);
-    log_int_array_chunked(log_prefix, render_values, value_count);
+    FORECAST_LOG_SERIES("temp", value_count, render_values);
 
     GraphDrawConfig graph_config = {
         .graph_type = GRAPH_TYPE_LINE,
@@ -184,9 +195,7 @@ void draw_rain_forecast_graph(
         value_count = maxPoints;
     }
 
-    char log_prefix[48];
-    snprintf(log_prefix, sizeof(log_prefix), "Rendering %d rain values", value_count);
-    log_int_array_chunked(log_prefix, render_values, value_count);
+    FORECAST_LOG_SERIES("rain", value_count, render_values);
 
     GraphDrawConfig graph_config = {
         .graph_type = GRAPH_TYPE_LINE,

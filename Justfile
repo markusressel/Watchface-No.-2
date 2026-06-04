@@ -14,11 +14,15 @@ screenshot platform:
 build:
     pebble build
 
+release:
+    PEBBLE_RELEASE=1 pebble build
+
 clean-emulator platforms: kill wipe
 
+[arg("mode", pattern="debug|release")]
 [arg("platforms", pattern="phone|basalt|chalk|diorite|emery|flint")]
-run *platforms:
-    ./scripts/run.py {{ platforms }}
+run mode *platforms:
+    ./scripts/run.py {{ platforms }} --{{ mode }}
 
 [arg("platform", pattern="basalt|chalk|diorite|emery|flint")]
 app-config platform:
@@ -30,9 +34,10 @@ kill:
 wipe: kill
     pebble wipe
 
+[arg("mode", pattern="debug|release")]
 [arg("platform", pattern="phone|basalt|chalk|diorite|emery|flint")]
-deploy platform:
-    ./scripts/run.py {{ platform }} --logs
+deploy mode platform:
+    ./scripts/run.py {{ platform }} --logs --{{ mode }}
 
 [arg("platform", pattern="phone|basalt|chalk|diorite|emery|flint")]
 logs platform:

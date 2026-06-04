@@ -32,12 +32,21 @@ def build(ctx):
 
     ctx.load('pebble_sdk')
 
+    release_build = os.environ.get('PEBBLE_RELEASE') == '1'
+    if release_build:
+        print('Building release mode (PEBBLE_RELEASE=1): APP_LOG disabled')
+    else:
+        print('Building development mode: APP_LOG enabled')
+
     build_worker = os.path.exists('worker_src')
     binaries = []
 
     for p in ctx.env.TARGET_PLATFORMS:
         ctx.set_env(ctx.all_envs[p])
         ctx.set_group(ctx.env.PLATFORM_NAME)
+
+        if release_build:
+            ctx.env.CFLAGS.append('-DRELEASE=1')
 
         # Check for PEBBLE_EMULATOR_BUILD environment variable
         if os.environ.get('PEBBLE_EMULATOR_BUILD') == '1':
