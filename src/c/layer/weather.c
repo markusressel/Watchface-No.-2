@@ -240,6 +240,7 @@ static void cancel_update_timer() {
 }
 
 static void schedule_next_update(const int interval, AppTimerCallback callback) {
+    cancel_update_timer();
     s_update_timer = app_timer_register(interval, callback, NULL);
 }
 
