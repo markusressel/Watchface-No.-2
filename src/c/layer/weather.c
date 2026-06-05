@@ -95,8 +95,12 @@ static void sanitize_weather_data() {
 }
 
 // Timer to update weather after the given amount of time
+#ifdef PBL_EMULATOR
+static int s_weather_update_interval = 1000 * 60;
+#else
 static int s_weather_update_interval = 1800000;
-//static int s_weather_update_interval = 30000;
+#endif
+
 static AppTimer *s_update_timer;
 
 // Registry of all created weather layers
@@ -227,19 +231,27 @@ static void request_weather_update() {
     }
 }
 
-static void on_scheduled_update_triggered(void *data) {
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "scheduled weather update triggered!");
-
+static void cancel_update_timer() {
     if (s_update_timer) {
         // cancel weather update timer
         app_timer_cancel(s_update_timer);
+        s_update_timer = NULL;
     }
+}
+
+static void schedule_next_update(const int interval, AppTimerCallback callback) {
+    s_update_timer = app_timer_register(interval, callback, NULL);
+}
+
+static void on_scheduled_update_triggered(void *data) {
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "scheduled weather update triggered!");
+    cancel_update_timer();
 
     // send AppMessage to trigger weather update via JS
     request_weather_update();
 
     //Register next execution
-    s_update_timer = app_timer_register(s_weather_update_interval, on_scheduled_update_triggered, NULL);
+    schedule_next_update(s_weather_update_interval, on_scheduled_update_triggered);
 }
 
 // Update all weather layer instances
