@@ -220,7 +220,7 @@ static void request_weather_update() {
     // Add an item to ask for weather data
     dict_write_int(out_iter, MESSAGE_KEY_RequestData, &value, sizeof(int), true);
 
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Sending RequestUpdate message for weather...");
+    APP_LOG(APP_LOG_LEVEL_INFO, "Sending RequestUpdate message for weather...");
 
     // Send this message
     result = app_message_outbox_send();
