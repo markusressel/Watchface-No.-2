@@ -202,6 +202,9 @@ static void read_weather_data(DictionaryIterator *iterator) {
     Tuple *rain_forecast_encoded_tuple = dict_find(iterator, MESSAGE_KEY_WEATHER_RAIN_FORECAST_MM_X10_ENCODED);
 
     // If all data is available, use it
+    // Move scratch buffer to static, to prevent Stack Overflow (800+ bytes is too much for Pebble stack)
+    static int s_forecast_scratch[WEATHER_FORECAST_MAX_POINTS];
+
     if (temp_cur_tuple && temp_min_tuple && temp_max_tuple && condition_tuple) {
         WeatherData *weatherData = weather_get_data();
 
@@ -248,13 +251,12 @@ static void read_weather_data(DictionaryIterator *iterator) {
 
         // 3. Handle Temperature Forecast Processing
         if (temp_forecast_encoded_tuple) {
-            int scratch_buffer[WEATHER_FORECAST_MAX_POINTS];
-            int count = parse_forecast_tuple_to_array(temp_forecast_encoded_tuple, scratch_buffer, WEATHER_FORECAST_MAX_POINTS);
+            int count = parse_forecast_tuple_to_array(temp_forecast_encoded_tuple, s_forecast_scratch, WEATHER_FORECAST_MAX_POINTS);
 
             if (count > 0) {
                 weatherData->TemperatureForecast = malloc(count * sizeof(int));
                 if (weatherData->TemperatureForecast) {
-                    memcpy(weatherData->TemperatureForecast, scratch_buffer, count * sizeof(int));
+                    memcpy(weatherData->TemperatureForecast, s_forecast_scratch, count * sizeof(int));
                     weatherData->TemperatureForecastCount = count;
                     weatherData->is_dynamic_alloc = true; // Set flag because malloc succeeded
                 }
@@ -263,13 +265,12 @@ static void read_weather_data(DictionaryIterator *iterator) {
 
         // 4. Handle Rain Forecast Processing
         if (rain_forecast_encoded_tuple) {
-            int scratch_buffer[WEATHER_FORECAST_MAX_POINTS];
-            int count = parse_forecast_tuple_to_array(rain_forecast_encoded_tuple, scratch_buffer, WEATHER_FORECAST_MAX_POINTS);
+            int count = parse_forecast_tuple_to_array(rain_forecast_encoded_tuple, s_forecast_scratch, WEATHER_FORECAST_MAX_POINTS);
 
             if (count > 0) {
                 weatherData->RainForecastMmX10 = malloc(count * sizeof(int));
                 if (weatherData->RainForecastMmX10) {
-                    memcpy(weatherData->RainForecastMmX10, scratch_buffer, count * sizeof(int));
+                    memcpy(weatherData->RainForecastMmX10, s_forecast_scratch, count * sizeof(int));
                     weatherData->RainForecastMmX10Count = count;
                     weatherData->is_dynamic_alloc = true; // Set flag because malloc succeeded
                 }

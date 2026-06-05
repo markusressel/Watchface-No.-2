@@ -101,6 +101,10 @@ void draw_temperature_forecast_graph(
     const int dot_size = 1;
     const int min_interpolated_dot_distance = 0;
 
+    if (!weather_data) {
+        return;
+    }
+
     int value_count = weather_data->TemperatureForecastCount;
     const int *render_values = weather_data->TemperatureForecast;
     int fallback_value[1]; // Ultra-lightweight fallback array
@@ -164,6 +168,10 @@ void draw_rain_forecast_graph(
 ) {
     const int dot_size = 1;
     const int min_interpolated_dot_distance = 0;
+
+    if (!weather_data) {
+        return;
+    }
 
     int value_count = weather_data->RainForecastMmX10Count;
     const int *render_values = weather_data->RainForecastMmX10;
