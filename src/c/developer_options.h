@@ -2,7 +2,7 @@
 
 typedef struct DeveloperOptions {
     bool ShowLayerBounds;
-    bool UseMockWeatherData;
+    bool IsEmulator;
 } DeveloperOptions;
 
 // Compile-time developer toggles.
@@ -10,8 +10,8 @@ typedef struct DeveloperOptions {
 static const DeveloperOptions DEV_OPTIONS = {
     .ShowLayerBounds = false,
 #ifdef PBL_EMULATOR
-    .UseMockWeatherData = true,
+    .IsEmulator = true,
 #else
-    .UseMockWeatherData = false,
+    .IsEmulator = false,
 #endif
 };
