@@ -21,15 +21,11 @@ def run_c_host_tests():
         filename = os.path.basename(test_file)
         test_name = filename.replace("_test.c", "")
 
-        shim_file = os.path.join("tests/c", f"{test_name}_host_shim.c")
         output_executable = os.path.join(build_dir, f"{test_name}_test")
 
         print(f"--- Compiling and running {test_name} tests ---")
 
-        compile_command = ["gcc", test_file]
-        if os.path.exists(shim_file):
-            compile_command.append(shim_file)
-        compile_command.extend(["-o", output_executable])
+        compile_command = ["gcc", test_file, "-o", output_executable]
 
         # Compile test
         try:

@@ -1,6 +1,4 @@
-#ifndef HOST_TEST_SHIM_BUILD
 #include <pebble.h>
-#endif
 #include <stdio.h>
 #include <string.h>
 
@@ -41,10 +39,6 @@ void log_int_array_chunked(const char *prefix, const int *arr, const int count) 
         }
 
         // Log this batch contextually
-#ifndef HOST_TEST_SHIM_BUILD
         APP_LOG(APP_LOG_LEVEL_DEBUG, "%s [%d-%d]: [%s]", prefix, i, end - 1, chunk_buf);
-#else
-        printf("[MOCK APP_LOG] %s [%d-%d]: [%s]\n", prefix, i, end - 1, chunk_buf);
-#endif
     }
 }
