@@ -101,7 +101,7 @@ static int s_weather_update_interval = 1000 * 60 * 1; // 1 minute
 static int s_weather_update_interval = 1000 * 60 * 30; // 30 minutes
 #endif
 
-static AppTimer *s_update_timer;
+static AppTimer *s_update_timer = NULL;
 
 // Registry of all created weather layers
 typedef struct {
@@ -232,7 +232,7 @@ static void request_weather_update() {
 }
 
 static void cancel_update_timer() {
-    if (s_update_timer) {
+    if (s_update_timer != NULL) {
         // cancel weather update timer
         app_timer_cancel(s_update_timer);
         s_update_timer = NULL;
