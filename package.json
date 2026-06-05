@@ -80,6 +80,11 @@
     "devDependencies": {
         "jest": "^30.4.2"
     },
+    "jest": {
+        "setupFilesAfterEnv": [
+            "./tests/js/jest.setup.js"
+        ]
+    },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/markusressel/Watchface-No.-2.git"
