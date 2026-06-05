@@ -162,6 +162,13 @@ typedef struct GRect {
     GSize size;
 } GRect;
 
+static inline GRect GRect_construct(int16_t x, int16_t y, int16_t w, int16_t h) {
+    return (GRect){.origin = {.x = x, .y = y}, .size = {.w = w, .h = h}};
+}
+
+#define GRect(x, y, w, h) GRect_construct(x, y, w, h)
+
+
 static inline GRect layer_get_bounds(Layer *layer) {
     (void) layer;
     return (GRect){.origin = {.x = 0, .y = 0}, .size = {.w = 144, .h = 168}}; // Dummy bounds
@@ -169,3 +176,45 @@ static inline GRect layer_get_bounds(Layer *layer) {
 
 static inline void layer_mark_dirty(Layer *layer) { (void) layer; }
 static inline void layer_destroy(Layer *layer) { (void) layer; }
+
+// Graphics mocks for pixel_matrix_drawer
+typedef uint8_t GCorners;
+#define GCornerNone 0
+
+#define MAX_GRAPHICS_FILL_RECT_CALLS 100
+
+typedef struct {
+    GRect rect;
+    uint16_t corner_radius;
+    GCorners corners;
+} GraphicsFillRectCall;
+
+static GraphicsFillRectCall s_graphics_fill_rect_calls[MAX_GRAPHICS_FILL_RECT_CALLS];
+static int s_graphics_fill_rect_call_count = 0;
+
+static inline void graphics_fill_rect(GContext *ctx, GRect rect, uint16_t corner_radius, GCorners corners) {
+    (void) ctx;
+    if (s_graphics_fill_rect_call_count < MAX_GRAPHICS_FILL_RECT_CALLS) {
+        s_graphics_fill_rect_calls[s_graphics_fill_rect_call_count++] = (GraphicsFillRectCall){
+            .rect = rect,
+            .corner_radius = corner_radius,
+            .corners = corners
+        };
+    } else {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "graphics_fill_rect mock buffer overflow!");
+    }
+}
+
+// Helper to reset the mock call count
+static inline void reset_graphics_fill_rect_calls() {
+    s_graphics_fill_rect_call_count = 0;
+}
+
+// Helper to get the recorded calls
+static inline GraphicsFillRectCall *get_graphics_fill_rect_calls() {
+    return s_graphics_fill_rect_calls;
+}
+
+static inline int get_graphics_fill_rect_call_count() {
+    return s_graphics_fill_rect_call_count;
+}
