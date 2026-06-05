@@ -26,6 +26,12 @@ npm init -y
 npm install --save-dev jest
 ```
 
+Run tests:
+
+```
+just test
+```
+
 ## C Implementation
 
 # Settings
