@@ -7,6 +7,13 @@
 #include "../../src/c/util.h" // Include the header for the functions being tested
 #include "../../src/c/util.c" // Include the C implementation file directly for testing
 
+// Unity setup and teardown functions (required even if empty)
+void setUp(void) {
+}
+
+void tearDown(void) {
+}
+
 // Test function for format_int_array
 void test_format_int_array(void) {
     char buf[64];

@@ -25,10 +25,15 @@ def run_c_host_tests():
 
         print(f"--- Compiling and running {test_name} tests ---")
 
-        # The test_file now includes the production .c file directly,
-        # so we only need to compile the test_file itself.
-        # -Itests/c ensures our mock pebble.h and Unity headers are found.
-        compile_command = ["gcc", "-Itests/c", test_file, "-o", output_executable]
+        # Compile the test file, the Unity runner, and include paths for mocks and Unity headers
+        compile_command = [
+            "gcc",
+            "-Itests/c",  # For mock pebble.h
+            "-Itests/c/unity",  # For official unity.h and unity_internals.h
+            "tests/c/unity/unity.c",  # The Unity framework implementation
+            test_file,  # Your test file (which includes the production .c file)
+            "-o", output_executable
+        ]
 
         # Compile test
         try:
