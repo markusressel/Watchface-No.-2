@@ -268,10 +268,8 @@ function createUrl(baseUrl, queryParams) {
  * Fetches weather data from the OpenWeatherMap API.
  * @param {number} latitude - The latitude coordinate for weather data.
  * @param {number} longitude - The longitude coordinate for weather data.
- * @param {function} onSuccess - Callback function to handle successful weather data retrieval.
- * @param {function} onError - Callback function to handle errors during weather data retrieval.
  */
-function fetch_weather_data(latitude, longitude, onSuccess, onError) {
+function fetch_weather_data(latitude, longitude) {
     const baseUrl = "https://api.openweathermap.org/data/4.0/onecall/timeline/15min";
     const queryParams = {
         lat: latitude,
@@ -296,9 +294,6 @@ function fetch_weather_data(latitude, longitude, onSuccess, onError) {
                 );
             } catch (error) {
                 console.log('Error parsing API weather response: ' + error);
-                if (typeof onError === 'function') {
-                    onError(error);
-                }
             }
         }
     );
