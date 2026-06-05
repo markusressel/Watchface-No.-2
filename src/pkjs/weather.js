@@ -440,3 +440,12 @@ function encode_number_array(values) {
 module.exports.getWeather = getWeather;
 module.exports.setSimulationModeEnabled = config.setWeatherSimulationEnabled;
 module.exports.toggleSimulationMode = config.toggleWeatherSimulation;
+
+// Exporting for testing purposes
+module.exports.kelvin_to_celsius = kelvin_to_celsius;
+module.exports.one_decimal_to_int = one_decimal_to_int;
+module.exports.process_timeline_payload = process_timeline_payload;
+module.exports.pick_closest_entry_to_now = pick_closest_entry_to_now;
+module.exports.day_min_max_from_timeline = day_min_max_from_timeline;
+module.exports.build_condensed_series = build_condensed_series;
+module.exports.encode_number_array = encode_number_array;

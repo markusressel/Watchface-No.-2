@@ -15,6 +15,19 @@ or run in relevant emulators (preferred for instant visual feedback from the dev
 just run emery flint
 ```
 
+# Test
+
+## JavaScript Configuration Page
+
+Setup a node.js environment
+
+```
+npm init -y
+npm install --save-dev jest
+```
+
+## C Implementation
+
 # Settings
 
 Working with settings requires many different parts:

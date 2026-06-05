@@ -6,7 +6,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - uses: extractions/setup-just@v4
       - uses: spr4bhu/pebble-actions@v1
         id: pebble
-      - run: pebble build
+      - run: just build
       - run: echo "Built with SDK ${{ steps.pebble.outputs.sdk-version }}"
+      - run: just test
