@@ -7,7 +7,7 @@ typedef struct DeveloperOptions {
 
 // Compile-time developer toggles.
 // Set values here manually when debugging visuals.
-static const DeveloperOptions DEV_OPTIONS = {
+static DeveloperOptions DEV_OPTIONS = {
     .ShowLayerBounds = false,
 #ifdef PBL_EMULATOR
     .IsEmulator = true,
@@ -15,3 +15,7 @@ static const DeveloperOptions DEV_OPTIONS = {
     .IsEmulator = false,
 #endif
 };
+
+static void set_show_layer_bounds(const bool showLayerBounds) {
+    DEV_OPTIONS.ShowLayerBounds = showLayerBounds;
+}

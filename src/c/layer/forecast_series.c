@@ -1,21 +1,14 @@
 #include "forecast_series.h"
 #include "graph_utils.h"
 #include "weather.h"
+#include "../developer_options.h"
 #include "../util.h"
 
-#ifndef FORECAST_RENDER_LOGGING
-#define FORECAST_RENDER_LOGGING 0
-#endif
-
-#if FORECAST_RENDER_LOGGING
 #define FORECAST_LOG_SERIES(LABEL, COUNT, VALUES) do { \
     char _log_prefix[48]; \
     snprintf(_log_prefix, sizeof(_log_prefix), "Rendering %d %s values", (COUNT), (LABEL)); \
     log_int_array_chunked(_log_prefix, (VALUES), (COUNT)); \
 } while (0)
-#else
-#define FORECAST_LOG_SERIES(LABEL, COUNT, VALUES) do { } while (0)
-#endif
 
 static size_t forecast_bounded_cstring_length(const char *value, const size_t capacity) {
     if (!value || capacity == 0) {
@@ -129,7 +122,9 @@ void draw_temperature_forecast_graph(
         value_count = maxPoints;
     }
 
-    FORECAST_LOG_SERIES("temp", value_count, render_values);
+    if (DEV_OPTIONS.IsEmulator) {
+        FORECAST_LOG_SERIES("temp", value_count, render_values);
+    }
 
     GraphDrawConfig graph_config = {
         .graph_type = GRAPH_TYPE_LINE,
