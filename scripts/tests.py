@@ -21,26 +21,14 @@ def run_c_host_tests():
         filename = os.path.basename(test_file)
         test_name = filename.replace("_test.c", "")
 
-        # Assuming the production code file is in src/c/ and has the same base name
-        # This might need to be more sophisticated if test_name doesn't directly map to a production .c file
-        production_c_file = os.path.join("src/c", f"{test_name}.c")
-        # For now, we only have util.c, so we'll hardcode it for this example
-        # In a real scenario, you might need a mapping or convention
-        if test_name == "util":
-            production_c_file = "src/c/util.c"
-        else:
-            # If no corresponding production .c file, just compile the test file itself
-            production_c_file = None
-
-
         output_executable = os.path.join(build_dir, f"{test_name}_test")
 
         print(f"--- Compiling and running {test_name} tests ---")
 
-        compile_command = ["gcc", "-Itests/c", test_file]
-        if production_c_file and os.path.exists(production_c_file):
-            compile_command.append(production_c_file)
-        compile_command.extend(["-o", output_executable])
+        # The test_file now includes the production .c file directly,
+        # so we only need to compile the test_file itself.
+        # -Itests/c ensures our mock pebble.h and Unity headers are found.
+        compile_command = ["gcc", "-Itests/c", test_file, "-o", output_executable]
 
         # Compile test
         try:
@@ -58,11 +46,11 @@ def run_c_host_tests():
         try:
             result = subprocess.run([output_executable], check=True, capture_output=True, text=True)
             print(result.stdout)
-            print(f"{test_name} tests: PASSED")
+            # Unity prints its own PASS/FAIL summary, so we don't need to print it here
         except subprocess.CalledProcessError as e:
             print(e.stdout)
             print(e.stderr)
-            print(f"{test_name} tests: FAILED")
+            print(f"{test_name} tests: FAILED (Execution Error)")
             all_tests_passed = False
         print("")  # Newline for readability
 
