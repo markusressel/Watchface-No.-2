@@ -98,7 +98,7 @@ static void sanitize_weather_data() {
 #ifdef PBL_EMULATOR
 static int s_weather_update_interval = 1000 * 60;
 #else
-static int s_weather_update_interval = 1800000;
+static int s_weather_update_interval = 1000 * 60 * 30; // 30 minutes
 #endif
 
 static AppTimer *s_update_timer;
