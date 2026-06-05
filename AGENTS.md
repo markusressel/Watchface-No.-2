@@ -15,6 +15,8 @@ or run in relevant emulators (preferred for instant visual feedback from the dev
 just run emery flint
 ```
 
+Tasks too complex to be written directly into the Justfile should use Python 3 like [run.py](scripts/run.py).
+
 # Test
 
 ## JavaScript Configuration Page
