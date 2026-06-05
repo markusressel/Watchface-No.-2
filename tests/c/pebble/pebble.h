@@ -1,7 +1,8 @@
 #pragma once
 
-#include <stdio.h> // For printf
+#include <stdio.h>  // For printf
 #include <stdint.h> // For uint32_t (if needed by other Pebble types)
+#include <stdbool.h> // For bool
 
 // Mock Pebble APP_LOG for host testing
 #define APP_LOG_LEVEL_DEBUG   1
@@ -18,6 +19,153 @@
 
 // Define common Pebble types if they are used in production code
 // that includes pebble.h and is being tested.
-typedef uint32_t ResHandle;
-// Add other common types like GRect, GPoint, GSize, GColor, etc., as needed
-// by the production code being tested.
+
+// Mock GColor
+typedef struct GColor {
+    uint8_t argb;
+} GColor;
+
+// Mock GColor constants (using arbitrary hex values for testing equality)
+#define GColorBlack     ((GColor){.argb = 0b11000000}) // Example ARGB
+#define GColorWhite     ((GColor){.argb = 0b11111111})
+#define GColorRed       ((GColor){.argb = 0b11110000})
+#define GColorGreen     ((GColor){.argb = 0b11001100})
+#define GColorBlue      ((GColor){.argb = 0b11000011})
+#define GColorYellow    ((GColor){.argb = 0b11111100})
+#define GColorCyan      ((GColor){.argb = 0b11001111})
+#define GColorMagenta   ((GColor){.argb = 0b11110011})
+#define GColorOrange    ((GColor){.argb = 0b11110100})
+#define GColorPurple    ((GColor){.argb = 0b11010010})
+
+
+// Mock GFont
+typedef void *GFont; // A simple void pointer for testing purposes
+
+// Mock font keys
+#define FONT_KEY_LECO_32_BOLD_NUMBERS ((const char*)1)
+#define FONT_KEY_LECO_42_NUMBERS      ((const char*)2)
+
+// Mock fonts_get_system_font function
+static inline GFont fonts_get_system_font(const char *font_key) {
+    (void) font_key; // Suppress unused parameter warning
+    return (GFont) 123; // Return a dummy non-NULL value
+}
+
+// Mock other Pebble SDK functions/types as needed
+// For example, if persist_exists, persist_read_int, etc. are used in tested code:
+#define PERSIST_KEY_SETTINGS 1
+#define PERSIST_KEY_SETTINGS_VERSION 2
+#define persist_exists(key) (true) // Mock always exists
+#define persist_read_int(key) (8) // Mock returns version 8
+#define persist_read_data(key, data, size) (size) // Mock reads all data
+#define persist_write_data(key, data, size) (1) // Mock writes successfully
+#define persist_write_int(key, value) (1) // Mock writes successfully
+
+// AppMessage mocks (if needed for app_messaging.c tests)
+typedef int AppMessageResult;
+#define APP_MSG_OK 0
+#define APP_MSG_INTERNAL_ERROR 1
+
+typedef struct Tuple {
+    uint32_t message_key;
+    uint8_t type;
+
+    union {
+        int32_t int32;
+        char cstring[100]; // Example size
+    } value;
+
+    uint16_t length;
+} Tuple;
+
+#define TUPLE_CSTRING 1
+#define TUPLE_INT 2
+
+typedef struct DictionaryIterator DictionaryIterator; // Opaque type
+
+static inline Tuple *dict_find(DictionaryIterator *iter, uint32_t key) {
+    (void) iter;
+    (void) key;
+    return NULL; // Mock: always return NULL for now, implement if needed
+}
+
+static inline AppMessageResult app_message_outbox_begin(DictionaryIterator **iter) {
+    (void) iter;
+    return APP_MSG_OK;
+}
+
+static inline void dict_write_int(DictionaryIterator *iter, uint32_t key, const void *value, size_t size, bool signed_val) {
+    (void) iter;
+    (void) key;
+    (void) value;
+    (void) size;
+    (void) signed_val;
+}
+
+static inline AppMessageResult app_message_outbox_send() {
+    return APP_MSG_OK;
+}
+
+typedef void (*AppMessageInboxReceived)(DictionaryIterator *iterator, void *context);
+
+typedef void (*AppMessageInboxDropped)(AppMessageResult reason, void *context);
+
+typedef void (*AppMessageOutboxFailed)(DictionaryIterator *iterator, AppMessageResult reason, void *context);
+
+typedef void (*AppMessageOutboxSent)(DictionaryIterator *iterator, void *context);
+
+static inline void app_message_register_inbox_received(AppMessageInboxReceived handler) { (void) handler; }
+static inline void app_message_register_inbox_dropped(AppMessageInboxDropped handler) { (void) handler; }
+static inline void app_message_register_outbox_failed(AppMessageOutboxFailed handler) { (void) handler; }
+static inline void app_message_register_outbox_sent(AppMessageOutboxSent handler) { (void) handler; }
+
+static inline AppMessageResult app_message_open(uint32_t inbox_size, uint32_t outbox_size) {
+    (void) inbox_size;
+    (void) outbox_size;
+    return APP_MSG_OK;
+}
+
+// AppTimer mocks
+typedef void AppTimer;
+
+typedef void (*AppTimerCallback)(void *data);
+
+static inline AppTimer *app_timer_register(uint32_t timeout_ms, AppTimerCallback callback, void *data) {
+    (void) timeout_ms;
+    (void) callback;
+    (void) data;
+    return (AppTimer *) 1; // Return a dummy non-NULL timer
+}
+
+static inline bool app_timer_cancel(AppTimer *timer) {
+    (void) timer;
+    return true;
+}
+
+// Layer mocks
+typedef void Layer;
+typedef void GContext;
+
+// Corrected GPoint and GSize definitions
+typedef struct GPoint {
+    int16_t x;
+    int16_t y;
+} GPoint;
+
+typedef struct GSize {
+    int16_t w;
+    int16_t h;
+} GSize;
+
+typedef struct GRect {
+    GPoint origin;
+    GSize size;
+} GRect;
+
+static inline GRect layer_get_bounds(Layer *layer) {
+    (void) layer;
+    return (GRect){.origin = {.x = 0, .y = 0}, .size = {.w = 144, .h = 168}}; // Dummy bounds
+}
+
+static inline void layer_mark_dirty(Layer *layer) { (void) layer; }
+static inline void layer_destroy(Layer *layer) { (void) layer; }
