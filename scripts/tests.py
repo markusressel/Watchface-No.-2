@@ -28,7 +28,7 @@ def run_c_host_tests():
         # Compile the test file, the Unity runner, and include paths for mocks and Unity headers
         compile_command = [
             "gcc",
-            "-Itests/c",  # For mock pebble.h
+            "-Itests/c/pebble",  # For mock pebble.h
             "-Itests/c/unity",  # For official unity.h and unity_internals.h
             "tests/c/unity/unity.c",  # The Unity framework implementation
             test_file,  # Your test file (which includes the production .c file)
