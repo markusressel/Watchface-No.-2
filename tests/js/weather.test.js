@@ -129,7 +129,7 @@ describe('weather.js', () => {
     });
 
     // Test process_timeline_payload
-    test('process_timeline_payload sends correct dictionary to Pebble and caches data', () => {
+    test('process_timeline_payload creates the correct dictionary data', () => {
         const mockTimelineData = {
             "data": [
                 {
@@ -166,7 +166,7 @@ describe('weather.js', () => {
 
         Date.now = jest.fn(() => 1678886400 * 1000); // Set current time to 12:00:00 PM UTC
 
-        weather.process_timeline_payload(mockTimelineData, 'test_source');
+        const result = weather.process_timeline_payload(mockTimelineData, 'test_source');
 
         const expectedDictionary = {
             'WEATHER_TEMPERATURE_CURRENT': 7,
@@ -179,11 +179,43 @@ describe('weather.js', () => {
             'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': '5,12,1,0' // Condensed series
         };
 
+        expect(result).toEqual(expectedDictionary);
+    });
+
+    test('send_weather_to_watch', () => {
+        const exampleData = {
+            'WEATHER_TEMPERATURE_CURRENT': 7,
+            'WEATHER_TEMPERATURE_MIN': 7, // Min for the day (15th March)
+            'WEATHER_TEMPERATURE_MAX': 9, // Max for the day (15th March)
+            'WEATHER_CONDITION': 'Clouds',
+            'WEATHER_RAIN_NEXT_HOUR_MM_X10': 5, // 0.5 * 10
+            'WEATHER_RAIN_POP_PERCENT': 20, // 0.2 * 100
+            'WEATHER_TEMP_FORECAST_ENCODED': '7,8,9,12', // Condensed series, assuming FORECAST_POINT_COUNT is 4 for this small data set
+            'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': '5,12,1,0' // Condensed series
+        };
+
+        weather.send_weather_to_watch(exampleData);
+
         expect(mockPebble.sendAppMessage).toHaveBeenCalledTimes(1);
-        expect(mockPebble.lastSentMessage).toEqual(expectedDictionary);
+        expect(mockPebble.lastSentMessage).toEqual(exampleData);
+    });
+
+    test('cache_weather_data stores data and timestamp in localStorage', () => {
+        const exampleData = {
+            'WEATHER_TEMPERATURE_CURRENT': 7,
+            'WEATHER_TEMPERATURE_MIN': 7, // Min for the day (15th March)
+            'WEATHER_TEMPERATURE_MAX': 9, // Max for the day (15th March)
+            'WEATHER_CONDITION': 'Clouds',
+            'WEATHER_RAIN_NEXT_HOUR_MM_X10': 5, // 0.5 * 10
+            'WEATHER_RAIN_POP_PERCENT': 20, // 0.2 * 100
+            'WEATHER_TEMP_FORECAST_ENCODED': '7,8,9,12', // Condensed series, assuming FORECAST_POINT_COUNT is 4 for this small data set
+            'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': '5,12,1,0' // Condensed series
+        };
+
+        weather.cache_weather_data(exampleData);
 
         const cachedData = JSON.parse(mockLocalStorage.getItem('weather-last-data'));
-        expect(cachedData).toEqual(expectedDictionary);
+        expect(cachedData).toEqual(exampleData);
         expect(mockLocalStorage.getItem('weather-last-fetch-ts')).not.toBeNull();
     });
 

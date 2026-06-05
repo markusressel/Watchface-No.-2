@@ -232,18 +232,16 @@ function build_condensed_series(entries, extractor, maxCount) {
     return samples;
 }
 
-let xhrRequest = function (url, type) {
-    return new Promise(function (resolve, reject) {
-        let xhr = new XMLHttpRequest();
-        xhr.onload = function () {
-            resolve(this.responseText);
-        };
-        xhr.onerror = function () {
-            reject(new Error("Network error"));
-        };
-        xhr.open(type, url);
-        xhr.send();
-    });
+let xhrRequest = function (url, type, callback) {
+    let xhr = new XMLHttpRequest();
+    xhr.onload = function () {
+        callback(this.responseText);
+    };
+    xhr.onerror = function () {
+        console.log("Network error");
+    };
+    xhr.open(type, url);
+    xhr.send();
 };
 
 /**
@@ -284,34 +282,26 @@ function fetch_weather_data(latitude, longitude, onSuccess, onError) {
 
     console.log("Weather request URL is: " + url);
 
-    xhrRequest(url, 'GET')
-        .then(function (responseText) {
+    // Send request to OpenWeatherMap
+    xhrRequest(url, 'GET',
+        function (responseText) {
             try {
                 let json = JSON.parse(responseText);
                 let weatherData = process_timeline_payload(json, 'api/openweathermap');
-                if (!weatherData) {
-                    if (typeof onError === 'function') {
-                        onError(new Error('No weather data available in API response'));
-                    }
-                    return;
-                }
-
-                if (typeof onSuccess === 'function') {
-                    onSuccess(weatherData);
-                }
+                cache_weather_data(weatherData);
+                send_weather_to_watch(
+                    weatherData,
+                    'Weather info sent to Pebble successfully!',
+                    'Error sending weather info to Pebble!'
+                );
             } catch (error) {
                 console.log('Error parsing API weather response: ' + error);
                 if (typeof onError === 'function') {
                     onError(error);
                 }
             }
-        })
-        .catch(function (error) {
-            console.log('Error fetching weather data: ' + error);
-            if (typeof onError === 'function') {
-                onError(error);
-            }
-        });
+        }
+    );
 }
 
 /**
@@ -373,21 +363,7 @@ function getWeather() {
 
     navigator.geolocation.getCurrentPosition(
         function (pos) {
-            fetch_weather_data(
-                pos.coords.latitude,
-                pos.coords.longitude,
-                function (weatherData) {
-                    cache_weather_data(weatherData);
-                    send_weather_to_watch(
-                        weatherData,
-                        'Weather info sent to Pebble successfully!',
-                        'Error sending weather info to Pebble!'
-                    );
-                },
-                function (error) {
-                    console.log('Error fetching weather data: ' + error);
-                }
-            );
+            fetch_weather_data(pos.coords.latitude, pos.coords.longitude);
         },
         function (err) {
             console.log("Error requesting location!");
@@ -445,6 +421,8 @@ module.exports.toggleSimulationMode = config.toggleWeatherSimulation;
 module.exports.kelvin_to_celsius = kelvin_to_celsius;
 module.exports.one_decimal_to_int = one_decimal_to_int;
 module.exports.process_timeline_payload = process_timeline_payload;
+module.exports.cache_weather_data = cache_weather_data;
+module.exports.send_weather_to_watch = send_weather_to_watch;
 module.exports.pick_closest_entry_to_now = pick_closest_entry_to_now;
 module.exports.day_min_max_from_timeline = day_min_max_from_timeline;
 module.exports.build_condensed_series = build_condensed_series;
