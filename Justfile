@@ -51,7 +51,9 @@ logs platform:
 clean:
     pebble clean
 
-test:
+test: test-c test-js
+
+test-js:
     ./node_modules/.bin/jest tests/js
 
 test-c:

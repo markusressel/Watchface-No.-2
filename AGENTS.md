@@ -2,7 +2,7 @@
 
 Use the [Justfile](./Justfile) to build the project:
 
-```bash
+```shell
 # optional clean
 just clean
 # build
@@ -11,7 +11,7 @@ just build
 
 or run in relevant emulators (preferred for instant visual feedback from the developer):
 
-```bash
+```shell
 just run emery flint
 ```
 
@@ -19,22 +19,36 @@ Tasks too complex to be written directly into the Justfile should use Python 3 l
 
 # Test
 
+Run all tests:
+
+```shell
+just test
+```
+
 ## JavaScript Configuration Page
 
 Setup a node.js environment
 
-```
+```shell
 npm init -y
 npm install --save-dev jest
 ```
 
-Run tests:
+Run JS tests:
 
-```
-just test
+```shell
+just test-js   # JS Only
 ```
 
 ## C Implementation
+
+`gcc` must be available for C tests.
+
+Run C tests:
+
+```shell
+just test-c    # C Only
+```
 
 # Settings
 
