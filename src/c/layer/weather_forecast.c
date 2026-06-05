@@ -22,12 +22,14 @@ void destroy_temperature_forecast_layer(Layer *layer) {
 #include "forecast_series.h"
 #include "../theme.h"
 #include "weather.h"
+#include "../clay_settings.h" // Include clay_settings.h
 
 #define MAX_TEMPERATURE_FORECAST_LAYERS 7
 #define MAX_FORECAST_POINTS 100
 
 static Layer *s_layers[MAX_TEMPERATURE_FORECAST_LAYERS];
 static int s_layer_count = 0;
+static ClaySettings *s_settings; // Add static ClaySettings pointer
 
 
 static void update_proc(Layer *layer, GContext *ctx) {
@@ -51,6 +53,8 @@ Layer *create_temperature_forecast_layer(LayerBuilder builder) {
         APP_LOG(APP_LOG_LEVEL_ERROR, "Max temperature forecast layers exceeded!");
         return NULL;
     }
+
+    s_settings = clay_get_settings(); // Initialize s_settings
 
     Layer *layer = layer_factory_create_custom_layer(builder, update_proc);
     if (layer == NULL) {

@@ -5,7 +5,7 @@
 // Persistent storage key
 #define SETTINGS_KEY PERSIST_KEY_SETTINGS
 #define SETTINGS_VERSION_KEY PERSIST_KEY_SETTINGS_VERSION
-#define SETTINGS_VERSION 8
+#define SETTINGS_VERSION 9
 
 // Define our settings struct
 typedef struct ClaySettings {
@@ -59,6 +59,8 @@ typedef struct ClaySettings {
     // Dotted font scaling
     float DotScaleFactor;
     bool DotAutoScale;
+
+    bool WeatherUseSimulation;
 } __attribute__((__packed__)
 
 )

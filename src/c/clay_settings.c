@@ -59,6 +59,13 @@ void clay_log_settings_debug(const char *context_label) {
         settings.Row5Widget,
         settings.Row6Widget
     );
+
+    APP_LOG(
+        APP_LOG_LEVEL_DEBUG,
+        "%s weather_simulation=%d",
+        label,
+        settings.WeatherUseSimulation
+    );
 }
 
 static bool is_row_widget_valid(const int widget) {
@@ -110,6 +117,8 @@ static void clay_sanitize_settings() {
     if (!is_row_widget_valid(settings.Row4Widget)) settings.Row4Widget = 4;
     if (!is_row_widget_valid(settings.Row5Widget)) settings.Row5Widget = 3;
     if (!is_row_widget_valid(settings.Row6Widget)) settings.Row6Widget = 3;
+
+    settings.WeatherUseSimulation = settings.WeatherUseSimulation ? true : false;
 }
 
 // Initialize the default settings
@@ -162,6 +171,8 @@ static void clay_default_settings() {
     settings.Row4Widget = WIDGET_BATTERY_BAR;
     settings.Row5Widget = WIDGET_HEARTRATE;
     settings.Row6Widget = WIDGET_WEATHER_FORECAST;
+
+    settings.WeatherUseSimulation = false;
 }
 
 ClaySettings *clay_get_settings() {

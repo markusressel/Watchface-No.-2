@@ -113,7 +113,7 @@ static int s_weather_layer_count = 0;
 static ClaySettings *s_settings;
 
 WeatherData *weather_get_data() {
-    if (DEV_OPTIONS.IsEmulator) {
+    if (DEV_OPTIONS.IsEmulator || s_settings->WeatherUseSimulation) {
         memcpy(&s_mock_weather_data, &s_mock_weather_data_template, sizeof(WeatherData));
         return &s_mock_weather_data;
     }
@@ -164,7 +164,7 @@ static void restore_saved_weather_data() {
 }
 
 static void save_current_weather_data() {
-    if (DEV_OPTIONS.IsEmulator) {
+    if (DEV_OPTIONS.IsEmulator || s_settings->WeatherUseSimulation) {
         return;
     }
 
