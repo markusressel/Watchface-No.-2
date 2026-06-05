@@ -1,15 +1,8 @@
-#include "pebble_mock.h" // Must be first to define HOST_TEST_SHIM_BUILD and APP_LOG mock
-
 #include <stdio.h>   // For printf
 #include <stdbool.h> // For bool
 #include <string.h>  // For strcmp
 
 #include "../../src/c/util.h" // Include the header for the functions being tested
-
-// Now include the C implementation file directly.
-// Because pebble_mock.h was included first, HOST_TEST_SHIM_BUILD is defined,
-// which prevents src/c/util.c from including pebble.h and instead uses printf for APP_LOG.
-#include "../../src/c/util.c"
 
 // Simple test function for format_int_array
 static bool test_format_int_array() {
