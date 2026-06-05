@@ -245,7 +245,9 @@ static void schedule_next_update(const int interval, AppTimerCallback callback) 
 
 static void on_scheduled_update_triggered(void *data) {
     APP_LOG(APP_LOG_LEVEL_DEBUG, "scheduled weather update triggered!");
-    cancel_update_timer();
+
+    // The timer has fired, so the handle is now dead.
+    s_update_timer = NULL;
 
     // send AppMessage to trigger weather update via JS
     request_weather_update();
