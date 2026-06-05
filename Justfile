@@ -53,3 +53,8 @@ clean:
 
 test:
     ./node_modules/.bin/jest tests/js
+
+test-c:
+    mkdir -p ./tests/build
+    gcc tests/c/util_test.c tests/c/util_host_shim.c -o tests/build/util_test
+    ./tests/build/util_test
