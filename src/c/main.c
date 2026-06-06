@@ -36,6 +36,8 @@ static void build_layout_from_settings() {
     int row_count = clay_get_settings()->LayoutRowCount;
     if (row_count < 5) {
         row_count = 5;
+    } else if (row_count > WATCH_LAYOUT_MAX_ROWS) {
+        row_count = WATCH_LAYOUT_MAX_ROWS;
     }
 
     s_layout = (WatchLayout){

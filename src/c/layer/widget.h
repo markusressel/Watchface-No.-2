@@ -9,5 +9,5 @@ typedef enum WidgetId {
     WIDGET_BATTERY_BAR = 4,
     WIDGET_HEARTRATE = 5,
     WIDGET_WEATHER_FORECAST = 6,
-    WIDGET_COUNT = 8
+    WIDGET_COUNT
 } WidgetId;
