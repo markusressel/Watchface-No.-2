@@ -46,7 +46,7 @@ void test_draw_char_X(void) {
     int digit_size = 4;
 
     int drawn_width = pixel_matrix_drawer_draw_char(
-        ctx, point_zero, character, dot_width, dot_height, gap_h, gap_v, align_right, digit_size
+        ctx, point_zero, character, GColorBlack, dot_width, dot_height, gap_h, gap_v, align_right, digit_size
     );
 
     TEST_ASSERT_EQUAL(5, drawn_width); // s_default width is 5
@@ -78,7 +78,7 @@ void test_draw_char_0_size_4(void) {
     int digit_size = 4;
 
     int drawn_width = pixel_matrix_drawer_draw_char(
-        ctx, point_zero, character, dot_width, dot_height, gap_h, gap_v, align_right, digit_size
+        ctx, point_zero, character, GColorBlack, dot_width, dot_height, gap_h, gap_v, align_right, digit_size
     );
 
     TEST_ASSERT_EQUAL(4, drawn_width); // Width for '0' with digit_size 4
@@ -122,7 +122,7 @@ void test_draw_char_align_right(void) {
     int digit_size = 4;
 
     int drawn_width = pixel_matrix_drawer_draw_char(
-        ctx, point_zero, character, dot_width, dot_height, gap_h, gap_v, align_right, digit_size
+        ctx, point_zero, character, GColorBlack, dot_width, dot_height, gap_h, gap_v, align_right, digit_size
     );
 
     TEST_ASSERT_EQUAL(2, drawn_width); // Width for '1' with digit_size 4

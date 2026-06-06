@@ -6,6 +6,7 @@
 // @param ctx                  Pebble graphics context
 // @param point_zero           start coordinate, where matrix[0][0] will be drawn
 // @param character            The character to draw
+// @param color                The color to draw the character in
 // @param dot_width            The width of a single dot
 // @param dot_height           The height of a single dot
 // @param gap_size_horizontal  The size of horizontally empty space between two dots
@@ -16,6 +17,7 @@ int pixel_matrix_drawer_draw_char(
     GContext *ctx,
     GPoint point_zero,
     char character,
+    GColor color,
     int dot_width, int dot_height,
     int gap_size_horizontal, int gap_size_vertical,
     bool align_right,

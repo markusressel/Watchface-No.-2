@@ -108,9 +108,6 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
         return;
     }
 
-    // set the fill color
-    graphics_context_set_fill_color(ctx, data->text_color);
-
     ClaySettings *settings = clay_get_settings();
     int base_dot_width = data->use_custom_metrics ? data->custom_dot_width : settings->DotWidth;
     int base_dot_height = data->use_custom_metrics ? data->custom_dot_height : settings->DotHeight;
@@ -176,6 +173,7 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
             ctx,
             GPoint(current_start_x, start_y),
             current_character,
+            data->text_color,
             dot_width, dot_height,
             gap_size_horizontal, gap_size_vertical,
             false,

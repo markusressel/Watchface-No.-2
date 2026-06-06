@@ -625,12 +625,14 @@ int pixel_matrix_drawer_char_width(const char character, const int digit_size) {
 }
 
 int pixel_matrix_drawer_draw_char(
-    GContext *ctx, const GPoint point_zero, const char character,
+    GContext *ctx, const GPoint point_zero, const char character, const GColor color,
     const int dot_width, const int dot_height,
     const int gap_size_horizontal, const int gap_size_vertical,
     const bool align_right, const int digit_size
 ) {
     if (!character) return 0;
+
+    graphics_context_set_fill_color(ctx, color);
 
     Glyph glyph = glyph_for_char(character, digit_size);
 
