@@ -33,7 +33,8 @@ static float auto_scale_for_height(int dot_height, int gap_vertical, int availab
 
     // Iteratively reduce scale until the text fits.
     // This is to correct for rounding errors that can make the text too tall.
-    for (int i = 0; i < 5; i++) { // Limit iterations to prevent infinite loops
+    for (int i = 0; i < 5; i++) {
+        // Limit iterations to prevent infinite loops
         int scaled_h = scaled_dimension(dot_height, scale);
         int scaled_g = scaled_non_negative_dimension(gap_vertical, scale);
         int total_h = 5 * scaled_h + 4 * scaled_g;
@@ -44,7 +45,7 @@ static float auto_scale_for_height(int dot_height, int gap_vertical, int availab
 
         // It doesn't fit, reduce scale.
         // The ratio of heights is a good heuristic for reduction.
-        scale *= (float)available_height / (float)total_h;
+        scale *= (float) available_height / (float) total_h;
     }
 
     return scale;
