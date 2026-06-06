@@ -14,7 +14,6 @@ typedef struct {
 
 static HeartrateLayerInstance s_heartrate_layers[MAX_HEARTRATE_LAYERS];
 static int s_heartrate_layer_count = 0;
-static ClaySettings *s_settings;
 
 static void update_all_heartrate_layers() {
     for (int i = 0; i < s_heartrate_layer_count; i++) {
@@ -35,8 +34,6 @@ void update_heartrate() {
 }
 
 Layer *create_heartrate_layer(LayerBuilder builder) {
-    s_settings = clay_get_settings();
-
     if (s_heartrate_layer_count >= MAX_HEARTRATE_LAYERS) {
         APP_LOG(APP_LOG_LEVEL_ERROR, "Max heartrate layers exceeded!");
         return NULL;
@@ -52,10 +49,10 @@ Layer *create_heartrate_layer(LayerBuilder builder) {
         NULL
     );
 
-    if (s_settings->DotAutoScale) {
+    if (clay_get_settings()->DotAutoScale) {
         dotted_text_layer_set_auto_scale(instance->dotted_text_layer, true);
     } else {
-        dotted_text_layer_set_scale_factor(instance->dotted_text_layer, s_settings->DotScaleFactor);
+        dotted_text_layer_set_scale_factor(instance->dotted_text_layer, clay_get_settings()->DotScaleFactor);
     }
 
     s_heartrate_layer_count++;
@@ -81,4 +78,3 @@ void destroy_heartrate_layer(Layer *layer) {
 
     dotted_text_layer_destroy(dotted_text_layer_to_destroy);
 }
-

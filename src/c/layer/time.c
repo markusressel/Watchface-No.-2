@@ -13,8 +13,6 @@ typedef struct {
 static TimeLayerInstance s_time_layers[MAX_TIME_LAYERS];
 static int s_time_layer_count = 0;
 
-static ClaySettings *s_settings;
-
 static void update_all_time_layers(void) {
     time_t temp = time(NULL);
     struct tm *tick_time = localtime(&temp);
@@ -37,8 +35,6 @@ void update_time_layer() {
 }
 
 Layer *create_time_layer(LayerBuilder builder) {
-    s_settings = clay_get_settings();
-
     if (s_time_layer_count >= MAX_TIME_LAYERS) {
         APP_LOG(APP_LOG_LEVEL_ERROR, "Max time layers exceeded!");
         return NULL;
@@ -47,7 +43,7 @@ Layer *create_time_layer(LayerBuilder builder) {
     TimeLayerInstance *instance = &s_time_layers[s_time_layer_count];
 
     strcpy(instance->time_format, clock_is_24h_style() ? "%H:%M" : "%I:%M");
-    if (s_settings->ShowSeconds) {
+    if (clay_get_settings()->ShowSeconds) {
         strcat(instance->time_format, ":%S");
     }
 
@@ -74,10 +70,10 @@ Layer *create_time_layer(LayerBuilder builder) {
     );
     dotted_text_layer_set_digit_width(instance->dotted_text_layer, 3);
 
-    if (s_settings->DotAutoScale) {
+    if (clay_get_settings()->DotAutoScale) {
         dotted_text_layer_set_auto_scale(instance->dotted_text_layer, true);
     } else {
-        dotted_text_layer_set_scale_factor(instance->dotted_text_layer, s_settings->DotScaleFactor);
+        dotted_text_layer_set_scale_factor(instance->dotted_text_layer, clay_get_settings()->DotScaleFactor);
     }
 
     s_time_layer_count++;

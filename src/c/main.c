@@ -20,8 +20,6 @@
 // Main Window
 static Window *s_main_window;
 
-static ClaySettings *s_settings;
-
 // Layout is built at runtime from settings (see build_layout_from_settings).
 static WatchLayout s_layout;
 
@@ -35,7 +33,7 @@ static void init_row_layers() {
 }
 
 static void build_layout_from_settings() {
-    int row_count = s_settings->LayoutRowCount;
+    int row_count = clay_get_settings()->LayoutRowCount;
     if (row_count < 5) {
         row_count = 5;
     }
@@ -43,13 +41,13 @@ static void build_layout_from_settings() {
     s_layout = (WatchLayout){
         .row_count = row_count,
         .rows = {
-            [0] = {.widget = (WidgetId) s_settings->Row0Widget},
-            [1] = {.widget = (WidgetId) s_settings->Row1Widget},
-            [2] = {.widget = (WidgetId) s_settings->Row2Widget},
-            [3] = {.widget = (WidgetId) s_settings->Row3Widget},
-            [4] = {.widget = (WidgetId) s_settings->Row4Widget},
-            [5] = {.widget = (WidgetId) s_settings->Row5Widget},
-            [6] = {.widget = (WidgetId) s_settings->Row6Widget},
+            [0] = {.widget = (WidgetId) clay_get_settings()->Row0Widget},
+            [1] = {.widget = (WidgetId) clay_get_settings()->Row1Widget},
+            [2] = {.widget = (WidgetId) clay_get_settings()->Row2Widget},
+            [3] = {.widget = (WidgetId) clay_get_settings()->Row3Widget},
+            [4] = {.widget = (WidgetId) clay_get_settings()->Row4Widget},
+            [5] = {.widget = (WidgetId) clay_get_settings()->Row5Widget},
+            [6] = {.widget = (WidgetId) clay_get_settings()->Row6Widget},
         },
     };
 }
@@ -124,14 +122,14 @@ static void main_window_unload(Window *window) {
 }
 
 static void apply_theme_from_settings() {
-    if (s_settings->ThemeValue[0] == '\0') {
-        strcpy(s_settings->ThemeValue, "LIGHT");
+    if (clay_get_settings()->ThemeValue[0] == '\0') {
+        strcpy(clay_get_settings()->ThemeValue, "LIGHT");
     }
 
     enum ThemeEnum theme;
-    if (strcmp(s_settings->ThemeValue, "DARK") == 0) {
+    if (strcmp(clay_get_settings()->ThemeValue, "DARK") == 0) {
         theme = DARK;
-    } else if (strcmp(s_settings->ThemeValue, "CUSTOM") == 0) {
+    } else if (strcmp(clay_get_settings()->ThemeValue, "CUSTOM") == 0) {
         theme = CUSTOM;
     } else {
         theme = DARK;
@@ -139,18 +137,18 @@ static void apply_theme_from_settings() {
 
     if (theme == CUSTOM) {
         Theme custom_theme;
-        custom_theme.BackgroundColor = s_settings->BackgroundColor;
-        custom_theme.TimeTextColor = s_settings->TimeTextColor;
-        custom_theme.DateTextColor = s_settings->DateTextColor;
-        custom_theme.BatteryOutlineColor = s_settings->BatteryFrameColor;
-        custom_theme.BatteryFillColor = s_settings->BatteryFillColor;
-        custom_theme.WeatherTextColor = s_settings->WeatherTextColor;
-        custom_theme.StepcountTextColor = s_settings->StepcountTextColor;
-        custom_theme.HeartrateTextColor = s_settings->HeartrateTextColor;
+        custom_theme.BackgroundColor = clay_get_settings()->BackgroundColor;
+        custom_theme.TimeTextColor = clay_get_settings()->TimeTextColor;
+        custom_theme.DateTextColor = clay_get_settings()->DateTextColor;
+        custom_theme.BatteryOutlineColor = clay_get_settings()->BatteryFrameColor;
+        custom_theme.BatteryFillColor = clay_get_settings()->BatteryFillColor;
+        custom_theme.WeatherTextColor = clay_get_settings()->WeatherTextColor;
+        custom_theme.StepcountTextColor = clay_get_settings()->StepcountTextColor;
+        custom_theme.HeartrateTextColor = clay_get_settings()->HeartrateTextColor;
 
-        init_custom_theme(custom_theme, s_settings->ShowSeconds);
+        init_custom_theme(custom_theme, clay_get_settings()->ShowSeconds);
     } else {
-        init_theme(theme, s_settings->ShowSeconds);
+        init_theme(theme, clay_get_settings()->ShowSeconds);
     }
 
     // Safely update the window background if the window exists
@@ -173,7 +171,6 @@ void main_reload_layout() {
 // initializes the watchface
 static void init() {
     clay_load_settings();
-    s_settings = clay_get_settings();
 
     // Initialize row layers array
     init_row_layers();

@@ -6,9 +6,6 @@
 #include "layer/weather.h"
 #include "clay_settings.h"
 
-
-static ClaySettings *s_settings;
-
 static int tuple_to_int(const Tuple *tuple) {
     if (tuple == NULL) {
         return 0;
@@ -131,15 +128,14 @@ static int parse_forecast_tuple_to_array(const Tuple *tuple, int *destination, c
 static bool read_configuration_properties(
     DictionaryIterator *iterator
 ) {
-    s_settings = clay_get_settings();
-
+    ClaySettings *settings = clay_get_settings();
     bool has_settings_update = false;
 
-#define APPLY_STRING(KEY, FIELD) has_settings_update |= apply_cstring_setting(iterator, (KEY), s_settings->FIELD, sizeof(s_settings->FIELD))
-#define APPLY_COLOR(KEY, FIELD) has_settings_update |= apply_color_setting(iterator, (KEY), &s_settings->FIELD)
-#define APPLY_INT(KEY, FIELD) do { int _v = 0; if (apply_int_setting(iterator, (KEY), &_v)) { s_settings->FIELD = _v; has_settings_update = true; } } while (0)
-#define APPLY_INT_CLAMPED(KEY, FIELD, CLAMP_FN) do { int _v = 0; if (apply_int_setting_clamped(iterator, (KEY), &_v, (CLAMP_FN))) { s_settings->FIELD = _v; has_settings_update = true; } } while (0)
-#define APPLY_BOOL(KEY, FIELD) do { bool _v = false; if (apply_bool_setting(iterator, (KEY), &_v)) { s_settings->FIELD = _v; has_settings_update = true; } } while (0)
+#define APPLY_STRING(KEY, FIELD) has_settings_update |= apply_cstring_setting(iterator, (KEY), settings->FIELD, sizeof(settings->FIELD))
+#define APPLY_COLOR(KEY, FIELD) has_settings_update |= apply_color_setting(iterator, (KEY), &settings->FIELD)
+#define APPLY_INT(KEY, FIELD) do { int _v = 0; if (apply_int_setting(iterator, (KEY), &_v)) { settings->FIELD = _v; has_settings_update = true; } } while (0)
+#define APPLY_INT_CLAMPED(KEY, FIELD, CLAMP_FN) do { int _v = 0; if (apply_int_setting_clamped(iterator, (KEY), &_v, (CLAMP_FN))) { settings->FIELD = _v; has_settings_update = true; } } while (0)
+#define APPLY_BOOL(KEY, FIELD) do { bool _v = false; if (apply_bool_setting(iterator, (KEY), &_v)) { settings->FIELD = _v; has_settings_update = true; } } while (0)
 
     APPLY_STRING(MESSAGE_KEY_Theme, ThemeValue);
 
@@ -162,7 +158,7 @@ static bool read_configuration_properties(
     {
         int dot_scale_percent = 0;
         if (apply_int_setting(iterator, MESSAGE_KEY_SliderDotScaleFactorPercent, &dot_scale_percent)) {
-            s_settings->DotScaleFactor = (float) dot_scale_percent / 100.0f;
+            settings->DotScaleFactor = (float) dot_scale_percent / 100.0f;
             has_settings_update = true;
         }
     }
@@ -234,14 +230,18 @@ static void read_weather_data(DictionaryIterator *iterator) {
         }
 
         // 1. ONLY free the arrays if they were genuinely allocated via malloc
-        if (weatherData->is_dynamic_alloc) {
+        if (weatherData->is_temp_forecast_dynamic_alloc) {
             if (weatherData->TemperatureForecast) {
                 free(weatherData->TemperatureForecast);
             }
+            weatherData->is_temp_forecast_dynamic_alloc = false;
+        }
+
+        if (weatherData->is_rain_forecast_dynamic_alloc) {
             if (weatherData->RainForecastMmX10) {
                 free(weatherData->RainForecastMmX10);
             }
-            weatherData->is_dynamic_alloc = false; // Reset the flag
+            weatherData->is_rain_forecast_dynamic_alloc = false;
         }
 
         // 2. Always safely break the pointer connections so they don't point to abandoned memory
@@ -259,7 +259,7 @@ static void read_weather_data(DictionaryIterator *iterator) {
                 if (weatherData->TemperatureForecast) {
                     memcpy(weatherData->TemperatureForecast, s_forecast_scratch, count * sizeof(int));
                     weatherData->TemperatureForecastCount = count;
-                    weatherData->is_dynamic_alloc = true; // Set flag because malloc succeeded
+                    weatherData->is_temp_forecast_dynamic_alloc = true; // Set flag because malloc succeeded
                 }
             }
         }
@@ -273,7 +273,7 @@ static void read_weather_data(DictionaryIterator *iterator) {
                 if (weatherData->RainForecastMmX10) {
                     memcpy(weatherData->RainForecastMmX10, s_forecast_scratch, count * sizeof(int));
                     weatherData->RainForecastMmX10Count = count;
-                    weatherData->is_dynamic_alloc = true; // Set flag because malloc succeeded
+                    weatherData->is_rain_forecast_dynamic_alloc = true; // Set flag because malloc succeeded
                 }
             }
         }

@@ -60,14 +60,11 @@ static const WeatherData s_mock_weather_data_template = {
 };
 
 static void ensure_runtime_forecast_storage() {
-    if (weatherData.is_dynamic_alloc) {
-        return;
-    }
-
-    if (weatherData.TemperatureForecast == NULL) {
+    // Only set default pointers if they are not dynamically allocated
+    if (!weatherData.is_temp_forecast_dynamic_alloc && weatherData.TemperatureForecast == NULL) {
         weatherData.TemperatureForecast = s_runtime_temp_forecast;
     }
-    if (weatherData.RainForecastMmX10 == NULL) {
+    if (!weatherData.is_rain_forecast_dynamic_alloc && weatherData.RainForecastMmX10 == NULL) {
         weatherData.RainForecastMmX10 = s_runtime_rain_forecast;
     }
 }
@@ -110,10 +107,9 @@ typedef struct {
 
 static WeatherLayerInstance s_weather_layers[MAX_WEATHER_LAYERS];
 static int s_weather_layer_count = 0;
-static ClaySettings *s_settings;
 
 WeatherData *weather_get_data() {
-    if (DEV_OPTIONS.IsEmulator || s_settings->WeatherUseSimulation) {
+    if (DEV_OPTIONS.IsEmulator || clay_get_settings()->WeatherUseSimulation) {
         memcpy(&s_mock_weather_data, &s_mock_weather_data_template, sizeof(WeatherData));
         return &s_mock_weather_data;
     }
@@ -164,7 +160,7 @@ static void restore_saved_weather_data() {
 }
 
 static void save_current_weather_data() {
-    if (DEV_OPTIONS.IsEmulator || s_settings->WeatherUseSimulation) {
+    if (DEV_OPTIONS.IsEmulator || clay_get_settings()->WeatherUseSimulation) {
         return;
     }
 
@@ -289,7 +285,6 @@ void update_weather() {
 }
 
 Layer *create_weather_layer(LayerBuilder builder) {
-    s_settings = clay_get_settings();
     restore_saved_weather_data();
 
     if (s_weather_layer_count >= MAX_WEATHER_LAYERS) {
@@ -306,10 +301,10 @@ Layer *create_weather_layer(LayerBuilder builder) {
         VERTICAL_ALIGN_TOP,
         "---"
     );
-    if (s_settings->DotAutoScale) {
+    if (clay_get_settings()->DotAutoScale) {
         dotted_text_layer_set_auto_scale(instance->dotted_text_layer, true);
     } else {
-        dotted_text_layer_set_scale_factor(instance->dotted_text_layer, s_settings->DotScaleFactor);
+        dotted_text_layer_set_scale_factor(instance->dotted_text_layer, clay_get_settings()->DotScaleFactor);
     }
 
     s_weather_layer_count++;
@@ -348,10 +343,13 @@ void destroy_weather_layer(Layer *layer) {
 }
 
 void deinit_weather_data() {
-    if (weatherData.is_dynamic_alloc) {
+    if (weatherData.is_temp_forecast_dynamic_alloc && weatherData.TemperatureForecast) {
         free(weatherData.TemperatureForecast);
+        weatherData.is_temp_forecast_dynamic_alloc = false;
+    }
+    if (weatherData.is_rain_forecast_dynamic_alloc && weatherData.RainForecastMmX10) {
         free(weatherData.RainForecastMmX10);
-        weatherData.is_dynamic_alloc = false;
+        weatherData.is_rain_forecast_dynamic_alloc = false;
     }
     weatherData.TemperatureForecast = NULL;
     weatherData.RainForecastMmX10 = NULL;

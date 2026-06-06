@@ -7,8 +7,6 @@
 
 #define MAX_DATE_LAYERS 5
 
-static ClaySettings *s_settings;
-
 // Registry of all created date layers
 typedef struct {
     DottedTextLayer *dotted_text_layer;
@@ -43,12 +41,12 @@ static void update_all_date_layers() {
         );
 
         // Remove the third character of weekday abbreviation
-        if (s_settings->ShowWeekdayAbbreviation) {
+        if (clay_get_settings()->ShowWeekdayAbbreviation) {
             int idxToDel = 2;
             memmove(&s_buffer[idxToDel], &s_buffer[idxToDel + 1], strlen(s_buffer) - idxToDel);
 
             // Convert to uppercase (if enabled)
-            if (s_settings->WeekdayAbbreviationUppercase) {
+            if (clay_get_settings()->WeekdayAbbreviationUppercase) {
                 for (int j = 0; j < 2; j++) {
                     s_buffer[j] = upper(s_buffer[j]);
                 }
@@ -67,8 +65,6 @@ void update_date() {
 
 // creates the date layer
 Layer *create_date_layer(LayerBuilder builder) {
-    s_settings = clay_get_settings();
-
     if (s_date_layer_count >= MAX_DATE_LAYERS) {
         APP_LOG(APP_LOG_LEVEL_ERROR, "Max date layers exceeded!");
         return NULL;
@@ -77,13 +73,13 @@ Layer *create_date_layer(LayerBuilder builder) {
     DateLayerInstance *instance = &s_date_layers[s_date_layer_count];
 
     strcpy(instance->date_format, "");
-    if (s_settings->ShowWeekdayAbbreviation) {
+    if (clay_get_settings()->ShowWeekdayAbbreviation) {
         strcat(instance->date_format, "%a ");
     }
 
     strcat(instance->date_format, "%d.%m");
 
-    if (s_settings->ShowYear) {
+    if (clay_get_settings()->ShowYear) {
         strcat(instance->date_format, ".%y");
     }
 
@@ -94,10 +90,10 @@ Layer *create_date_layer(LayerBuilder builder) {
         VERTICAL_ALIGN_TOP,
         NULL
     );
-    if (s_settings->DotAutoScale) {
+    if (clay_get_settings()->DotAutoScale) {
         dotted_text_layer_set_auto_scale(instance->dotted_text_layer, true);
     } else {
-        dotted_text_layer_set_scale_factor(instance->dotted_text_layer, s_settings->DotScaleFactor);
+        dotted_text_layer_set_scale_factor(instance->dotted_text_layer, clay_get_settings()->DotScaleFactor);
     }
 
     s_date_layer_count++;
