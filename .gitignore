@@ -36,3 +36,5 @@ build
 node_modules
 
 *.lock-*
+
+.idea
