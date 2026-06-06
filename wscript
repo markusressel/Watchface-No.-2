@@ -1,7 +1,9 @@
 #
-# This file is the default set of rules to compile a Pebble project.
+# This file is based on the default set of rules to compile a Pebble project.
 #
-# Feel free to customize this to your needs.
+# Edits made:
+# - Added PEBBLE_EMULATOR_BUILD environment variable check to allow building with PBL_EMULATOR defined, which is used to run custom code in Emulator environments.
+# - Added PEBBLE_RELEASE
 #
 
 import os.path
@@ -47,6 +49,8 @@ def build(ctx):
 
         if release_build:
             ctx.env.CFLAGS.append('-DRELEASE=1')
+            ctx.env.CFLAGS.append('-include')
+            ctx.env.CFLAGS.append('src/c/release.h')
 
         # Check for PEBBLE_EMULATOR_BUILD environment variable
         if os.environ.get('PEBBLE_EMULATOR_BUILD') == '1':
