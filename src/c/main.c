@@ -209,6 +209,7 @@ static void deinit() {
 int main(void) {
     init();
     initialize_app_messaging();
+    send_app_ready();
     app_event_loop();
     deinit();
 }

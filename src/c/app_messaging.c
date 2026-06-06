@@ -6,6 +6,17 @@
 #include "layer/weather.h"
 #include "clay_settings.h"
 
+void send_app_ready() {
+    DictionaryIterator *iter;
+    app_message_outbox_begin(&iter);
+    if (iter == NULL) {
+        return;
+    }
+    dict_write_uint8(iter, MESSAGE_KEY_AppReady, 1);
+    dict_write_end(iter);
+    app_message_outbox_send();
+}
+
 static int tuple_to_int(const Tuple *tuple) {
     if (tuple == NULL) {
         return 0;

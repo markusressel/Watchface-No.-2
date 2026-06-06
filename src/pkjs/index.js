@@ -5,6 +5,7 @@ var clay = new Clay(clayConfig);
 var config = require('./config');
 var weather = require('./weather');
 
+var isPebbleReady = false;
 
 // When the config page is closed, Clay saves settings to 'clay-settings' in
 // localStorage (and sends watch-bound keys to the watch). We add our own
@@ -13,7 +14,9 @@ Pebble.addEventListener('webviewclosed', function(e) {
   if (!e || !e.response) { return; }
 
   // Refresh weather: will clear display if API key is empty, or fetch if set.
-  weather.getWeather();
+    if (isPebbleReady) {
+        weather.getWeather();
+    }
 });
 
 // Listen for when the watchface is opened
@@ -27,8 +30,8 @@ Pebble.addEventListener('ready',
       // console.log("Wiping Clay settings...");
       // localStorage.clear();
 
-    // Get the initial weather (respects any saved API key)
-    weather.getWeather();
+      // We no longer send weather here immediately. We wait for the AppReady message,
+      // to avoid overwhelming a not-yet-initialized watchface.
   }
 );
 
@@ -39,9 +42,15 @@ Pebble.addEventListener('appmessage',
     var dict = e.payload;
     
     console.log('AppMessage received: ' + JSON.stringify(dict));
-    
-    if ("RequestData" in dict) {
-      weather.getWeather();
+
+      if ("AppReady" in dict) {
+          console.log("Watchface is ready! Sending pending data.");
+          isPebbleReady = true;
+          weather.getWeather();
+      } else if ("RequestData" in dict) {
+          if (isPebbleReady) {
+              weather.getWeather();
+          }
     }
   }                     
 );

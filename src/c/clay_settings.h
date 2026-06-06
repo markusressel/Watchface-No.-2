@@ -5,7 +5,7 @@
 // Persistent storage key
 #define SETTINGS_KEY PERSIST_KEY_SETTINGS
 #define SETTINGS_VERSION_KEY PERSIST_KEY_SETTINGS_VERSION
-#define SETTINGS_VERSION 9
+#define SETTINGS_VERSION 10
 
 // Define our settings struct
 typedef struct ClaySettings {
@@ -61,11 +61,7 @@ typedef struct ClaySettings {
     bool DotAutoScale;
 
     bool WeatherUseSimulation;
-} __attribute__((__packed__)
-
-)
-ClaySettings;
-
+} __attribute__((__packed__)) ClaySettings;
 
 // get current settings struct
 ClaySettings *clay_get_settings();
