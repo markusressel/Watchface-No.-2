@@ -30,7 +30,45 @@ static float auto_scale_for_height(int dot_height, int gap_vertical, int availab
     if (scale <= 0.0f) {
         return 1.0f;
     }
+
+    // Iteratively reduce scale until the text fits.
+    // This is to correct for rounding errors that can make the text too tall.
+    for (int i = 0; i < 5; i++) { // Limit iterations to prevent infinite loops
+        int scaled_h = scaled_dimension(dot_height, scale);
+        int scaled_g = scaled_non_negative_dimension(gap_vertical, scale);
+        int total_h = 5 * scaled_h + 4 * scaled_g;
+
+        if (total_h <= available_height) {
+            break; // It fits, we are done.
+        }
+
+        // It doesn't fit, reduce scale.
+        // The ratio of heights is a good heuristic for reduction.
+        scale *= (float)available_height / (float)total_h;
+    }
+
     return scale;
+}
+
+// Returns the scale factor to use based on the layer data and available height.
+static float get_scale_factor(DottedTextLayerData *data, int base_dot_height, int base_gap_vertical, int available_height) {
+    if (!data->auto_scale) {
+        return data->scale_factor;
+    }
+
+    if (data->cached_bounds_h == available_height &&
+        data->cached_base_dot_height == base_dot_height &&
+        data->cached_base_gap_vertical == base_gap_vertical) {
+        return data->cached_scale;
+    }
+
+    float scale_factor = auto_scale_for_height(base_dot_height, base_gap_vertical, available_height);
+    data->cached_bounds_h = available_height;
+    data->cached_base_dot_height = base_dot_height;
+    data->cached_base_gap_vertical = base_gap_vertical;
+    data->cached_scale = scale_factor;
+
+    return scale_factor;
 }
 
 static int text_width_in_pixels(
@@ -78,9 +116,7 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
     int base_gap_horizontal = data->use_custom_metrics ? data->custom_gap_horizontal : settings->DotHorizontalGap;
     int base_gap_vertical = data->use_custom_metrics ? data->custom_gap_vertical : settings->DotVerticalGap;
 
-    float scale_factor = data->auto_scale
-                             ? auto_scale_for_height(base_dot_height, base_gap_vertical, bounds.size.h)
-                             : data->scale_factor;
+    float scale_factor = get_scale_factor(data, base_dot_height, base_gap_vertical, bounds.size.h);
     if (scale_factor <= 0.0f) {
         scale_factor = 1.0f;
     }
@@ -173,6 +209,10 @@ DottedTextLayer *dotted_text_layer_create(GRect bounds) {
     data->custom_gap_vertical = 0;
     data->custom_digit_width = 0;
     data->text_color = GColorBlack;
+    data->cached_bounds_h = -1;
+    data->cached_base_dot_height = -1;
+    data->cached_base_gap_vertical = -1;
+    data->cached_scale = 1.0f;
     // connect with update method
     layer_set_update_proc(dotted_text_layer, update_proc);
 

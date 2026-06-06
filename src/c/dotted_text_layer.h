@@ -38,6 +38,10 @@ typedef struct DottedTextLayerData {
     int custom_gap_vertical;
     int custom_digit_width;
     GColor text_color;
+    int cached_bounds_h;
+    int cached_base_dot_height;
+    int cached_base_gap_vertical;
+    float cached_scale;
 } __attribute__((__packed__)) DottedTextLayerData;
 
 
