@@ -4,6 +4,9 @@
 #include <stdint.h> // For uint32_t (if needed by other Pebble types)
 #include <stdbool.h> // For bool
 
+// Define PBL_COLOR for testing color-dependent functions
+#define PBL_COLOR
+
 // Mock Pebble APP_LOG for host testing
 #define APP_LOG_LEVEL_DEBUG   1
 #define APP_LOG_LEVEL_INFO    2
@@ -36,7 +39,12 @@ typedef struct GColor {
 #define GColorMagenta   ((GColor){.argb = 0b11110011})
 #define GColorOrange    ((GColor){.argb = 0b11110100})
 #define GColorPurple    ((GColor){.argb = 0b11010010})
+#define GColorClear     ((GColor){.argb = 0b00000000}) // Mock GColorClear
 
+// Mock gcolor_equal function
+static inline bool gcolor_equal(GColor c1, GColor c2) {
+    return c1.argb == c2.argb;
+}
 
 // Mock GFont
 typedef void *GFont; // A simple void pointer for testing purposes
@@ -162,10 +170,14 @@ typedef struct GRect {
     GSize size;
 } GRect;
 
+static inline GPoint GPoint_construct(int16_t x, int16_t y) {
+    return (GPoint){.x = x, .y = y};
+}
+#define GPoint(x, y) GPoint_construct(x, y)
+
 static inline GRect GRect_construct(int16_t x, int16_t y, int16_t w, int16_t h) {
     return (GRect){.origin = {.x = x, .y = y}, .size = {.w = w, .h = h}};
 }
-
 #define GRect(x, y, w, h) GRect_construct(x, y, w, h)
 
 
@@ -177,28 +189,37 @@ static inline GRect layer_get_bounds(Layer *layer) {
 static inline void layer_mark_dirty(Layer *layer) { (void) layer; }
 static inline void layer_destroy(Layer *layer) { (void) layer; }
 
-// Graphics mocks for pixel_matrix_drawer
+// Graphics mocks for pixel_matrix_drawer and graph_utils
 typedef uint8_t GCorners;
 #define GCornerNone 0
 
-#define MAX_GRAPHICS_FILL_RECT_CALLS 100
+// --- Mocks for graphics_fill_rect ---
+#define MAX_GRAPHICS_FILL_RECT_CALLS 2000 // Increased buffer size
 
 typedef struct {
     GRect rect;
     uint16_t corner_radius;
     GCorners corners;
+    GColor fill_color; // Added to record fill color
 } GraphicsFillRectCall;
 
 static GraphicsFillRectCall s_graphics_fill_rect_calls[MAX_GRAPHICS_FILL_RECT_CALLS];
 static int s_graphics_fill_rect_call_count = 0;
+static GColor s_current_fill_color = {.argb = 0}; // Default to black/clear
+
+static inline void graphics_context_set_fill_color(GContext *ctx, GColor color) {
+    (void)ctx;
+    s_current_fill_color = color;
+}
 
 static inline void graphics_fill_rect(GContext *ctx, GRect rect, uint16_t corner_radius, GCorners corners) {
-    (void) ctx;
+    (void)ctx;
     if (s_graphics_fill_rect_call_count < MAX_GRAPHICS_FILL_RECT_CALLS) {
         s_graphics_fill_rect_calls[s_graphics_fill_rect_call_count++] = (GraphicsFillRectCall){
             .rect = rect,
             .corner_radius = corner_radius,
-            .corners = corners
+            .corners = corners,
+            .fill_color = s_current_fill_color // Record the current fill color
         };
     } else {
         APP_LOG(APP_LOG_LEVEL_ERROR, "graphics_fill_rect mock buffer overflow!");
@@ -208,13 +229,57 @@ static inline void graphics_fill_rect(GContext *ctx, GRect rect, uint16_t corner
 // Helper to reset the mock call count
 static inline void reset_graphics_fill_rect_calls() {
     s_graphics_fill_rect_call_count = 0;
+    s_current_fill_color = (GColor){.argb = 0}; // Reset fill color
 }
 
 // Helper to get the recorded calls
-static inline GraphicsFillRectCall *get_graphics_fill_rect_calls() {
+static inline GraphicsFillRectCall* get_graphics_fill_rect_calls() {
     return s_graphics_fill_rect_calls;
 }
 
 static inline int get_graphics_fill_rect_call_count() {
     return s_graphics_fill_rect_call_count;
+}
+
+// --- Mocks for graphics_draw_line ---
+#define MAX_GRAPHICS_DRAW_LINE_CALLS 2000 // Increased buffer size
+typedef struct {
+    GPoint p0;
+    GPoint p1;
+    GColor stroke_color; // Added to record stroke color
+} GraphicsDrawLineCall;
+
+static GraphicsDrawLineCall s_graphics_draw_line_calls[MAX_GRAPHICS_DRAW_LINE_CALLS];
+static int s_graphics_draw_line_call_count = 0;
+static GColor s_current_stroke_color = {.argb = 0}; // Default to black/clear
+
+static inline void graphics_context_set_stroke_color(GContext *ctx, GColor color) {
+    (void)ctx;
+    s_current_stroke_color = color;
+}
+
+static inline void graphics_draw_line(GContext *ctx, GPoint p0, GPoint p1) {
+    (void)ctx;
+    if (s_graphics_draw_line_call_count < MAX_GRAPHICS_DRAW_LINE_CALLS) {
+        s_graphics_draw_line_calls[s_graphics_draw_line_call_count++] = (GraphicsDrawLineCall){
+            .p0 = p0,
+            .p1 = p1,
+            .stroke_color = s_current_stroke_color // Record the current stroke color
+        };
+    } else {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "graphics_draw_line mock buffer overflow!");
+    }
+}
+
+static inline void reset_graphics_draw_line_calls() {
+    s_graphics_draw_line_call_count = 0;
+    s_current_stroke_color = (GColor){.argb = 0}; // Reset stroke color
+}
+
+static inline GraphicsDrawLineCall* get_graphics_draw_line_calls() {
+    return s_graphics_draw_line_calls;
+}
+
+static inline int get_graphics_draw_line_call_count() {
+    return s_graphics_draw_line_call_count;
 }
