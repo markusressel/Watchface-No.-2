@@ -173,6 +173,7 @@ typedef struct GRect {
 static inline GPoint GPoint_construct(int16_t x, int16_t y) {
     return (GPoint){.x = x, .y = y};
 }
+
 #define GPoint(x, y) GPoint_construct(x, y)
 
 static inline GRect GRect_construct(int16_t x, int16_t y, int16_t w, int16_t h) {
@@ -208,12 +209,12 @@ static int s_graphics_fill_rect_call_count = 0;
 static GColor s_current_fill_color = {.argb = 0}; // Default to black/clear
 
 static inline void graphics_context_set_fill_color(GContext *ctx, GColor color) {
-    (void)ctx;
+    (void) ctx;
     s_current_fill_color = color;
 }
 
 static inline void graphics_fill_rect(GContext *ctx, GRect rect, uint16_t corner_radius, GCorners corners) {
-    (void)ctx;
+    (void) ctx;
     if (s_graphics_fill_rect_call_count < MAX_GRAPHICS_FILL_RECT_CALLS) {
         s_graphics_fill_rect_calls[s_graphics_fill_rect_call_count++] = (GraphicsFillRectCall){
             .rect = rect,
@@ -233,7 +234,7 @@ static inline void reset_graphics_fill_rect_calls() {
 }
 
 // Helper to get the recorded calls
-static inline GraphicsFillRectCall* get_graphics_fill_rect_calls() {
+static inline GraphicsFillRectCall *get_graphics_fill_rect_calls() {
     return s_graphics_fill_rect_calls;
 }
 
@@ -243,6 +244,7 @@ static inline int get_graphics_fill_rect_call_count() {
 
 // --- Mocks for graphics_draw_line ---
 #define MAX_GRAPHICS_DRAW_LINE_CALLS 2000 // Increased buffer size
+
 typedef struct {
     GPoint p0;
     GPoint p1;
@@ -254,12 +256,12 @@ static int s_graphics_draw_line_call_count = 0;
 static GColor s_current_stroke_color = {.argb = 0}; // Default to black/clear
 
 static inline void graphics_context_set_stroke_color(GContext *ctx, GColor color) {
-    (void)ctx;
+    (void) ctx;
     s_current_stroke_color = color;
 }
 
 static inline void graphics_draw_line(GContext *ctx, GPoint p0, GPoint p1) {
-    (void)ctx;
+    (void) ctx;
     if (s_graphics_draw_line_call_count < MAX_GRAPHICS_DRAW_LINE_CALLS) {
         s_graphics_draw_line_calls[s_graphics_draw_line_call_count++] = (GraphicsDrawLineCall){
             .p0 = p0,
@@ -276,7 +278,7 @@ static inline void reset_graphics_draw_line_calls() {
     s_current_stroke_color = (GColor){.argb = 0}; // Reset stroke color
 }
 
-static inline GraphicsDrawLineCall* get_graphics_draw_line_calls() {
+static inline GraphicsDrawLineCall *get_graphics_draw_line_calls() {
     return s_graphics_draw_line_calls;
 }
 

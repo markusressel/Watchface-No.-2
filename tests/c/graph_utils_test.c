@@ -66,7 +66,7 @@ void test_channel8_to_2(void) {
 
 void test_interpolate_color(void) {
     GColor from = GColorBlack; // ARGB 0b11000000
-    GColor to = GColorWhite;   // ARGB 0b11111111
+    GColor to = GColorWhite; // ARGB 0b11111111
 
     // t=0 -> from
     TEST_ASSERT_EQUAL_GCOLOR(GColorBlack, interpolate_color(from, to, 0));
@@ -82,8 +82,8 @@ void test_interpolate_color(void) {
     TEST_ASSERT_EQUAL_GCOLOR(expected_mid_bw, interpolate_color(from, to, 500));
 
     // Test with specific colors
-    from = GColorRed;   // 0b11110000 (A=3, R=3, G=0, B=0)
-    to = GColorBlue;    // 0b11000011 (A=3, R=0, G=0, B=3)
+    from = GColorRed; // 0b11110000 (A=3, R=3, G=0, B=0)
+    to = GColorBlue; // 0b11000011 (A=3, R=0, G=0, B=3)
     // t=500: A=3, R=2, G=0, B=1 -> 0b11100001 (calculated: out_r=128 -> channel8_to_2(128)=2)
     GColor expected_mid_rb = (GColor){.argb = 0b11100001};
     TEST_ASSERT_EQUAL_GCOLOR(expected_mid_rb, interpolate_color(from, to, 500));
@@ -202,7 +202,9 @@ void test_should_suppress_value(void) {
 // --- Test graph_color_for_stops ---
 
 static GColor custom_color_fn(int value, int min_value, int max_value, void *context) {
-    (void)min_value; (void)max_value; (void)context;
+    (void) min_value;
+    (void) max_value;
+    (void) context;
     if (value > 50) return GColorRed;
     if (value < 0) return GColorBlue;
     return GColorGreen;
@@ -293,7 +295,7 @@ void test_graph_color_for_value_with_callback(void) {
         .color_stops = NULL,
         .color_stop_count = 0,
         .color_for_value = custom_color_fn,
-        .color_context = (void*)1 // Dummy context
+        .color_context = (void *) 1 // Dummy context
     };
     TEST_ASSERT_EQUAL_GCOLOR(GColorBlue, graph_color_for_value(&config, -10, -100, 100));
     TEST_ASSERT_EQUAL_GCOLOR(GColorGreen, graph_color_for_value(&config, 10, -100, 100));
@@ -313,7 +315,7 @@ void test_graph_color_for_value_default_color(void) {
 // --- Test draw_square_dot ---
 
 void test_draw_square_dot_basic(void) {
-    GContext *ctx = (GContext *)1;
+    GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     draw_square_dot(ctx, bounds, 10, 20, 5, GColorRed);
 
@@ -326,7 +328,7 @@ void test_draw_square_dot_basic(void) {
 }
 
 void test_draw_square_dot_out_of_bounds(void) {
-    GContext *ctx = (GContext *)1;
+    GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 10, 10);
     draw_square_dot(ctx, bounds, 8, 8, 5, GColorRed); // Partially out
     draw_square_dot(ctx, bounds, 10, 10, 1, GColorRed); // Exactly on edge
@@ -339,7 +341,7 @@ void test_draw_square_dot_out_of_bounds(void) {
 }
 
 void test_draw_square_dot_clear_color(void) {
-    GContext *ctx = (GContext *)1;
+    GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     draw_square_dot(ctx, bounds, 10, 20, 5, GColorClear);
 
@@ -349,7 +351,7 @@ void test_draw_square_dot_clear_color(void) {
 // --- Test graph_draw_series ---
 
 void test_graph_draw_series_null_inputs(void) {
-    GContext *ctx = (GContext *)1;
+    GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     int values[] = {10, 20};
     GraphDrawConfig config = {.default_color = GColorBlack};
@@ -358,14 +360,14 @@ void test_graph_draw_series_null_inputs(void) {
     graph_draw_series(ctx, bounds, NULL, 2, &config);
     graph_draw_series(ctx, bounds, values, 2, NULL);
     graph_draw_series(ctx, bounds, values, 0, &config);
-    graph_draw_series(ctx, GRect(0,0,0,0), values, 2, &config);
+    graph_draw_series(ctx, GRect(0, 0, 0, 0), values, 2, &config);
 
     TEST_ASSERT_EQUAL(0, get_graphics_fill_rect_call_count());
     TEST_ASSERT_EQUAL(0, get_graphics_draw_line_call_count());
 }
 
 void test_graph_draw_series_points_basic(void) {
-    GContext *ctx = (GContext *)1;
+    GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     int values[] = {10, 50, 90};
     GraphDrawConfig config = {
@@ -404,7 +406,7 @@ void test_graph_draw_series_points_basic(void) {
 }
 
 void test_graph_draw_series_points_suppress_zero(void) {
-    GContext *ctx = (GContext *)1;
+    GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     int values[] = {10, 0, 20};
     GraphDrawConfig config = {
@@ -422,7 +424,7 @@ void test_graph_draw_series_points_suppress_zero(void) {
 }
 
 void test_graph_draw_series_line_basic(void) {
-    GContext *ctx = (GContext *)1;
+    GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     int values[] = {10, 50, 90};
     GraphDrawConfig config = {
@@ -464,7 +466,7 @@ void test_graph_draw_series_line_basic(void) {
 }
 
 void test_graph_draw_series_line_interpolation(void) {
-    GContext *ctx = (GContext *)1;
+    GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 10, 10); // Small bounds to force interpolation
     int values[] = {0, 100};
     GraphDrawConfig config = {
@@ -487,7 +489,7 @@ void test_graph_draw_series_line_interpolation(void) {
 }
 
 void test_graph_draw_series_bar_basic(void) {
-    GContext *ctx = (GContext *)1;
+    GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     int values[] = {10, 50, 90};
     GraphDrawConfig config = {
@@ -512,7 +514,7 @@ void test_graph_draw_series_bar_basic(void) {
 }
 
 void test_graph_draw_series_bar_negative_values(void) {
-    GContext *ctx = (GContext *)1;
+    GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     int values[] = {-10, 0, 10};
     GraphDrawConfig config = {
@@ -529,7 +531,7 @@ void test_graph_draw_series_bar_negative_values(void) {
 }
 
 void test_graph_draw_series_line_single_point(void) {
-    GContext *ctx = (GContext *)1;
+    GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     int values[] = {50};
     GraphDrawConfig config = {
@@ -552,7 +554,7 @@ void test_graph_draw_series_line_single_point(void) {
 }
 
 void test_graph_draw_series_line_single_point_suppress_zero(void) {
-    GContext *ctx = (GContext *)1;
+    GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     int values[] = {0};
     GraphDrawConfig config = {
