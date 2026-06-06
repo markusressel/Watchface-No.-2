@@ -74,6 +74,7 @@ static float get_scale_factor(DottedTextLayerData *data, int base_dot_height, in
 
 static int text_width_in_pixels(
     const char *text,
+    const unsigned int length,
     int dot_width,
     int gap_size_horizontal,
     int character_offset,
@@ -84,7 +85,6 @@ static int text_width_in_pixels(
     }
 
     int width = 0;
-    const unsigned int length = strlen(text);
     for (unsigned int i = 0; i < length; i++) {
         const int glyph_width = pixel_matrix_drawer_char_width(text[i], digit_size);
         width += glyph_width * dot_width;
@@ -149,8 +149,10 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
         start_y = 0;
     }
 
+    const unsigned int length = strlen(data->text);
     const int text_width = text_width_in_pixels(
         data->text,
+        length,
         dot_width,
         gap_size_horizontal,
         character_offset,
@@ -167,7 +169,6 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
         current_start_x = 0;
     }
 
-    unsigned int length = strlen(data->text);
     for (unsigned int i = 0; i < length; i++) {
         char current_character = data->text[i];
 
