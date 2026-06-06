@@ -4,6 +4,14 @@ import subprocess
 import sys
 
 
+def print_color(text, color=None):
+    if color == "green":
+        print(f"\033[92m{text}\033[0m")
+    elif color == "red":
+        print(f"\033[91m{text}\033[0m")
+    else:
+        print(text)
+
 def run_c_host_tests():
     print("Running C host tests...")
     build_dir = "tests/build"
@@ -60,10 +68,10 @@ def run_c_host_tests():
         print("")  # Newline for readability
 
     if all_tests_passed:
-        print("All C host tests PASSED")
+        print_color("All C host tests PASSED", "green")
         return 0
     else:
-        print("Some C host tests FAILED")
+        print_color("Some C host tests FAILED", "red")
         return 1
 
 
