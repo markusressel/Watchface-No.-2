@@ -17,7 +17,8 @@ void setUp(void) {
     mock_storage_reset();
 }
 
-void tearDown(void) {}
+void tearDown(void) {
+}
 
 
 // --- Tests ---

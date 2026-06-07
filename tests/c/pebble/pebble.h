@@ -110,7 +110,7 @@ static int persist_read_int(const uint32_t key) {
     return 0;
 }
 
-static int persist_read_data(const uint32_t key, void* buffer, const size_t size) {
+static int persist_read_data(const uint32_t key, void *buffer, const size_t size) {
     if (key == 1 && global_mock_storage.data_exists) {
         size_t to_copy = size < global_mock_storage.data_size ? size : global_mock_storage.data_size;
         memcpy(buffer, global_mock_storage.data, to_copy);
@@ -119,7 +119,7 @@ static int persist_read_data(const uint32_t key, void* buffer, const size_t size
     return 0;
 }
 
-static int persist_write_data(const uint32_t key, const void* data, const size_t size) {
+static int persist_write_data(const uint32_t key, const void *data, const size_t size) {
     if (key == 1) {
         if (size <= sizeof(global_mock_storage.data)) {
             memcpy(global_mock_storage.data, data, size);
@@ -139,6 +139,7 @@ static status_t persist_write_int(const uint32_t key, const int32_t value) {
     }
     return S_INTERNAL_ERROR;
 }
+
 // --- End of Storage Mocks ---
 
 
