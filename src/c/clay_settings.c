@@ -184,6 +184,10 @@ ClaySettings *clay_get_settings() {
     return &settings;
 }
 
+void request_settings_from_app() {
+    app_messaging_request_settings();
+}
+
 // Read settings from persistent storage
 ClaySettings *clay_load_settings() {
     // Load the default settings
@@ -192,9 +196,14 @@ ClaySettings *clay_load_settings() {
     // Migrate/reset settings when the struct layout changes across versions.
     if (!persist_exists(SETTINGS_VERSION_KEY) ||
         persist_read_int(SETTINGS_VERSION_KEY) != SETTINGS_VERSION) {
-        APP_LOG(APP_LOG_LEVEL_INFO, "Settings version mismatch. Deleting old settings and requesting new ones.");
-        persist_delete(SETTINGS_KEY);
-        app_messaging_request_settings();
+        APP_LOG(
+            APP_LOG_LEVEL_INFO,
+            "Settings version mismatch: %d != %d. Deleting old settings and requesting new ones.",
+            persist_read_int(SETTINGS_VERSION_KEY), SETTINGS_VERSION
+        );
+        // save default settings to persistent storage
+        clay_save_settings();
+        request_settings_from_app();
         return &settings;
     }
 

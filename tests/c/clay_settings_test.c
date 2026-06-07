@@ -10,6 +10,10 @@
 #include "../../src/c/clay_settings.h"
 #include "../../src/c/clay_settings.c"
 
+// --- Mocks ---
+void app_messaging_request_settings() {
+    // Mock implementation
+}
 
 // --- Test Setup ---
 void setUp(void) {
@@ -33,10 +37,10 @@ void test_clay_load_settings_migrates_old_version(void) {
     mock_storage_set_data(&old_settings, sizeof(ClaySettings));
 
     // Act
-    clay_load_settings();
+    ClaySettings *loaded_settings = clay_load_settings();
 
     // Assert: Check that settings were reset to defaults and version was updated
-    TEST_ASSERT_EQUAL_INT(7, clay_get_settings()->LayoutRowCount);
+    TEST_ASSERT_EQUAL_INT(7, loaded_settings->LayoutRowCount);
     TEST_ASSERT_EQUAL_INT(SETTINGS_VERSION, mock_storage_get_version());
 }
 
@@ -52,11 +56,11 @@ void test_clay_load_settings_with_valid_version(void) {
     mock_storage_set_data(&saved_settings, sizeof(ClaySettings));
 
     // Act
-    clay_load_settings();
+    ClaySettings *loaded_settings = clay_load_settings();
 
     // Assert: Check that settings were loaded from storage
-    TEST_ASSERT_EQUAL_INT(7, clay_get_settings()->LayoutRowCount);
-    TEST_ASSERT_TRUE(clay_get_settings()->ShowSeconds);
+    TEST_ASSERT_EQUAL_INT(7, loaded_settings->LayoutRowCount);
+    TEST_ASSERT_TRUE(loaded_settings->ShowSeconds);
 }
 
 
