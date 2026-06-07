@@ -35,6 +35,13 @@ Pebble.addEventListener('ready',
   }
 );
 
+function sendAllSettings() {
+    var settings = JSON.parse(localStorage.getItem('clay-settings'));
+    if (settings) {
+        Pebble.sendAppMessage(settings);
+    }
+}
+
 // Listen for when an AppMessage is received
 Pebble.addEventListener('appmessage',
   function(e) {
@@ -47,10 +54,14 @@ Pebble.addEventListener('appmessage',
           console.log("Watchface is ready! Sending pending data.");
           isPebbleReady = true;
           weather.getWeather();
-      } else if ("RequestData" in dict) {
+      } else if ("RequestWeatherData" in dict) {
           if (isPebbleReady) {
               weather.getWeather();
           }
-    }
+      } else if ("RequestSettings" in dict) {
+          if (isPebbleReady) {
+              sendAllSettings();
+          }
+      }
   }                     
 );

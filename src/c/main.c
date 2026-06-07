@@ -209,9 +209,9 @@ static void deinit() {
 
 // watchface lifecycle
 int main(void) {
+    app_messaging_initialize();
     init();
-    initialize_app_messaging();
-    send_app_ready();
+    app_messaging_send_app_ready();
     app_event_loop();
     deinit();
 }

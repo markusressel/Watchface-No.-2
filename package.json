@@ -15,7 +15,8 @@
         "enableMultiJS": true,
         "messageKeys": [
             "AppReady",
-            "RequestData",
+            "RequestWeatherData",
+            "RequestSettings",
             "WEATHER_TEMPERATURE_CURRENT",
             "WEATHER_CONDITION",
             "WEATHER_TEMPERATURE_MAX",

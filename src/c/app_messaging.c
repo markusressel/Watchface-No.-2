@@ -6,14 +6,23 @@
 #include "layer/weather.h"
 #include "clay_settings.h"
 
-void send_app_ready() {
+void queue_message(const uint32_t key, const int value) {
     DictionaryIterator *iter;
     app_message_outbox_begin(&iter);
     if (iter == NULL) {
         return;
     }
-    dict_write_uint8(iter, MESSAGE_KEY_AppReady, 1);
+    dict_write_uint8(iter, key, value);
     dict_write_end(iter);
+}
+
+void app_messaging_send_app_ready() {
+    queue_message(MESSAGE_KEY_AppReady, 1);
+    app_message_outbox_send();
+}
+
+void app_messaging_request_settings() {
+    queue_message(MESSAGE_KEY_RequestSettings, 1);
     app_message_outbox_send();
 }
 
@@ -330,7 +339,7 @@ static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
     APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
 }
 
-void initialize_app_messaging() {
+void app_messaging_initialize() {
     // Register callbacks
     app_message_register_inbox_received(inbox_received_callback);
     app_message_register_inbox_dropped(inbox_dropped_callback);

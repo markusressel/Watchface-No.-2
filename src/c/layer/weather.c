@@ -214,7 +214,7 @@ static void request_weather_update() {
     // Construct the message with a dummy value
     int value = 0;
     // Add an item to ask for weather data
-    dict_write_int(out_iter, MESSAGE_KEY_RequestData, &value, sizeof(int), true);
+    dict_write_int(out_iter, MESSAGE_KEY_RequestWeatherData, &value, sizeof(int), true);
 
     APP_LOG(APP_LOG_LEVEL_INFO, "Sending RequestUpdate message for weather...");
 

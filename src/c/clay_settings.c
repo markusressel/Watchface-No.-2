@@ -1,6 +1,7 @@
 #include <pebble.h>
 #include "clay_settings.h"
 #include "layer/widget.h"
+#include "app_messaging.h"
 
 // An instance of the struct
 static ClaySettings settings;
@@ -187,17 +188,17 @@ void clay_load_settings() {
     // Migrate/reset settings when the struct layout changes across versions.
     if (!persist_exists(SETTINGS_VERSION_KEY) ||
         persist_read_int(SETTINGS_VERSION_KEY) != SETTINGS_VERSION) {
-        clay_sanitize_settings();
-        clay_save_settings();
+        APP_LOG(APP_LOG_LEVEL_INFO, "Settings version mismatch. Deleting old settings and requesting new ones.");
+        persist_delete(SETTINGS_KEY);
+        app_messaging_request_settings();
         return;
     }
 
     if (persist_exists(SETTINGS_KEY)) {
         const int bytes = persist_read_data(SETTINGS_KEY, &settings, sizeof(settings));
         if (bytes != sizeof(settings)) {
+            APP_LOG(APP_LOG_LEVEL_WARNING, "Could not read settings, using defaults.");
             clay_default_settings();
-            clay_sanitize_settings();
-            clay_save_settings();
             return;
         }
     }
