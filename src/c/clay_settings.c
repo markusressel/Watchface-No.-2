@@ -133,57 +133,59 @@ ClaySettings *clay_sanitize_settings(ClaySettings *settings) {
 // Initialize the default settings
 // Note: Defaults are also set in the configPage.json, keep them in sync!
 static ClaySettings *clay_default_settings() {
-    s_settings.BackgroundColor = GColorWhite;
+    ClaySettings *settings = clay_get_settings();
+
+    settings->BackgroundColor = GColorWhite;
     GColor foregroundColor = GColorBlack;
     GColor textColor = GColorBlack;
 
     // Time Layer
-    s_settings.TimeTextColor = textColor;
+    settings->TimeTextColor = textColor;
     // Date Layer
-    s_settings.DateTextColor = textColor;
+    settings->DateTextColor = textColor;
 
     // Battery Bar Layer
-    s_settings.BatteryFrameColor = foregroundColor;
-    s_settings.BatteryFillColor = foregroundColor;
+    settings->BatteryFrameColor = foregroundColor;
+    settings->BatteryFillColor = foregroundColor;
 
     // Weather Layer
-    s_settings.WeatherTextColor = textColor;
+    settings->WeatherTextColor = textColor;
 
     // Stepcount layer
-    s_settings.StepcountTextColor = textColor;
+    settings->StepcountTextColor = textColor;
 
     // Heartrate layer
-    s_settings.HeartrateTextColor = textColor;
+    settings->HeartrateTextColor = textColor;
 
-    s_settings.ShowYear = false;
-    s_settings.ShowSeconds = false;
-    s_settings.ShowWeekdayAbbreviation = false;
-    s_settings.WeekdayAbbreviationUppercase = false;
-    strcpy(s_settings.ThemeValue, THEME_DEFAULT);
+    settings->ShowYear = false;
+    settings->ShowSeconds = false;
+    settings->ShowWeekdayAbbreviation = false;
+    settings->WeekdayAbbreviationUppercase = false;
+    strcpy(settings->ThemeValue, THEME_DEFAULT);
 
-    s_settings.DigitWidth = 4;
+    settings->DigitWidth = 4;
 
-    s_settings.DotWidth = 3;
-    s_settings.DotHeight = 3;
-    s_settings.DotHorizontalGap = 3;
-    s_settings.DotVerticalGap = 3;
-    s_settings.DotScaleFactor = 1.0f;
-    s_settings.DotAutoScale = true;
+    settings->DotWidth = 3;
+    settings->DotHeight = 3;
+    settings->DotHorizontalGap = 3;
+    settings->DotVerticalGap = 3;
+    settings->DotScaleFactor = 1.0f;
+    settings->DotAutoScale = true;
 
-    s_settings.LayoutRowCount = layout_row_count_max_for_platform() == 7 ? 7 : 5;
+    settings->LayoutRowCount = layout_row_count_max_for_platform() == 7 ? 7 : 5;
 
     // Row layout defaults: Weather, Date, Time, Stepcount, Battery.
-    s_settings.Row0Widget = WIDGET_WEATHER; // 0
-    s_settings.Row1Widget = WIDGET_DATE; // 1
-    s_settings.Row2Widget = WIDGET_TIME; // 2
-    s_settings.Row3Widget = WIDGET_STEPCOUNT;
-    s_settings.Row4Widget = WIDGET_BATTERY_BAR;
-    s_settings.Row5Widget = WIDGET_HEARTRATE;
-    s_settings.Row6Widget = WIDGET_WEATHER_FORECAST;
+    settings->Row0Widget = WIDGET_WEATHER; // 0
+    settings->Row1Widget = WIDGET_DATE; // 1
+    settings->Row2Widget = WIDGET_TIME; // 2
+    settings->Row3Widget = WIDGET_STEPCOUNT;
+    settings->Row4Widget = WIDGET_BATTERY_BAR;
+    settings->Row5Widget = WIDGET_HEARTRATE;
+    settings->Row6Widget = WIDGET_WEATHER_FORECAST;
 
-    s_settings.WeatherUseSimulation = false;
+    settings->WeatherUseSimulation = false;
 
-    return &s_settings;
+    return settings;
 }
 
 ClaySettings *clay_get_settings() {
@@ -210,12 +212,12 @@ ClaySettings *clay_load_settings() {
         // save default settings to persistent storage
         clay_save_settings(settings);
         request_settings_from_app();
-        return &s_settings;
+        return settings;
     }
 
     if (persist_exists(SETTINGS_KEY)) {
-        const int bytes = persist_read_data(SETTINGS_KEY, &s_settings, sizeof(s_settings));
-        if (bytes != sizeof(s_settings)) {
+        const int bytes = persist_read_data(SETTINGS_KEY, settings, sizeof(*settings));
+        if (bytes != sizeof(*settings)) {
             APP_LOG(APP_LOG_LEVEL_WARNING, "Could not read settings, using defaults.");
             settings = clay_default_settings();
             return settings;
