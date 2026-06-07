@@ -32,8 +32,8 @@ static void init_row_layers() {
     }
 }
 
-static void build_layout_from_settings() {
-    int row_count = clay_get_settings()->LayoutRowCount;
+static void build_layout_from_settings(ClaySettings *settings) {
+    int row_count = settings->LayoutRowCount;
     if (row_count < 5) {
         APP_LOG(APP_LOG_LEVEL_DEBUG, "Layout row count too low, setting to minimum of 5");
         row_count = 5;
@@ -45,13 +45,13 @@ static void build_layout_from_settings() {
     s_layout = (WatchLayout){
         .row_count = row_count,
         .rows = {
-            [0] = {.widget = (WidgetId) clay_get_settings()->Row0Widget},
-            [1] = {.widget = (WidgetId) clay_get_settings()->Row1Widget},
-            [2] = {.widget = (WidgetId) clay_get_settings()->Row2Widget},
-            [3] = {.widget = (WidgetId) clay_get_settings()->Row3Widget},
-            [4] = {.widget = (WidgetId) clay_get_settings()->Row4Widget},
-            [5] = {.widget = (WidgetId) clay_get_settings()->Row5Widget},
-            [6] = {.widget = (WidgetId) clay_get_settings()->Row6Widget},
+            [0] = {.widget = (WidgetId) settings->Row0Widget},
+            [1] = {.widget = (WidgetId) settings->Row1Widget},
+            [2] = {.widget = (WidgetId) settings->Row2Widget},
+            [3] = {.widget = (WidgetId) settings->Row3Widget},
+            [4] = {.widget = (WidgetId) settings->Row4Widget},
+            [5] = {.widget = (WidgetId) settings->Row5Widget},
+            [6] = {.widget = (WidgetId) settings->Row6Widget},
         },
     };
 }
@@ -125,15 +125,14 @@ static void main_window_unload(Window *window) {
     }
 }
 
-static void apply_theme_from_settings() {
-    if (clay_get_settings()->ThemeValue[0] == '\0') {
-        strcpy(clay_get_settings()->ThemeValue, THEME_LIGHT);
-    }
-
+static void apply_theme_from_settings(ClaySettings *settings) {
     enum ThemeEnum theme;
-    if (strcmp(clay_get_settings()->ThemeValue, THEME_LIGHT) == 0) {
+    if (settings->ThemeValue[0] == '\0') {
+        strcpy(settings->ThemeValue, THEME_LIGHT);
+    }
+    if (strcmp(settings->ThemeValue, THEME_LIGHT) == 0) {
         theme = LIGHT;
-    } else if (strcmp(clay_get_settings()->ThemeValue, THEME_DARK) == 0) {
+    } else if (strcmp(settings->ThemeValue, THEME_DARK) == 0) {
         theme = DARK;
     } else {
         theme = CUSTOM;
@@ -142,19 +141,19 @@ static void apply_theme_from_settings() {
     if (theme == CUSTOM) {
         Theme custom_theme;
         custom_theme.CurrentThemeEnum = CUSTOM;
-        custom_theme.BackgroundColor = clay_get_settings()->BackgroundColor;
-        custom_theme.TimeTextColor = clay_get_settings()->TimeTextColor;
-        custom_theme.DateTextColor = clay_get_settings()->DateTextColor;
-        custom_theme.BatteryOutlineColor = clay_get_settings()->BatteryFrameColor;
-        custom_theme.BatteryFillColor = clay_get_settings()->BatteryFillColor;
-        custom_theme.WeatherTextColor = clay_get_settings()->WeatherTextColor;
-        custom_theme.StepcountTextColor = clay_get_settings()->StepcountTextColor;
-        custom_theme.HeartrateTextColor = clay_get_settings()->HeartrateTextColor;
-        theme_set_fonts(&custom_theme, clay_get_settings()->ShowSeconds);
+        custom_theme.BackgroundColor = settings->BackgroundColor;
+        custom_theme.TimeTextColor = settings->TimeTextColor;
+        custom_theme.DateTextColor = settings->DateTextColor;
+        custom_theme.BatteryOutlineColor = settings->BatteryFrameColor;
+        custom_theme.BatteryFillColor = settings->BatteryFillColor;
+        custom_theme.WeatherTextColor = settings->WeatherTextColor;
+        custom_theme.StepcountTextColor = settings->StepcountTextColor;
+        custom_theme.HeartrateTextColor = settings->HeartrateTextColor;
+        theme_set_fonts(&custom_theme, settings->ShowSeconds);
 
         set_custom_theme(&custom_theme);
     } else {
-        init_theme(theme, clay_get_settings()->ShowSeconds);
+        init_theme(theme, settings->ShowSeconds);
     }
 
     // Safely update the window background if the window exists
@@ -169,14 +168,15 @@ void main_reload_layout() {
     // APP_LOG(APP_LOG_LEVEL_DEBUG, "main_reload_layout");
     main_window_unload(s_main_window);
     init_row_layers();
-    apply_theme_from_settings();
-    build_layout_from_settings();
+    ClaySettings *settings = clay_get_settings();
+    apply_theme_from_settings(settings);
+    build_layout_from_settings(settings);
     main_window_load(s_main_window);
 }
 
 // initializes the watchface
 static void init() {
-    clay_load_settings();
+    ClaySettings *settings = clay_load_settings();
 
     // Initialize row layers array
     init_row_layers();
@@ -185,8 +185,8 @@ static void init() {
     s_main_window = window_create();
 
     // Apply the theme and build the layout
-    apply_theme_from_settings();
-    build_layout_from_settings();
+    apply_theme_from_settings(settings);
+    build_layout_from_settings(settings);
 
     // Set handler to manage the elements inside the Window
     window_set_window_handlers(

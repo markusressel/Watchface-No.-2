@@ -185,7 +185,7 @@ ClaySettings *clay_get_settings() {
 }
 
 // Read settings from persistent storage
-void clay_load_settings() {
+ClaySettings *clay_load_settings() {
     // Load the default settings
     clay_default_settings();
 
@@ -195,7 +195,7 @@ void clay_load_settings() {
         APP_LOG(APP_LOG_LEVEL_INFO, "Settings version mismatch. Deleting old settings and requesting new ones.");
         persist_delete(SETTINGS_KEY);
         app_messaging_request_settings();
-        return;
+        return &settings;
     }
 
     if (persist_exists(SETTINGS_KEY)) {
@@ -203,13 +203,15 @@ void clay_load_settings() {
         if (bytes != sizeof(settings)) {
             APP_LOG(APP_LOG_LEVEL_WARNING, "Could not read settings, using defaults.");
             clay_default_settings();
-            return;
+            return &settings;
         }
     }
 
     clay_sanitize_settings();
 
     clay_log_settings_debug("loaded persisted settings");
+
+    return &settings;
 }
 
 void clay_save_settings() {
