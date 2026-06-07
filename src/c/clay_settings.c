@@ -76,7 +76,7 @@ void clay_log_settings_debug(const char *context_label, ClaySettings *settings) 
 }
 
 static bool is_row_widget_valid(const int widget) {
-    return widget >= 0 && widget <= 7;
+    return widget >= 0 && widget < WIDGET_COUNT;
 }
 
 static int layout_row_count_max_for_platform() {
@@ -192,10 +192,6 @@ ClaySettings *clay_get_settings() {
     return &s_settings;
 }
 
-void request_settings_from_app() {
-    app_messaging_request_settings();
-}
-
 // Read settings from persistent storage
 ClaySettings *clay_load_settings() {
     // Load the default settings
@@ -211,7 +207,7 @@ ClaySettings *clay_load_settings() {
         );
         // save default settings to persistent storage
         clay_save_settings(settings);
-        request_settings_from_app();
+        app_messaging_request_settings();
         return settings;
     }
 
