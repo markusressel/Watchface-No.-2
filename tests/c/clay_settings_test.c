@@ -40,7 +40,7 @@ void test_clay_load_settings_migrates_old_version(void) {
     ClaySettings *loaded_settings = clay_load_settings();
 
     // Assert: Check that settings were reset to defaults and version was updated
-    TEST_ASSERT_EQUAL_INT(7, loaded_settings->LayoutRowCount);
+    TEST_ASSERT_EQUAL_INT(layout_row_count_max_for_platform(), loaded_settings->LayoutRowCount);
     TEST_ASSERT_EQUAL_INT(SETTINGS_VERSION, mock_storage_get_version());
 }
 
@@ -48,18 +48,18 @@ void test_clay_load_settings_with_valid_version(void) {
     // Arrange: Simulate current version data exists
     mock_storage_set_version(SETTINGS_VERSION);
 
-    ClaySettings saved_settings;
     clay_default_settings();
-    saved_settings = *clay_get_settings();
-    saved_settings.LayoutRowCount = 7;
-    saved_settings.ShowSeconds = true;
-    mock_storage_set_data(&saved_settings, sizeof(ClaySettings));
+    ClaySettings *saved_settings = clay_get_settings();
+    saved_settings->LayoutRowCount = layout_row_count_max_for_platform();
+    saved_settings->ShowSeconds = true;
+    clay_save_settings();
+    // mock_storage_set_data(&saved_settings, sizeof(ClaySettings));
 
     // Act
     ClaySettings *loaded_settings = clay_load_settings();
 
     // Assert: Check that settings were loaded from storage
-    TEST_ASSERT_EQUAL_INT(7, loaded_settings->LayoutRowCount);
+    TEST_ASSERT_EQUAL_INT(layout_row_count_max_for_platform(), loaded_settings->LayoutRowCount);
     TEST_ASSERT_TRUE(loaded_settings->ShowSeconds);
 }
 
