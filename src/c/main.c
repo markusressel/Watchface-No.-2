@@ -35,8 +35,10 @@ static void init_row_layers() {
 static void build_layout_from_settings() {
     int row_count = clay_get_settings()->LayoutRowCount;
     if (row_count < 5) {
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "Layout row count too low, setting to minimum of 5");
         row_count = 5;
     } else if (row_count > WATCH_LAYOUT_MAX_ROWS) {
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "Layout row count too high, setting to maximum of %d", WATCH_LAYOUT_MAX_ROWS);
         row_count = WATCH_LAYOUT_MAX_ROWS;
     }
 
