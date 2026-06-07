@@ -71,10 +71,10 @@ typedef struct ClaySettings {
 ClaySettings *clay_get_settings();
 
 // save current settings struct to persistent storage
-void clay_save_settings();
+ClaySettings *clay_save_settings(ClaySettings *settings);
 
 // load settings from persistent storage
 ClaySettings *clay_load_settings();
 
 // print current settings values for debugging
-void clay_log_settings_debug(const char *context_label);
+void clay_log_settings_debug(const char *context_label, ClaySettings *settings);

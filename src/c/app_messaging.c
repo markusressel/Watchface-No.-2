@@ -321,8 +321,9 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     read_weather_data(iterator);
 
     if (has_settings_update) {
-        clay_log_settings_debug("received settings update");
-        clay_save_settings();
+        ClaySettings *settings = clay_get_settings();
+        clay_log_settings_debug("received settings update", settings);
+        clay_save_settings(settings);
         main_reload_layout();
     }
 }
