@@ -3,9 +3,11 @@
 #include "layer/widget.h"
 #include "app_messaging.h"
 
-const char *THEME_LIGHT = "LIGHT";
-const char *THEME_DARK = "DARK";
-const char *THEME_CUSTOM = "CUSTOM";
+#ifdef PBL_EMULATOR
+const char *THEME_DEFAULT = THEME_DARK_STR;
+#else
+const char *THEME_DEFAULT = THEME_LIGHT_STR;
+#endif
 
 // An instance of the struct
 static ClaySettings s_settings;
@@ -157,7 +159,7 @@ static ClaySettings *clay_default_settings() {
     s_settings.ShowSeconds = false;
     s_settings.ShowWeekdayAbbreviation = false;
     s_settings.WeekdayAbbreviationUppercase = false;
-    strcpy(s_settings.ThemeValue, THEME_LIGHT);
+    strcpy(s_settings.ThemeValue, THEME_DEFAULT);
 
     s_settings.DigitWidth = 4;
 

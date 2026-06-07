@@ -7,9 +7,10 @@
 #define SETTINGS_VERSION_KEY PERSIST_KEY_SETTINGS_VERSION
 #define SETTINGS_VERSION 10
 
-extern const char *THEME_LIGHT;
-extern const char *THEME_DARK;
-extern const char *THEME_CUSTOM;
+// Theme Values
+#define THEME_LIGHT_STR "LIGHT"
+#define THEME_DARK_STR "DARK"
+#define THEME_CUSTOM_STR "CUSTOM"
 
 // Define our settings struct
 typedef struct ClaySettings {

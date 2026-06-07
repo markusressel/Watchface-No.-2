@@ -128,11 +128,11 @@ static void main_window_unload(Window *window) {
 static void apply_theme_from_settings(ClaySettings *settings) {
     enum ThemeEnum theme;
     if (settings->ThemeValue[0] == '\0') {
-        strcpy(settings->ThemeValue, THEME_LIGHT);
+        strcpy(settings->ThemeValue, THEME_LIGHT_STR);
     }
-    if (strcmp(settings->ThemeValue, THEME_LIGHT) == 0) {
+    if (strcmp(settings->ThemeValue, THEME_LIGHT_STR) == 0) {
         theme = LIGHT;
-    } else if (strcmp(settings->ThemeValue, THEME_DARK) == 0) {
+    } else if (strcmp(settings->ThemeValue, THEME_DARK_STR) == 0) {
         theme = DARK;
     } else {
         theme = CUSTOM;
