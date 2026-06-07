@@ -2,6 +2,7 @@
 #include "clay_settings.h"
 #include "layer/widget.h"
 #include "app_messaging.h"
+#include "watch_layout.h"
 
 #ifdef PBL_EMULATOR
 const char *THEME_DEFAULT = THEME_DARK_STR;
@@ -88,7 +89,7 @@ static int layout_row_count_max_for_platform() {
 }
 
 static int clamp_layout_row_count(const int requested_row_count) {
-    const int min_row_count = 5;
+    const int min_row_count = WATCH_LAYOUT_MIN_ROWS;
     const int max_row_count = layout_row_count_max_for_platform();
 
     if (requested_row_count < min_row_count) {
@@ -117,13 +118,13 @@ ClaySettings *clay_sanitize_settings(ClaySettings *settings) {
 
     settings->LayoutRowCount = clamp_layout_row_count(settings->LayoutRowCount);
 
-    if (!is_row_widget_valid(settings->Row0Widget)) settings->Row0Widget = 0;
-    if (!is_row_widget_valid(settings->Row1Widget)) settings->Row1Widget = 1;
-    if (!is_row_widget_valid(settings->Row2Widget)) settings->Row2Widget = 2;
-    if (!is_row_widget_valid(settings->Row3Widget)) settings->Row3Widget = 3;
-    if (!is_row_widget_valid(settings->Row4Widget)) settings->Row4Widget = 4;
-    if (!is_row_widget_valid(settings->Row5Widget)) settings->Row5Widget = 3;
-    if (!is_row_widget_valid(settings->Row6Widget)) settings->Row6Widget = 3;
+    if (!is_row_widget_valid(settings->Row0Widget)) settings->Row0Widget = WIDGET_WEATHER;
+    if (!is_row_widget_valid(settings->Row1Widget)) settings->Row1Widget = WIDGET_DATE;
+    if (!is_row_widget_valid(settings->Row2Widget)) settings->Row2Widget = WIDGET_TIME;
+    if (!is_row_widget_valid(settings->Row3Widget)) settings->Row3Widget = WIDGET_STEPCOUNT;
+    if (!is_row_widget_valid(settings->Row4Widget)) settings->Row4Widget = WIDGET_BATTERY_BAR;
+    if (!is_row_widget_valid(settings->Row5Widget)) settings->Row5Widget = WIDGET_STEPCOUNT;
+    if (!is_row_widget_valid(settings->Row6Widget)) settings->Row6Widget = WIDGET_STEPCOUNT;
 
     settings->WeatherUseSimulation = settings->WeatherUseSimulation ? true : false;
 
@@ -175,9 +176,9 @@ static ClaySettings *clay_default_settings() {
     settings->LayoutRowCount = layout_row_count_max_for_platform() == 7 ? 7 : 5;
 
     // Row layout defaults: Weather, Date, Time, Stepcount, Battery.
-    settings->Row0Widget = WIDGET_WEATHER; // 0
-    settings->Row1Widget = WIDGET_DATE; // 1
-    settings->Row2Widget = WIDGET_TIME; // 2
+    settings->Row0Widget = WIDGET_WEATHER;
+    settings->Row1Widget = WIDGET_DATE;
+    settings->Row2Widget = WIDGET_TIME;
     settings->Row3Widget = WIDGET_STEPCOUNT;
     settings->Row4Widget = WIDGET_BATTERY_BAR;
     settings->Row5Widget = WIDGET_HEARTRATE;
@@ -226,9 +227,11 @@ ClaySettings *clay_load_settings() {
 }
 
 ClaySettings *clay_save_settings(ClaySettings *settings) {
+    persist_delete(SETTINGS_KEY);
+    persist_delete(SETTINGS_VERSION_KEY);
     // save ClaySettings struct to persistent storage
-    persist_write_data(SETTINGS_KEY, settings, sizeof(ClaySettings));
     persist_write_int(SETTINGS_VERSION_KEY, SETTINGS_VERSION);
+    persist_write_data(SETTINGS_KEY, settings, sizeof(ClaySettings));
 
     return settings;
 }

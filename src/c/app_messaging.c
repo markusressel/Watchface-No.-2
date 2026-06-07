@@ -5,6 +5,7 @@
 #include "layer/forecast_series.h"
 #include "layer/weather.h"
 #include "clay_settings.h"
+#include "watch_layout.h"
 
 void queue_message(const uint32_t key, const int value) {
     DictionaryIterator *iter;
@@ -39,8 +40,8 @@ static int tuple_to_int(const Tuple *tuple) {
 }
 
 static int clamp_layout_row_count(const int row_count) {
-    const int max_rows = 7;
-    const int min_rows = 5;
+    const int max_rows = WATCH_LAYOUT_MAX_ROWS;
+    const int min_rows = WATCH_LAYOUT_MIN_ROWS;
 
     if (row_count < min_rows) {
         return min_rows;

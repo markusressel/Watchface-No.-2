@@ -11,7 +11,7 @@
 
 static char s_buffer[32];
 
-static WeatherData weatherData;
+static WeatherData s_weather_data;
 static WeatherData s_mock_weather_data;
 static int s_runtime_temp_forecast[WEATHER_FORECAST_MAX_POINTS];
 static int s_runtime_rain_forecast[WEATHER_FORECAST_MAX_POINTS];
@@ -61,11 +61,11 @@ static const WeatherData s_mock_weather_data_template = {
 
 static void ensure_runtime_forecast_storage() {
     // Only set default pointers if they are not dynamically allocated
-    if (!weatherData.is_temp_forecast_dynamic_alloc && weatherData.TemperatureForecast == NULL) {
-        weatherData.TemperatureForecast = s_runtime_temp_forecast;
+    if (!s_weather_data.is_temp_forecast_dynamic_alloc && s_weather_data.TemperatureForecast == NULL) {
+        s_weather_data.TemperatureForecast = s_runtime_temp_forecast;
     }
-    if (!weatherData.is_rain_forecast_dynamic_alloc && weatherData.RainForecastMmX10 == NULL) {
-        weatherData.RainForecastMmX10 = s_runtime_rain_forecast;
+    if (!s_weather_data.is_rain_forecast_dynamic_alloc && s_weather_data.RainForecastMmX10 == NULL) {
+        s_weather_data.RainForecastMmX10 = s_runtime_rain_forecast;
     }
 }
 
@@ -82,13 +82,13 @@ static int clamp_forecast_count(const int value) {
 static void sanitize_weather_data() {
     ensure_runtime_forecast_storage();
 
-    weatherData.TemperatureForecastCount = clamp_forecast_count(weatherData.TemperatureForecastCount);
-    weatherData.RainForecastMmX10Count = clamp_forecast_count(weatherData.RainForecastMmX10Count);
+    s_weather_data.TemperatureForecastCount = clamp_forecast_count(s_weather_data.TemperatureForecastCount);
+    s_weather_data.RainForecastMmX10Count = clamp_forecast_count(s_weather_data.RainForecastMmX10Count);
 
-    if (memchr(weatherData.CurrentConditions, '\0', sizeof(weatherData.CurrentConditions)) == NULL) {
-        weatherData.CurrentConditions[0] = '\0';
+    if (memchr(s_weather_data.CurrentConditions, '\0', sizeof(s_weather_data.CurrentConditions)) == NULL) {
+        s_weather_data.CurrentConditions[0] = '\0';
     }
-    weatherData.CurrentConditions[sizeof(weatherData.CurrentConditions) - 1] = '\0';
+    s_weather_data.CurrentConditions[sizeof(s_weather_data.CurrentConditions) - 1] = '\0';
 }
 
 // Timer to update weather after the given amount of time
@@ -115,11 +115,11 @@ WeatherData *weather_get_data() {
     }
 
     ensure_runtime_forecast_storage();
-    return &weatherData;
+    return &s_weather_data;
 }
 
 static void restore_saved_weather_data() {
-    memset(&weatherData, 0, sizeof(weatherData));
+    memset(&s_weather_data, 0, sizeof(s_weather_data));
     ensure_runtime_forecast_storage();
 
     if (!persist_exists(WEATHER_DATA_KEY)) {
@@ -129,38 +129,48 @@ static void restore_saved_weather_data() {
     PersistedWeatherData persisted = {0};
     const int bytes = persist_read_data(WEATHER_DATA_KEY, &persisted, sizeof(persisted));
     if (bytes != sizeof(persisted) || persisted.Version != WEATHER_DATA_PERSIST_VERSION) {
-        memset(&weatherData, 0, sizeof(weatherData));
+        memset(&s_weather_data, 0, sizeof(s_weather_data));
         ensure_runtime_forecast_storage();
         return;
     }
 
-    weatherData.CurrentTemperature = persisted.CurrentTemperature;
-    weatherData.MaxTemperature = persisted.MaxTemperature;
-    weatherData.MinTemperature = persisted.MinTemperature;
-    weatherData.RainNextHourMmX10 = persisted.RainNextHourMmX10;
-    weatherData.RainPopPercent = persisted.RainPopPercent;
+    s_weather_data.CurrentTemperature = persisted.CurrentTemperature;
+    s_weather_data.MaxTemperature = persisted.MaxTemperature;
+    s_weather_data.MinTemperature = persisted.MinTemperature;
+    s_weather_data.RainNextHourMmX10 = persisted.RainNextHourMmX10;
+    s_weather_data.RainPopPercent = persisted.RainPopPercent;
 
-    weatherData.TemperatureForecastCount = clamp_forecast_count(persisted.TemperatureForecastCount);
-    weatherData.RainForecastMmX10Count = clamp_forecast_count(persisted.RainForecastMmX10Count);
+    s_weather_data.TemperatureForecastCount = clamp_forecast_count(persisted.TemperatureForecastCount);
+    s_weather_data.RainForecastMmX10Count = clamp_forecast_count(persisted.RainForecastMmX10Count);
 
     memcpy(
-        weatherData.TemperatureForecast,
+        s_weather_data.TemperatureForecast,
         persisted.TemperatureForecast,
-        sizeof(int) * weatherData.TemperatureForecastCount
+        sizeof(int) * s_weather_data.TemperatureForecastCount
     );
     memcpy(
-        weatherData.RainForecastMmX10,
+        s_weather_data.RainForecastMmX10,
         persisted.RainForecastMmX10,
-        sizeof(int) * weatherData.RainForecastMmX10Count
+        sizeof(int) * s_weather_data.RainForecastMmX10Count
     );
 
-    strncpy(weatherData.CurrentConditions, persisted.CurrentConditions, sizeof(weatherData.CurrentConditions) - 1);
-    weatherData.CurrentConditions[sizeof(weatherData.CurrentConditions) - 1] = '\0';
+    strncpy(s_weather_data.CurrentConditions, persisted.CurrentConditions, sizeof(s_weather_data.CurrentConditions) - 1);
+    s_weather_data.CurrentConditions[sizeof(s_weather_data.CurrentConditions) - 1] = '\0';
     sanitize_weather_data();
 }
 
-static void save_current_weather_data() {
+void weather_delete_pesisted_data() {
+    persist_delete(WEATHER_DATA_KEY);
+}
+
+
+static void save_current_weather_data(WeatherData *weatherData) {
     if (DEV_OPTIONS.IsEmulator || clay_get_settings()->WeatherUseSimulation) {
+        return;
+    }
+
+    if (weatherData == NULL) {
+        weather_delete_pesisted_data();
         return;
     }
 
@@ -168,31 +178,31 @@ static void save_current_weather_data() {
 
     PersistedWeatherData persisted = {
         .Version = WEATHER_DATA_PERSIST_VERSION,
-        .CurrentTemperature = weatherData.CurrentTemperature,
-        .MaxTemperature = weatherData.MaxTemperature,
-        .MinTemperature = weatherData.MinTemperature,
-        .RainNextHourMmX10 = weatherData.RainNextHourMmX10,
-        .RainPopPercent = weatherData.RainPopPercent,
-        .TemperatureForecastCount = clamp_forecast_count(weatherData.TemperatureForecastCount),
-        .RainForecastMmX10Count = clamp_forecast_count(weatherData.RainForecastMmX10Count),
+        .CurrentTemperature = weatherData->CurrentTemperature,
+        .MaxTemperature = weatherData->MaxTemperature,
+        .MinTemperature = weatherData->MinTemperature,
+        .RainNextHourMmX10 = weatherData->RainNextHourMmX10,
+        .RainPopPercent = weatherData->RainPopPercent,
+        .TemperatureForecastCount = clamp_forecast_count(weatherData->TemperatureForecastCount),
+        .RainForecastMmX10Count = clamp_forecast_count(weatherData->RainForecastMmX10Count),
     };
 
-    if (weatherData.TemperatureForecast && persisted.TemperatureForecastCount > 0) {
+    if (weatherData->TemperatureForecast && persisted.TemperatureForecastCount > 0) {
         memcpy(
             persisted.TemperatureForecast,
-            weatherData.TemperatureForecast,
+            weatherData->TemperatureForecast,
             sizeof(int) * persisted.TemperatureForecastCount
         );
     }
-    if (weatherData.RainForecastMmX10 && persisted.RainForecastMmX10Count > 0) {
+    if (weatherData->RainForecastMmX10 && persisted.RainForecastMmX10Count > 0) {
         memcpy(
             persisted.RainForecastMmX10,
-            weatherData.RainForecastMmX10,
+            weatherData->RainForecastMmX10,
             sizeof(int) * persisted.RainForecastMmX10Count
         );
     }
 
-    strncpy(persisted.CurrentConditions, weatherData.CurrentConditions, sizeof(persisted.CurrentConditions) - 1);
+    strncpy(persisted.CurrentConditions, weatherData->CurrentConditions, sizeof(persisted.CurrentConditions) - 1);
     persisted.CurrentConditions[sizeof(persisted.CurrentConditions) - 1] = '\0';
 
     persist_write_data(WEATHER_DATA_KEY, &persisted, sizeof(persisted));
@@ -256,9 +266,13 @@ static void on_scheduled_update_triggered(void *data) {
 // Update all weather layer instances
 static void update_all_weather_layers() {
     WeatherData *data = weather_get_data();
+    if (data == NULL) {
+        APP_LOG(APP_LOG_LEVEL_WARNING, "Weather data is NULL!");
+        return;
+    }
 
     // persist current data for fast access when opening the watchface
-    save_current_weather_data();
+    save_current_weather_data(data);
 
     APP_LOG(
         APP_LOG_LEVEL_DEBUG,
@@ -343,16 +357,16 @@ void destroy_weather_layer(Layer *layer) {
 }
 
 void deinit_weather_data() {
-    if (weatherData.is_temp_forecast_dynamic_alloc && weatherData.TemperatureForecast) {
-        free(weatherData.TemperatureForecast);
-        weatherData.is_temp_forecast_dynamic_alloc = false;
+    if (s_weather_data.is_temp_forecast_dynamic_alloc && s_weather_data.TemperatureForecast) {
+        free(s_weather_data.TemperatureForecast);
+        s_weather_data.is_temp_forecast_dynamic_alloc = false;
     }
-    if (weatherData.is_rain_forecast_dynamic_alloc && weatherData.RainForecastMmX10) {
-        free(weatherData.RainForecastMmX10);
-        weatherData.is_rain_forecast_dynamic_alloc = false;
+    if (s_weather_data.is_rain_forecast_dynamic_alloc && s_weather_data.RainForecastMmX10) {
+        free(s_weather_data.RainForecastMmX10);
+        s_weather_data.is_rain_forecast_dynamic_alloc = false;
     }
-    weatherData.TemperatureForecast = NULL;
-    weatherData.RainForecastMmX10 = NULL;
-    weatherData.TemperatureForecastCount = 0;
-    weatherData.RainForecastMmX10Count = 0;
+    s_weather_data.TemperatureForecast = NULL;
+    s_weather_data.RainForecastMmX10 = NULL;
+    s_weather_data.TemperatureForecastCount = 0;
+    s_weather_data.RainForecastMmX10Count = 0;
 }

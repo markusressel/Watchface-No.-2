@@ -9,6 +9,8 @@ typedef struct WatchRow {
     WidgetId widget;
 } WatchRow;
 
+// Minimum number of rows supported.
+#define WATCH_LAYOUT_MIN_ROWS 5
 // Maximum number of rows supported. The actual number may be lower based on hardware.
 #define WATCH_LAYOUT_MAX_ROWS 7
 
