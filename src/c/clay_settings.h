@@ -7,6 +7,10 @@
 #define SETTINGS_VERSION_KEY PERSIST_KEY_SETTINGS_VERSION
 #define SETTINGS_VERSION 10
 
+extern const char* THEME_LIGHT;
+extern const char* THEME_DARK;
+extern const char* THEME_CUSTOM;
+
 // Define our settings struct
 typedef struct ClaySettings {
     GColor BackgroundColor;

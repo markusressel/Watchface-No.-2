@@ -50,6 +50,7 @@ void test_init_theme_light(void) {
 // Test function for init_custom_theme
 void test_init_custom_theme(void) {
     Theme custom_theme;
+    custom_theme.CurrentThemeEnum = CUSTOM;
     custom_theme.BackgroundColor = GColorRed;
     custom_theme.TimeTextColor = GColorGreen;
     custom_theme.DateTextColor = GColorBlue;
@@ -58,8 +59,9 @@ void test_init_custom_theme(void) {
     custom_theme.WeatherTextColor = GColorMagenta;
     custom_theme.StepcountTextColor = GColorOrange;
     custom_theme.HeartrateTextColor = GColorPurple;
+    theme_set_fonts(&custom_theme, false);
 
-    init_custom_theme(custom_theme, true);
+    set_custom_theme(&custom_theme);
     Theme *theme = theme_get_theme();
 
     TEST_ASSERT_EQUAL(CUSTOM, theme->CurrentThemeEnum);

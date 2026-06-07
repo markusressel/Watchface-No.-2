@@ -3,6 +3,10 @@
 #include "layer/widget.h"
 #include "app_messaging.h"
 
+const char *THEME_LIGHT = "LIGHT";
+const char *THEME_DARK = "DARK";
+const char *THEME_CUSTOM = "CUSTOM";
+
 // An instance of the struct
 static ClaySettings settings;
 
@@ -94,7 +98,7 @@ static int clamp_layout_row_count(const int requested_row_count) {
     return requested_row_count;
 }
 
-static void clay_sanitize_settings() {
+void clay_sanitize_settings() {
     if (settings.DigitWidth < 3 || settings.DigitWidth > 5) {
         settings.DigitWidth = 4;
     }
@@ -151,7 +155,7 @@ static void clay_default_settings() {
     settings.ShowSeconds = false;
     settings.ShowWeekdayAbbreviation = false;
     settings.WeekdayAbbreviationUppercase = false;
-    strcpy(settings.ThemeValue, "LIGHT");
+    strcpy(settings.ThemeValue, THEME_LIGHT);
 
     settings.DigitWidth = 4;
 

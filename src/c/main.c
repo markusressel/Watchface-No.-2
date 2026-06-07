@@ -127,20 +127,21 @@ static void main_window_unload(Window *window) {
 
 static void apply_theme_from_settings() {
     if (clay_get_settings()->ThemeValue[0] == '\0') {
-        strcpy(clay_get_settings()->ThemeValue, "LIGHT");
+        strcpy(clay_get_settings()->ThemeValue, THEME_LIGHT);
     }
 
     enum ThemeEnum theme;
-    if (strcmp(clay_get_settings()->ThemeValue, "DARK") == 0) {
+    if (strcmp(clay_get_settings()->ThemeValue, THEME_LIGHT) == 0) {
+        theme = LIGHT;
+    } else if (strcmp(clay_get_settings()->ThemeValue, THEME_DARK) == 0) {
         theme = DARK;
-    } else if (strcmp(clay_get_settings()->ThemeValue, "CUSTOM") == 0) {
-        theme = CUSTOM;
     } else {
-        theme = DARK;
+        theme = CUSTOM;
     }
 
     if (theme == CUSTOM) {
         Theme custom_theme;
+        custom_theme.CurrentThemeEnum = CUSTOM;
         custom_theme.BackgroundColor = clay_get_settings()->BackgroundColor;
         custom_theme.TimeTextColor = clay_get_settings()->TimeTextColor;
         custom_theme.DateTextColor = clay_get_settings()->DateTextColor;
@@ -149,8 +150,9 @@ static void apply_theme_from_settings() {
         custom_theme.WeatherTextColor = clay_get_settings()->WeatherTextColor;
         custom_theme.StepcountTextColor = clay_get_settings()->StepcountTextColor;
         custom_theme.HeartrateTextColor = clay_get_settings()->HeartrateTextColor;
+        theme_set_fonts(&custom_theme, clay_get_settings()->ShowSeconds);
 
-        init_custom_theme(custom_theme, clay_get_settings()->ShowSeconds);
+        set_custom_theme(&custom_theme);
     } else {
         init_theme(theme, clay_get_settings()->ShowSeconds);
     }

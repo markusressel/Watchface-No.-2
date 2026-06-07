@@ -34,10 +34,11 @@ typedef struct Theme {
 
     // Fonts
     GFont TimeFont;
-} __attribute__((__packed__)
+} __attribute__((__packed__)) Theme;
 
-)
-Theme;
+// Theme *theme_create_custom(Theme theme);
+
+Theme *theme_set_fonts(Theme *theme, bool showSeconds);
 
 // Get current Theme struct
 Theme *theme_get_theme();
@@ -50,5 +51,4 @@ void init_theme(enum ThemeEnum theme, bool showSeconds);
 
 // method to initialize custom theme with custom colors
 // @param theme        the custom theme
-// @param showSeconds  specifies if the time shows seconds (to properly select font size)
-void init_custom_theme(Theme theme, bool showSeconds);
+void set_custom_theme(Theme *theme);
