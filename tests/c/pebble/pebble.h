@@ -62,8 +62,60 @@ static inline GFont fonts_get_system_font(const char *font_key) {
 
 // --- Stateful Mocks for Persistent Storage ---
 typedef int32_t status_t;
-#define S_SUCCESS 0
-#define S_INTERNAL_ERROR (-1)
+
+//! Status codes. See \ref status_t
+typedef enum StatusCode {
+    //! Operation completed successfully.
+    S_SUCCESS = 0,
+
+    //! An error occurred (no description).
+    E_ERROR = -1,
+
+    //! No idea what went wrong.
+    E_UNKNOWN = -2,
+
+    //! There was a generic internal logic error.
+    E_INTERNAL = -3,
+
+    //! The function was not called correctly.
+    E_INVALID_ARGUMENT = -4,
+
+    //! Insufficient allocatable memory available.
+    E_OUT_OF_MEMORY = -5,
+
+    //! Insufficient long-term storage available.
+    E_OUT_OF_STORAGE = -6,
+
+    //! Insufficient resources available.
+    E_OUT_OF_RESOURCES = -7,
+
+    //! Argument out of range (may be dynamic).
+    E_RANGE = -8,
+
+    //! Target of operation does not exist.
+    E_DOES_NOT_EXIST = -9,
+
+    //! Operation not allowed (may depend on state).
+    E_INVALID_OPERATION = -10,
+
+    //! Another operation prevented this one.
+    E_BUSY = -11,
+
+    //! Operation not completed; try again.
+    E_AGAIN = -12,
+
+    //! Equivalent of boolean true.
+    S_TRUE = 1,
+
+    //! Equivalent of boolean false.
+    S_FALSE = 0,
+
+    //! For list-style requests.  At end of list.
+    S_NO_MORE_ITEMS = 2,
+
+    //! No action was taken as none was required.
+    S_NO_ACTION_REQUIRED = 3,
+} StatusCode;
 
 // The state of our mock storage
 typedef struct {
@@ -105,6 +157,19 @@ static bool persist_exists(const uint32_t key) {
     return false;
 }
 
+//! @return S_TRUE if successful, E_DOES_NOT_EXIST if a value was not set, or another error value from \ref StatusCode.
+static status_t persist_delete(const uint32_t key) {
+    if (key == 2) {
+        global_mock_storage.version_exists = false;
+        return S_TRUE;
+    }
+    if (key == 1) {
+        global_mock_storage.data_exists = false;
+        return S_SUCCESS;
+    }
+    return E_INTERNAL;
+}
+
 static int persist_read_int(const uint32_t key) {
     if (key == 2) return global_mock_storage.version;
     return 0;
@@ -137,7 +202,7 @@ static status_t persist_write_int(const uint32_t key, const int32_t value) {
         global_mock_storage.version_exists = true;
         return S_SUCCESS;
     }
-    return S_INTERNAL_ERROR;
+    return E_INTERNAL;
 }
 
 // --- End of Storage Mocks ---
@@ -253,6 +318,7 @@ static GPoint GPoint_construct(int16_t x, int16_t y) {
 static GRect GRect_construct(int16_t x, int16_t y, int16_t w, int16_t h) {
     return (GRect){.origin = {.x = x, .y = y}, .size = {.w = w, .h = h}};
 }
+
 #define GRect(x, y, w, h) GRect_construct(x, y, w, h)
 
 
