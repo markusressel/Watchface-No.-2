@@ -293,6 +293,18 @@ static bool app_timer_cancel(AppTimer *timer) {
 typedef void Layer;
 typedef void GContext;
 
+// New mocks for missing types
+typedef enum {
+  GTextAlignmentLeft,
+  GTextAlignmentCenter,
+  GTextAlignmentRight,
+} GTextAlignment;
+
+typedef Layer TextLayer; // Mock TextLayer as a Layer
+
+typedef void (*LayerUpdateProc)(Layer *layer, GContext *ctx);
+
+
 // Corrected GPoint and GSize definitions
 typedef struct GPoint {
     int16_t x;
