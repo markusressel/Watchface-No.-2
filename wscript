@@ -13,7 +13,7 @@ import subprocess
 import shutil
 
 try:
-    from sh import CommandNotFound, jshint, cat, ErrorReturnCode_2
+    from sh import CommandNotFound, jshint, cat, ErrorReturnCode_2, ErrorReturnCode
     hint = jshint
 except (ImportError, CommandNotFound):
     hint = None
@@ -30,8 +30,33 @@ def configure(ctx):
     ctx.load('pebble_sdk')
 
 
+def run_cppcheck(ctx):
+    try:
+        from sh import cppcheck
+        print("Running cppcheck...")
+        try:
+            cppcheck(
+                '--enable=all',
+                '--inconclusive',
+                '--std=c99',
+                '--suppress=missingIncludeSystem',
+                '--suppress=unusedFunction',
+                '--inline-suppr',
+                '--template=gcc',
+                'src/c',
+                _tty_out=False,
+                _err_to_out=True
+            )
+        except ErrorReturnCode as e:
+            ctx.fatal("\ncppcheck failed:\n" + e.stdout)
+    except (ImportError, CommandNotFound):
+        print("cppcheck not found, skipping static analysis")
+
+
 def build(ctx):
     subprocess.run(["just", "generate"], check=True)
+
+    run_cppcheck(ctx)
 
     # Clean the old pkjs directory
     pkjs_dir = os.path.join('src', 'pkjs')

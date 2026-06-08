@@ -28,7 +28,7 @@ def generate_settings_js():
         content = f.read()
 
     # Remove JavaScript module export to make it valid JSON
-    json_content = content.replace('module.exports = ', '').strip()
+    json_content = content.replace('export default ', '').strip()
     if json_content.endswith(';'):
         json_content = json_content[:-1]
 
@@ -39,7 +39,7 @@ def generate_settings_js():
         config = json.loads(json_content)
     except json.JSONDecodeError as e:
         print(f"Error decoding JSON from configPage.js: {e}")
-        return
+        exit(1)
 
     items = extract_config_items(config)
 
