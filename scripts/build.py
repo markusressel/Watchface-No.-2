@@ -3,7 +3,6 @@ import argparse
 import os
 import subprocess
 
-
 def run_command(command, env=None):
     """Runs a command and prints its output."""
     if env is None:
@@ -14,16 +13,21 @@ def run_command(command, env=None):
     process.stdout.close()
     return process.wait()
 
-
 def main():
     """Main function to build and optionally minify the project."""
     parser = argparse.ArgumentParser(description="Build the project and optionally minify JavaScript files.")
     parser.add_argument('--minify', action='store_true', help='Enable JavaScript minification.')
+    parser.add_argument('--emu', action='store_true', help='Build for emulator.')
     args = parser.parse_args()
 
     env = os.environ.copy()
     if "PEBBLE_RELEASE" in env:
         print(f"PEBBLE_RELEASE is set to: {env['PEBBLE_RELEASE']}")
+
+    if args.emu:
+        env["PEBBLE_EMULATOR_BUILD"] = "1"
+    else:
+        env.pop("PEBBLE_EMULATOR_BUILD", None)
 
     # The pebble build command creates the 'build' directory and transpiles the code.
     print("Running pebble build...")
@@ -54,7 +58,6 @@ def main():
         print("Skipping minification.")
 
     print("Build process finished.")
-
 
 if __name__ == "__main__":
     main()

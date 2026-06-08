@@ -10,24 +10,33 @@ PHONE_IP = "192.168.2.159"
 VALID_PLATFORMS = ["phone", "basalt", "chalk", "diorite", "emery", "flint"]
 
 
-def build_emu(debug_build: bool):
-    emu_env = os.environ.copy()
-    emu_env["PEBBLE_EMULATOR_BUILD"] = "1"
-    if debug_build:
-        emu_env.pop("PEBBLE_RELEASE", None)
+def build(emulator: bool, release: bool):
+    target = "Emulator" if emulator else "Hardware"
+    mode = "Debug" if debug_build else "Release"
+    print(f"🛠️  Building project, target: {target} mode: {mode}...")
+
+    env = os.environ.copy()
+    if emulator:
+        env["PEBBLE_EMULATOR_BUILD"] = "1"
     else:
-        emu_env["PEBBLE_RELEASE"] = "1"
-    subprocess.run(["pebble", "build"], env=emu_env, check=True)
+        env.pop("PEBBLE_EMULATOR_BUILD", None)
+
+    if release:
+        env["PEBBLE_RELEASE"] = "1"
+    else:
+        env.pop("PEBBLE_RELEASE", None)
+
+    subprocess.run(["pebble", "build"], env=env, check=True)
+
+
+def build_emu(debug_build: bool):
+    # Explicitly compile the emulator-flavored .pbw
+    build(emulator=True, release=not debug_build)
 
 
 def build_real(debug_build: bool):
-    real_env = os.environ.copy()
-    real_env.pop("PEBBLE_EMULATOR_BUILD", None)
-    if debug_build:
-        real_env.pop("PEBBLE_RELEASE", None)
-    else:
-        real_env["PEBBLE_RELEASE"] = "1"
-    subprocess.run(["pebble", "build"], env=real_env, check=True)
+    # Explicitly compile the production-flavored .pbw
+    build(emulator=False, release=not debug_build)
 
 
 def deploy_real(ip_addr: str, follow_logs: bool):
@@ -53,9 +62,6 @@ def build_and_deploy(platforms: List[str], follow_logs: bool, debug_build: bool)
 
     # 1. Handle Emulator Targets
     if emulator_targets:
-        mode = "Debug" if debug_build else "Release"
-        print(f"🛠️  Building project for Emulator ({mode}, PEBBLE_EMULATOR_BUILD=1)...")
-
         # Explicitly compile the emulator-flavored .pbw first
         build_emu(debug_build)
 
@@ -65,9 +71,6 @@ def build_and_deploy(platforms: List[str], follow_logs: bool, debug_build: bool)
 
     # 2. Handle Physical Hardware Targets
     if hardware_targets:
-        mode = "Debug" if debug_build else "Release"
-        print(f"🛠️  Building project for Hardware ({mode})...")
-
         # Explicitly compile the production-flavored .pbw
         build_real(debug_build)
 
@@ -94,6 +97,6 @@ if __name__ == "__main__":
     debug_build = args.debug
 
     print(f"🚀 Processing targets: {', '.join(args.platforms)}")
-    print(f"🔧 Build mode: {'debug' if debug_build else 'release'}")
+    print(f"🔧 Build mode: {'Debug' if debug_build else 'Release'}")
     build_and_deploy(args.platforms, args.logs, debug_build)
     print("✅ All targets processed!")
