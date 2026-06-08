@@ -11,10 +11,13 @@ screenshot platform:
       pebble screenshot --emulator "{{ platform }}"; \
     fi
 
-build:
+generate:
+    ./scripts/generate.py
+
+build: generate
     pebble build
 
-release:
+release: generate
     PEBBLE_RELEASE=1 pebble build
 
 clean-emulator platforms: kill wipe

@@ -38,3 +38,5 @@ node_modules
 *.lock-*
 
 .idea
+
+/src/pkjs/generated/

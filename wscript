@@ -4,9 +4,12 @@
 # Edits made:
 # - Added PEBBLE_EMULATOR_BUILD environment variable check to allow building with PBL_EMULATOR defined, which is used to run custom code in Emulator environments.
 # - Added PEBBLE_RELEASE
+# - Added dynamic generation of generated_settings.js based on package.json messageKeys
 #
 
 import os.path
+import subprocess
+
 try:
     from sh import CommandNotFound, jshint, cat, ErrorReturnCode_2
     hint = jshint
@@ -26,6 +29,8 @@ def configure(ctx):
 
 
 def build(ctx):
+    subprocess.run(["just", "generate"], check=True)
+
     if False and hint is not None:
         try:
             hint([node.abspath() for node in ctx.path.ant_glob("src/**/*.js")], _tty_out=False) # no tty because there are none in the cloudpebble sandbox.
