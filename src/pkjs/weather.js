@@ -7,8 +7,6 @@ let timelineSimulation = require('./timeline.json');
 
 let WEATHER_UPDATE_INTERVAL_MINUTES = 30;
 let WEATHER_UPDATE_INTERVAL_MS = WEATHER_UPDATE_INTERVAL_MINUTES * 60 * 1000;
-let WEATHER_LAST_FETCH_KEY = 'weather-last-fetch-ts';
-let WEATHER_LAST_DATA_KEY = 'weather-last-data';
 let FORECAST_POINT_COUNT = 100;
 
 
@@ -24,8 +22,8 @@ function request_simulated_weather_data() {
 
 function cache_weather_data(dictionary) {
     try {
-        Persistence.putJson(WEATHER_LAST_DATA_KEY, dictionary);
-        Persistence.putString(WEATHER_LAST_FETCH_KEY, Date.now());
+        Persistence.putJson(Persistence.StorageKeys.WEATHER_LAST_DATA_KEY, dictionary);
+        Persistence.putString(Persistence.StorageKeys.WEATHER_LAST_FETCH_KEY, String(Date.now()));
     } catch (e) {
         console.log('Could not cache weather data: ' + e);
     }
@@ -128,7 +126,7 @@ function kelvin_to_celsius(kelvin) {
 
 
 function get_cached_weather_data() {
-    return Persistence.getJson(WEATHER_LAST_DATA_KEY);
+    return Persistence.getJson(Persistence.StorageKeys.WEATHER_LAST_DATA_KEY);
 }
 
 /**
@@ -136,15 +134,7 @@ function get_cached_weather_data() {
  * @returns {number|null} - The timestamp of the last fetch, or null if not found.
  */
 function get_last_fetch_timestamp() {
-    let lastFetchRaw = localStorage.getItem(WEATHER_LAST_FETCH_KEY);
-    if (!lastFetchRaw) {
-        return null;
-    }
-    let lastFetch = parseInt(lastFetchRaw, 10);
-    if (isNaN(lastFetch)) {
-        return null;
-    }
-    return lastFetch;
+    return Persistence.getInt(Persistence.StorageKeys.WEATHER_LAST_FETCH_KEY)
 }
 
 /**

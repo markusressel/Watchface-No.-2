@@ -1,10 +1,21 @@
+/**
+ * @enum {string}
+ */
+let StorageKeys = Object.freeze({
+    CLAY_SETTINGS_KEY: 'clay-settings',
+
+    WEATHER_LAST_DATA_KEY: 'weather-last-data',
+    WEATHER_LAST_FETCH_KEY: 'weather-last-fetch-ts',
+
+})
+
 class Persistence {
     constructor() {
     }
 
     /**
-     * @param key {string}
-     * @param value {string}
+     * @param key {StorageKeys}
+     * @param value {object}
      */
     putJson(key, value) {
         let stringified = JSON.stringify(value);
@@ -12,7 +23,7 @@ class Persistence {
     }
 
     /**
-     * @param key {string}
+     * @param key {StorageKeys}
      */
     getJson(key) {
         try {
@@ -24,11 +35,32 @@ class Persistence {
         }
     }
 
+    /**
+     * @param key {StorageKeys}
+     * @param value {string}
+     */
     putString(key, value) {
         let stringValue = String(value);
-        localStorage.setItem(key, stringValue);
+        localStorage.setItem(String(key), stringValue);
+    }
+
+    /**
+     * @param key {StorageKeys}
+     * @return {number|null}
+     */
+    getInt(key) {
+        let lastFetchRaw = localStorage.getItem(key);
+        if (!lastFetchRaw) {
+            return null;
+        }
+        let parsed = parseInt(lastFetchRaw, 10);
+        if (isNaN(parsed)) {
+            return null;
+        }
+        return parsed;
     }
 
 }
 
 module.exports = new Persistence();
+module.exports.StorageKeys = StorageKeys;

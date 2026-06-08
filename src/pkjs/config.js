@@ -1,6 +1,5 @@
 let Settings = require('./generated/settings');
-
-let CLAY_SETTINGS_KEY = 'clay-settings';
+let Persistence = require('./persistence');
 
 function getClaySettings() {
     return Settings(
@@ -9,14 +8,14 @@ function getClaySettings() {
 }
 
 /**
- * Loads the raw dictionary data from the localstorage.
+ * Loads the raw dictionary data from the persistence.
  * Use getClaySettings() to get a wrapper object that exposes all available settings.
  *
  * @returns {{}|any|{}}
  */
 function loadSettingsFromPersistence() {
     try {
-        return JSON.parse(localStorage.getItem(CLAY_SETTINGS_KEY)) || {};
+        return Persistence.getJson(Persistence.StorageKeys.CLAY_SETTINGS_KEY) || {};
     } catch (e) {
         return {};
     }
@@ -24,8 +23,7 @@ function loadSettingsFromPersistence() {
 
 function saveClaySettings(settings) {
     try {
-        let settingsJson = JSON.stringify(settings.toJSON());
-        localStorage.setItem(CLAY_SETTINGS_KEY, settingsJson);
+        Persistence.putJson(Persistence.StorageKeys.CLAY_SETTINGS_KEY, settings.toJSON());
     } catch (e) {
         console.log('Could not save clay settings: ' + e);
     }
