@@ -1,5 +1,5 @@
-let Settings = require('./generated/settings');
-let Persistence = require('./persistence');
+let Settings = require('../generated/settings');
+let Persistence = require('../persistence');
 
 function getClaySettings() {
     return Settings(

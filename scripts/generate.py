@@ -22,9 +22,9 @@ def extract_config_items(config):
     return items
 
 def generate_settings_js():
-    print("Generating src/pkjs/generated/settings.js from src/pkjs/configPage.js...")
+    print("Generating src/pkjs/generated/settings.js from src/pkjs/config/configPage.js...")
 
-    with open('src/pkjs/configPage.js', 'r') as f:
+    with open('src/pkjs/config/configPage.js', 'r') as f:
         content = f.read()
 
     # Remove JavaScript module export to make it valid JSON
