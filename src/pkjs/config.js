@@ -1,6 +1,6 @@
 import Settings from './generated/settings';
 
-var CLAY_SETTINGS_KEY = 'clay-settings';
+let CLAY_SETTINGS_KEY = 'clay-settings';
 
 function getClaySettings() {
     return Settings(
@@ -40,18 +40,12 @@ function isWeatherSimulationEnabled() {
 }
 
 function setWeatherSimulationEnabled(enabled) {
-    var settings = getClaySettings();
+    let settings = getClaySettings();
     settings.WeatherUseSimulation = !!enabled;
     saveClaySettings(settings);
 }
 
-function toggleWeatherSimulation() {
-    var nextState = !isWeatherSimulationEnabled();
-    setWeatherSimulationEnabled(nextState);
-    return nextState;
-}
-
+module.exports.getClaySettings = getClaySettings;
 module.exports.getWeatherApiKey = getWeatherApiKey;
 module.exports.isWeatherSimulationEnabled = isWeatherSimulationEnabled;
 module.exports.setWeatherSimulationEnabled = setWeatherSimulationEnabled;
-module.exports.toggleWeatherSimulation = toggleWeatherSimulation;

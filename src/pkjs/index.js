@@ -1,11 +1,11 @@
-var Clay = require('@rebble/clay');
-var clayConfig = require('./configPage');
-var clay = new Clay(clayConfig);
+let Clay = require('@rebble/clay');
+let clayConfig = require('./configPage');
+let clay = new Clay(clayConfig);
 
-var config = require('./config');
-var weather = require('./weather');
+let config = require('./config');
+let weather = require('./weather');
 
-var isPebbleReady = false;
+let isPebbleReady = false;
 
 // When the config page is closed, Clay saves settings to 'clay-settings' in
 // localStorage (and sends watch-bound keys to the watch). We add our own
@@ -38,9 +38,10 @@ Pebble.addEventListener('ready',
 );
 
 function sendAllSettings() {
-    var settings = JSON.parse(localStorage.getItem('clay-settings'));
-    if (settings) {
-        Pebble.sendAppMessage(settings);
+    let settings = config.getClaySettings()
+    let settingsJson = settings.toJSON();
+    if (settingsJson) {
+        Pebble.sendAppMessage(settingsJson);
     }
 }
 
@@ -48,7 +49,7 @@ function sendAllSettings() {
 Pebble.addEventListener('appmessage',
     function (e) {
         // Get the dictionary from the message
-        var dict = e.payload;
+        let dict = e.payload;
 
         console.log('AppMessage received: ' + JSON.stringify(dict));
 

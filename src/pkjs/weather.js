@@ -410,7 +410,6 @@ function encode_number_array(values) {
 
 module.exports.getWeather = getWeather;
 module.exports.setSimulationModeEnabled = config.setWeatherSimulationEnabled;
-module.exports.toggleSimulationMode = config.toggleWeatherSimulation;
 
 // Exporting for testing purposes
 module.exports.kelvin_to_celsius = kelvin_to_celsius;
