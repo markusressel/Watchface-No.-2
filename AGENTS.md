@@ -78,7 +78,7 @@ To avoid these issues use heap allocation for large data structures and avoid re
 
 ### JavaScript Engine (pkjs)
 
-The JavaScript engine on Pebble only supports ES5. Do NOT use features of newer standards.
+The async/await syntax is not supported by the older Webpack version (1.15.0) in the Pebble SDK build environment.
 
 # Codestyle
 
@@ -90,6 +90,7 @@ The JavaScript engine on Pebble only supports ES5. Do NOT use features of newer 
 ## JavaScript
 
 - prefer `let` over `var`
+- write js docs for parameters and return values including `{type}` information (f.ex. `{number}`) to describe the expected input and output types.
 
 # Developer Options
 

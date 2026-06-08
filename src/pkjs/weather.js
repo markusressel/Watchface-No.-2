@@ -1,5 +1,8 @@
 let config = require('./config');
+let appMessaging = require('./app_messaging');
+let owm = require("./openweathermap");
 let timelineSimulation = require('./timeline.json');
+
 
 let WEATHER_UPDATE_INTERVAL_MINUTES = 30;
 let WEATHER_UPDATE_INTERVAL_MS = WEATHER_UPDATE_INTERVAL_MINUTES * 60 * 1000;
@@ -13,8 +16,8 @@ function request_simulated_weather_data() {
     cache_weather_data(weatherData);
     send_weather_to_watch(
         weatherData,
-        'Weather info sent to Pebble successfully!',
-        'Error sending weather info to Pebble!'
+        'Weather data sent to Pebble successfully!',
+        'Error sending weather data to Pebble!'
     );
 }
 
@@ -132,6 +135,34 @@ function get_cached_weather_data() {
     }
 }
 
+/**
+ * Retrieves the timestamp of the last weather fetch from local storage.
+ * @returns {number|null} - The timestamp of the last fetch, or null if not found.
+ */
+function get_last_fetch_timestamp() {
+    let lastFetchRaw = localStorage.getItem(WEATHER_LAST_FETCH_KEY);
+    if (!lastFetchRaw) {
+        return null;
+    }
+    let lastFetch = parseInt(lastFetchRaw, 10);
+    if (isNaN(lastFetch)) {
+        return null;
+    }
+    return lastFetch;
+}
+
+/**
+ * Calculates whether the time since the last weather fetch in milliseconds exceeds the given duration.
+ * @param durationMs {number} - The duration in milliseconds to compare against.
+ * @returns {boolean} - True if the time since the last fetch exceeds the duration, or no fetch has occurred yet. False otherwise.
+ */
+function time_since_last_fetch_exceeds(durationMs) {
+    let lastFetchTimestamp = get_last_fetch_timestamp()
+    if (!lastFetchTimestamp) {
+        return true;
+    }
+    return Date.now() - lastFetchTimestamp >= durationMs;
+}
 
 function should_fetch_weather_from_api() {
     let cached = get_cached_weather_data();
@@ -139,25 +170,17 @@ function should_fetch_weather_from_api() {
         return true;
     }
 
-    let lastFetchRaw = localStorage.getItem(WEATHER_LAST_FETCH_KEY);
-    let lastFetch = parseInt(lastFetchRaw, 10);
-    if (!lastFetchRaw || isNaN(lastFetch)) {
-        return true;
-    }
-
-    return (Date.now() - lastFetch) >= WEATHER_UPDATE_INTERVAL_MS;
+    return time_since_last_fetch_exceeds(WEATHER_UPDATE_INTERVAL_MS);
 }
 
+/**
+ * Sends a dictionary to the watch and logs the result.
+ * @param dictionary {object}
+ * @param successMessage {string}
+ * @param errorMessage {string}
+ */
 function send_weather_to_watch(dictionary, successMessage, errorMessage) {
-    Pebble.sendAppMessage(
-        dictionary,
-        function (e) {
-            console.log(successMessage);
-        },
-        function (e) {
-            console.log(errorMessage);
-        }
-    );
+    appMessaging.send_dict_to_watch(dictionary, successMessage, errorMessage);
 }
 
 function local_day_index(utcTimestamp, timezoneOffsetSeconds) {
@@ -289,8 +312,8 @@ function fetch_weather_data(latitude, longitude) {
                 cache_weather_data(weatherData);
                 send_weather_to_watch(
                     weatherData,
-                    'Weather info sent to Pebble successfully!',
-                    'Error sending weather info to Pebble!'
+                    'Weather data sent to Pebble successfully!',
+                    'Error sending weather data to Pebble!'
                 );
             } catch (error) {
                 console.log('Error parsing API weather response: ' + error);
