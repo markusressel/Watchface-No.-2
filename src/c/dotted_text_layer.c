@@ -406,15 +406,5 @@ void dotted_text_layer_destroy(DottedTextLayer *dotted_text_layer) {
         return;
     }
 
-    // Should be not needed if data is embedded in the layer itslef
-    /*
-  // free stored text
-  if (dotted_text_layer->text) {
-    free(dotted_text_layer->text);
-  }
-  // destroy base layer
-  layer_destroy(dotted_text_layer->layer);
-  */
-
     layer_destroy(dotted_text_layer);
 }

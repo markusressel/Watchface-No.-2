@@ -111,20 +111,21 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
     const int step_x = dot_width + gap_horizontal;
     const int step_y = dot_height + gap_vertical;
 
-    int leftMargin = 0;
-    int rightMargin = 0;
+    const int left_margin = 0;
+    const int right_margin = 0;
 
     // Draw battery outline
     graphics_context_set_stroke_color(ctx, theme_get_theme()->BatteryOutlineColor);
     graphics_context_set_fill_color(ctx, theme_get_theme()->BatteryOutlineColor);
 
     // Calculate how many matrix columns fit horizontally.
-    const int available_width = bounds.size.w - leftMargin - rightMargin;
-    const int widthDotsCount = (available_width + gap_horizontal) / step_x;
-    if (widthDotsCount < 5) {
+    const int available_width = bounds.size.w - left_margin - right_margin;
+    const int width_dots_count = (available_width + gap_horizontal) / step_x;
+    if (width_dots_count < 5) {
+        // if the available space is too small, don't draw the battery at all
         return;
     }
-    const int battery_width = dot_width + ((widthDotsCount - 1) * step_x);
+    const int battery_width = dot_width + ((width_dots_count - 1) * step_x);
     const int battery_height = dot_height + (4 * step_y);
     int start_x = 0;
     int start_y = 0;
@@ -156,7 +157,7 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
 
         // single dot at the tip (representing +pole)
         if (row == 2) {
-            x = ((widthDotsCount - 1) * step_x);
+            x = ((width_dots_count - 1) * step_x);
             currentDotBorder = GRect(
                 start_x + battery_width - dot_width - x,
                 y,
@@ -167,7 +168,7 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
 
         // upper and lower row
         if (row == 0 || row == 4) {
-            for (int column = 0; column < widthDotsCount - 1; column++) {
+            for (int column = 0; column < width_dots_count - 1; column++) {
                 x = (column * step_x);
                 currentDotBorder = GRect(
                     start_x + battery_width - dot_width - x,
@@ -179,7 +180,7 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
         } else {
             // single dot at beginning and end of the battery (left and right borders)
 
-            x = ((widthDotsCount - 2) * step_x);
+            x = ((width_dots_count - 2) * step_x);
             currentDotBorder = GRect(
                 start_x + battery_width - dot_width - x,
                 y,
@@ -200,7 +201,7 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
     // Draw the bar inside
     graphics_context_set_fill_color(ctx, theme_get_theme()->BatteryFillColor);
 
-    int fillDotsCount = (s_current_battery_level * (widthDotsCount - 5)) / 100;
+    int fillDotsCount = (s_current_battery_level * (width_dots_count - 5)) / 100;
     //APP_LOG(APP_LOG_LEVEL_DEBUG, "widthDotsCount: %d, batteryLevel: %d, fillDotsCount: %d",
     //        widthDotsCount, s_current_battery_level, fillDotsCount);
 
@@ -241,18 +242,21 @@ static void initialize_battery_charging_animation() {
     animation_schedule(charging_animation);
 }
 
-// Backward compatible wrapper (called by battery listener)
-void update_battery_bar() {
+void ensure_battery_animation_state(void) {
     if (s_battery_charging) {
         if (!charging_animation) {
             initialize_battery_charging_animation();
         }
     } else {
-        // disable charging animation, if it was active before
         if (charging_animation) {
             destroy_battery_charging_animation();
         }
     }
+}
+
+// Backward compatible wrapper (called by battery listener)
+void update_battery_bar() {
+    ensure_battery_animation_state();
 
     // update current battery level
     s_current_battery_level = s_battery_level;
