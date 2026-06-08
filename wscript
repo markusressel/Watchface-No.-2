@@ -5,10 +5,12 @@
 # - Added PEBBLE_EMULATOR_BUILD environment variable check to allow building with PBL_EMULATOR defined, which is used to run custom code in Emulator environments.
 # - Added PEBBLE_RELEASE
 # - Added dynamic generation of generated_settings.js based on package.json messageKeys
+# - Added Babel transpilation step for modern JavaScript
 #
 
 import os.path
 import subprocess
+import shutil
 
 try:
     from sh import CommandNotFound, jshint, cat, ErrorReturnCode_2
@@ -30,6 +32,18 @@ def configure(ctx):
 
 def build(ctx):
     subprocess.run(["just", "generate"], check=True)
+
+    # Clean the old pkjs directory
+    pkjs_dir = os.path.join('src', 'pkjs')
+    if os.path.exists(pkjs_dir):
+        shutil.rmtree(pkjs_dir)
+
+    # Run Babel transpilation
+    print("Transpiling modern JavaScript with Babel...")
+    npm_bin = shutil.which('npm')
+    if npm_bin is None:
+        ctx.fatal("npm command not found. Please install Node.js and npm.")
+    subprocess.run([npm_bin, "run", "babel"], check=True)
 
     if False and hint is not None:
         try:

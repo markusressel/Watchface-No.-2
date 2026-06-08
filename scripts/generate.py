@@ -6,7 +6,7 @@ import re
 
 AUTO_GENERATED_HEADER = """// ==========================================================
 // AUTO-GENERATED FILE - DO NOT EDIT MANUALLY!
-// This file is generated during compile time from src/pkjs/configPage.js
+// This file is generated during compile time from src/js-modern/configPage.js
 // =========================================================="""
 
 def extract_config_items(config):
@@ -22,9 +22,9 @@ def extract_config_items(config):
     return items
 
 def generate_settings_js():
-    print("Generating src/pkjs/generated/settings.js from src/pkjs/config/configPage.js...")
+    print("Generating src/js-modern/generated/settings.js from src/js-modern/config/configPage.js...")
 
-    with open('src/pkjs/config/configPage.js', 'r') as f:
+    with open('src/js-modern/config/configPage.js', 'r') as f:
         content = f.read()
 
     # Remove JavaScript module export to make it valid JSON
@@ -124,8 +124,8 @@ def generate_settings_js():
         "module.exports = function(persistedSettings) { return new Settings(persistedSettings); };"
     ])
 
-    # Write the file to the src/pkjs/generated directory
-    out_dir = os.path.join('src', 'pkjs', 'generated')
+    # Write the file to the src/js-modern/generated directory
+    out_dir = os.path.join('src', 'js-modern', 'generated')
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
