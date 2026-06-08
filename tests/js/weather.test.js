@@ -92,6 +92,15 @@ const mockConfig = {
 };
 jest.mock('../../src/pkjs/config', () => mockConfig);
 
+// Mock the app_messaging module that weather.js requires
+const mockAppMessaging = {
+    send_dict_to_watch: jest.fn((dictionary, successMessage, errorMessage) => {
+        mockPebble.sendAppMessage(dictionary, () => console.log(successMessage), () => console.log(errorMessage));
+    })
+};
+jest.mock('../../src/pkjs/app_messaging', () => mockAppMessaging);
+
+
 // Now require weather.js
 const weather = require('../../src/pkjs/weather'); // Path adjusted for new test location
 
@@ -196,8 +205,8 @@ describe('weather.js', () => {
 
         weather.send_weather_to_watch(exampleData);
 
-        expect(mockPebble.sendAppMessage).toHaveBeenCalledTimes(1);
-        expect(mockPebble.lastSentMessage).toEqual(exampleData);
+        expect(mockAppMessaging.send_dict_to_watch).toHaveBeenCalledTimes(1);
+        expect(mockAppMessaging.send_dict_to_watch).toHaveBeenCalledWith(exampleData, undefined, undefined);
     });
 
     test('cache_weather_data stores data and timestamp in localStorage', () => {
@@ -228,7 +237,7 @@ describe('weather.js', () => {
         // based on the actual timeline.json content.
         // For now, we'll just check if a message was sent, as the internal logic of
         // process_timeline_payload is covered by its own test.
-        expect(mockPebble.sendAppMessage).toHaveBeenCalledTimes(1);
+        expect(mockAppMessaging.send_dict_to_watch).toHaveBeenCalledTimes(1);
         expect(mockPebble.lastSentMessage).not.toBeNull(); // Fixed typo here
         // Further assertions would require parsing timeline.json and replicating its logic.
     });
@@ -249,7 +258,7 @@ describe('weather.js', () => {
             "WEATHER_RAIN_FORECAST_MM_X10_ENCODED": ""
         };
 
-        expect(mockPebble.sendAppMessage).toHaveBeenCalledTimes(1);
+        expect(mockAppMessaging.send_dict_to_watch).toHaveBeenCalledTimes(1);
         expect(mockPebble.lastSentMessage).toEqual(expectedClearDictionary);
         expect(JSON.parse(mockLocalStorage.getItem('weather-last-data'))).toEqual(expectedClearDictionary);
     });
@@ -271,7 +280,7 @@ describe('weather.js', () => {
 
         weather.getWeather();
 
-        expect(mockPebble.sendAppMessage).toHaveBeenCalledTimes(1);
+        expect(mockAppMessaging.send_dict_to_watch).toHaveBeenCalledTimes(1);
         expect(mockPebble.lastSentMessage).toEqual(cachedDictionary);
         expect(mockGeolocation.getCurrentPosition).not.toHaveBeenCalled(); // Should not call geolocation
     });
@@ -300,7 +309,44 @@ describe('weather.js', () => {
 
         expect(mockGeolocation.getCurrentPosition).toHaveBeenCalledTimes(1);
         expect(mockXMLHttpRequest).toHaveBeenCalledTimes(1);
-        expect(mockPebble.sendAppMessage).toHaveBeenCalledTimes(1);
+        expect(mockAppMessaging.send_dict_to_watch).toHaveBeenCalledTimes(1);
         expect(mockPebble.lastSentMessage).toEqual(expectedDictionary);
+    });
+
+    // Test get_last_fetch_timestamp
+    test('get_last_fetch_timestamp returns null if no timestamp is stored', () => {
+        expect(weather.get_last_fetch_timestamp()).toBeNull();
+    });
+
+    test('get_last_fetch_timestamp returns null for invalid stored value', () => {
+        mockLocalStorage.setItem('weather-last-fetch-ts', 'not-a-number');
+        expect(weather.get_last_fetch_timestamp()).toBeNull();
+    });
+
+    test('get_last_fetch_timestamp returns the stored timestamp as a number', () => {
+        const timestamp = Date.now();
+        mockLocalStorage.setItem('weather-last-fetch-ts', String(timestamp));
+        expect(weather.get_last_fetch_timestamp()).toBe(timestamp);
+    });
+
+    // Test time_since_last_fetch_exceeds
+    test('time_since_last_fetch_exceeds returns true if no timestamp is stored', () => {
+        expect(weather.time_since_last_fetch_exceeds(10000)).toBe(true);
+    });
+
+    test('time_since_last_fetch_exceeds returns true if time has exceeded the duration', () => {
+        const now = Date.now();
+        const fetchTime = now - 20000; // 20 seconds ago
+        mockLocalStorage.setItem('weather-last-fetch-ts', String(fetchTime));
+        Date.now = jest.fn(() => now);
+        expect(weather.time_since_last_fetch_exceeds(10000)).toBe(true); // 10 seconds duration
+    });
+
+    test('time_since_last_fetch_exceeds returns false if time has not exceeded the duration', () => {
+        const now = Date.now();
+        const fetchTime = now - 5000; // 5 seconds ago
+        mockLocalStorage.setItem('weather-last-fetch-ts', String(fetchTime));
+        Date.now = jest.fn(() => now);
+        expect(weather.time_since_last_fetch_exceeds(10000)).toBe(false); // 10 seconds duration
     });
 });

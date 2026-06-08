@@ -444,3 +444,5 @@ module.exports.pick_closest_entry_to_now = pick_closest_entry_to_now;
 module.exports.day_min_max_from_timeline = day_min_max_from_timeline;
 module.exports.build_condensed_series = build_condensed_series;
 module.exports.encode_number_array = encode_number_array;
+module.exports.get_last_fetch_timestamp = get_last_fetch_timestamp;
+module.exports.time_since_last_fetch_exceeds = time_since_last_fetch_exceeds;
