@@ -15,10 +15,10 @@ generate:
     ./scripts/generate.py
 
 build: generate
-    pebble build
+    ./scripts/build.py
 
 release: generate
-    PEBBLE_RELEASE=1 pebble build
+    PEBBLE_RELEASE=1 ./scripts/build.py --minify
 
 clean-emulator platforms: kill wipe
 

@@ -82,6 +82,7 @@
     "main": "index.js",
     "devDependencies": {
         "jest": "^30.4.2",
+        "terser": "^5.31.3",
         "@babel/core": "^7.29.7",
         "@babel/cli": "^7.29.7",
         "@babel/preset-env": "^7.29.7"
