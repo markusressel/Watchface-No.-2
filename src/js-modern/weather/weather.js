@@ -240,16 +240,19 @@ function build_condensed_series(entries, extractor, maxCount) {
     return samples;
 }
 
-let xhrRequest = function (url, type, callback) {
-    let xhr = new XMLHttpRequest();
-    xhr.onload = function () {
-        callback(this.responseText);
-    };
-    xhr.onerror = function () {
-        console.log("Network error");
-    };
-    xhr.open(type, url);
-    xhr.send();
+let xhrRequest = async function (url, type) {
+    return new Promise((resolve, reject) => {
+        let xhr = new XMLHttpRequest();
+        xhr.onload = function () {
+            resolve(this.responseText);
+        };
+        xhr.onerror = function () {
+            console.log("Network error");
+            reject(new Error("Network error"));
+        };
+        xhr.open(type, url);
+        xhr.send();
+    });
 };
 
 /**
@@ -277,7 +280,7 @@ function createUrl(baseUrl, queryParams) {
  * @param {number} latitude - The latitude coordinate for weather data.
  * @param {number} longitude - The longitude coordinate for weather data.
  */
-function fetch_weather_data(latitude, longitude) {
+async function fetch_weather_data(latitude, longitude) {
     const baseUrl = "https://api.openweathermap.org/data/4.0/onecall/timeline/15min";
     const queryParams = {
         lat: latitude,
@@ -288,23 +291,20 @@ function fetch_weather_data(latitude, longitude) {
 
     console.log("Weather request URL is: " + url);
 
-    // Send request to OpenWeatherMap
-    xhrRequest(url, 'GET',
-        function (responseText) {
-            try {
-                let json = JSON.parse(responseText);
-                let weatherData = process_timeline_payload(json, 'api/openweathermap');
-                cache_weather_data(weatherData);
-                send_weather_to_watch(
-                    weatherData,
-                    'Weather data sent to Pebble successfully!',
-                    'Error sending weather data to Pebble!'
-                );
-            } catch (error) {
-                console.log('Error parsing API weather response: ' + error);
-            }
-        }
-    );
+    try {
+        // Send request to OpenWeatherMap
+        let responseText = await xhrRequest(url, 'GET');
+        let json = JSON.parse(responseText);
+        let weatherData = process_timeline_payload(json, 'api/openweathermap');
+        cache_weather_data(weatherData);
+        send_weather_to_watch(
+            weatherData,
+            'Weather data sent to Pebble successfully!',
+            'Error sending weather data to Pebble!'
+        );
+    } catch (error) {
+        console.log('Error during API weather request or processing: ' + error);
+    }
 }
 
 /**

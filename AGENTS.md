@@ -78,7 +78,8 @@ To avoid these issues use heap allocation for large data structures and avoid re
 
 ### JavaScript Engine (pkjs)
 
-The async/await syntax is not supported by the older Webpack version (1.15.0) in the Pebble SDK build environment.
+This project uses babel to transpile modern JS features into a compatible style for the Pebble SDK build environment.
+Source code is written in `src/js-modern`, transpiled code lands in `src/pkjs`, which is picked up by the pebble sdk.
 
 # Codestyle
 
