@@ -209,7 +209,7 @@ ClaySettings *internal_load_settings() {
         clay_save_settings(settings);
         app_messaging_request_settings();
         return settings;
-        }
+    }
 
     if (persist_exists(SETTINGS_KEY)) {
         const int bytes = persist_read_data(SETTINGS_KEY, settings, sizeof(*settings));
