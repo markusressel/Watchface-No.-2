@@ -96,7 +96,7 @@
         "type": "git",
         "url": "git+https://github.com/markusressel/Watchface-No.-2.git"
     },
-    "license": "ISC",
+    "license": "MIT",
     "type": "commonjs",
     "bugs": {
         "url": "https://github.com/markusressel/Watchface-No.-2/issues"
