@@ -1,5 +1,7 @@
 #pragma once
 
+#include <pebble.h>
+#include <stdbool.h>
 #include "persist_keys.h"
 
 // Persistent storage key

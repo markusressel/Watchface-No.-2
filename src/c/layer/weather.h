@@ -17,8 +17,8 @@ typedef struct WeatherData {
     int *TemperatureForecast;
     int RainForecastMmX10Count;
     int *RainForecastMmX10;
-    bool is_temp_forecast_dynamic_alloc; // New flag for temperature forecast
-    bool is_rain_forecast_dynamic_alloc; // New flag for rain forecast
+    bool is_temp_forecast_dynamic_alloc;
+    bool is_rain_forecast_dynamic_alloc;
     char CurrentConditions[48];
 } WeatherData;
 

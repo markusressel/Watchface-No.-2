@@ -193,8 +193,7 @@ ClaySettings *clay_get_settings() {
     return &s_settings;
 }
 
-// Read settings from persistent storage
-ClaySettings *clay_load_settings() {
+ClaySettings *internal_load_settings() {
     // Load the default settings
     ClaySettings *settings = clay_reset_to_default_settings();
 
@@ -210,7 +209,7 @@ ClaySettings *clay_load_settings() {
         clay_save_settings(settings);
         app_messaging_request_settings();
         return settings;
-    }
+        }
 
     if (persist_exists(SETTINGS_KEY)) {
         const int bytes = persist_read_data(SETTINGS_KEY, settings, sizeof(*settings));
@@ -223,6 +222,13 @@ ClaySettings *clay_load_settings() {
 
     settings = clay_sanitize_settings(settings);
     clay_log_settings_debug("loaded persisted settings", settings);
+    return settings;
+}
+
+// Read settings from persistent storage
+ClaySettings *clay_load_settings() {
+    ClaySettings *settings = internal_load_settings();
+    s_settings = *settings;
     return settings;
 }
 

@@ -27,12 +27,15 @@ static WatchLayout s_layout;
 static Layer *s_row_layers[WATCH_LAYOUT_MAX_ROWS];
 
 static void init_row_layers() {
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "init_row_layers");
     for (int i = 0; i < WATCH_LAYOUT_MAX_ROWS; i++) {
         s_row_layers[i] = NULL;
     }
 }
 
 static void build_layout_from_settings(ClaySettings *settings) {
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "build_layout_from_settings");
+
     int row_count = settings->LayoutRowCount;
     if (row_count < WATCH_LAYOUT_MIN_ROWS) {
         APP_LOG(APP_LOG_LEVEL_DEBUG, "Layout row count too low, setting to minimum of %d", WATCH_LAYOUT_MIN_ROWS);
@@ -58,6 +61,8 @@ static void build_layout_from_settings(ClaySettings *settings) {
 
 // loads components into the main window
 static void main_window_load(Window *window) {
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "main_window_load");
+
     Layer *window_layer = window_get_root_layer(window);
 
     // Create each layer in row order.  To reorder, edit s_layout.rows above.
@@ -95,6 +100,7 @@ static void main_window_load(Window *window) {
 
 // destroys all components of the main window
 static void main_window_unload(Window *window) {
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "main_window_unload");
     // unregister listeners
     unregister_tick_listener();
     unregister_battery_listener();
@@ -126,6 +132,7 @@ static void main_window_unload(Window *window) {
 }
 
 static void apply_theme_from_settings(ClaySettings *settings) {
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "apply_theme_from_settings");
     enum ThemeEnum theme;
     if (settings->ThemeValue[0] == '\0') {
         strcpy(settings->ThemeValue, THEME_LIGHT_STR);
@@ -164,11 +171,10 @@ static void apply_theme_from_settings(ClaySettings *settings) {
 
 // Rebuild layout from settings and reload all layers.
 // Call this when row layout settings change at runtime.
-void main_reload_layout() {
-    // APP_LOG(APP_LOG_LEVEL_DEBUG, "main_reload_layout");
+void main_reload_layout(ClaySettings *settings) {
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "main_reload_layout");
     main_window_unload(s_main_window);
     init_row_layers();
-    ClaySettings *settings = clay_get_settings();
     apply_theme_from_settings(settings);
     build_layout_from_settings(settings);
     main_window_load(s_main_window);

@@ -1,5 +1,6 @@
 #include "weather.h"
 #include <string.h>
+#include <stdlib.h>
 #include "../developer_options.h"
 #include "../theme.h"
 #include "../clay_settings.h"
@@ -60,6 +61,7 @@ static const WeatherData s_mock_weather_data_template = {
 };
 
 static void ensure_runtime_forecast_storage() {
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "ensuring runtime forecast storage");
     // Only set default pointers if they are not dynamically allocated
     if (!s_weather_data.is_temp_forecast_dynamic_alloc && s_weather_data.TemperatureForecast == NULL) {
         s_weather_data.TemperatureForecast = s_runtime_temp_forecast;
@@ -160,52 +162,69 @@ static void restore_saved_weather_data() {
 }
 
 void weather_delete_pesisted_data() {
+    if (!persist_exists(WEATHER_DATA_KEY)) {
+        return;
+    }
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "deleting persisted weather data");
     persist_delete(WEATHER_DATA_KEY);
 }
 
 
-static void save_current_weather_data(WeatherData *weatherData) {
+static void save_current_weather_data(WeatherData *weather_data) {
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "saving current weather data: %p", weather_data);
+
     if (DEV_OPTIONS.IsEmulator || clay_get_settings()->WeatherUseSimulation) {
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "skipping saving weather data in simulation mode");
         return;
     }
 
-    if (weatherData == NULL) {
+    if (weather_data == NULL) {
+        APP_LOG(APP_LOG_LEVEL_WARNING, "cannot save NULL weather data");
         weather_delete_pesisted_data();
         return;
     }
 
     ensure_runtime_forecast_storage();
 
-    PersistedWeatherData persisted = {
-        .Version = WEATHER_DATA_PERSIST_VERSION,
-        .CurrentTemperature = weatherData->CurrentTemperature,
-        .MaxTemperature = weatherData->MaxTemperature,
-        .MinTemperature = weatherData->MinTemperature,
-        .RainNextHourMmX10 = weatherData->RainNextHourMmX10,
-        .RainPopPercent = weatherData->RainPopPercent,
-        .TemperatureForecastCount = clamp_forecast_count(weatherData->TemperatureForecastCount),
-        .RainForecastMmX10Count = clamp_forecast_count(weatherData->RainForecastMmX10Count),
-    };
+    // PersistedWeatherData is too big to be allocated on the stack (will likely result in stackoverflow), so we use malloc here to allocate it on the heap instead
+    PersistedWeatherData *persisted = malloc(sizeof(PersistedWeatherData));
+    if (persisted == NULL) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Failed to allocate memory for persisted weather data");
+        return;
+    }
+    memset(persisted, 0, sizeof(PersistedWeatherData));
 
-    if (weatherData->TemperatureForecast && persisted.TemperatureForecastCount > 0) {
+    persisted->Version = WEATHER_DATA_PERSIST_VERSION;
+    persisted->CurrentTemperature = weather_data->CurrentTemperature;
+    persisted->MaxTemperature = weather_data->MaxTemperature;
+    persisted->MinTemperature = weather_data->MinTemperature;
+    persisted->RainNextHourMmX10 = weather_data->RainNextHourMmX10;
+    persisted->RainPopPercent = weather_data->RainPopPercent;
+    persisted->TemperatureForecastCount = clamp_forecast_count(weather_data->TemperatureForecastCount);
+    persisted->RainForecastMmX10Count = clamp_forecast_count(weather_data->RainForecastMmX10Count);
+
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Copying forecast arrays");
+
+    if (weather_data->TemperatureForecast && persisted->TemperatureForecastCount > 0) {
         memcpy(
-            persisted.TemperatureForecast,
-            weatherData->TemperatureForecast,
-            sizeof(int) * persisted.TemperatureForecastCount
+            persisted->TemperatureForecast,
+            weather_data->TemperatureForecast,
+            sizeof(int) * persisted->TemperatureForecastCount
         );
     }
-    if (weatherData->RainForecastMmX10 && persisted.RainForecastMmX10Count > 0) {
+    if (weather_data->RainForecastMmX10 && persisted->RainForecastMmX10Count > 0) {
         memcpy(
-            persisted.RainForecastMmX10,
-            weatherData->RainForecastMmX10,
-            sizeof(int) * persisted.RainForecastMmX10Count
+            persisted->RainForecastMmX10,
+            weather_data->RainForecastMmX10,
+            sizeof(int) * persisted->RainForecastMmX10Count
         );
     }
 
-    strncpy(persisted.CurrentConditions, weatherData->CurrentConditions, sizeof(persisted.CurrentConditions) - 1);
-    persisted.CurrentConditions[sizeof(persisted.CurrentConditions) - 1] = '\0';
+    strncpy(persisted->CurrentConditions, weather_data->CurrentConditions, sizeof(persisted->CurrentConditions) - 1);
+    persisted->CurrentConditions[sizeof(persisted->CurrentConditions) - 1] = '\0';
 
-    persist_write_data(WEATHER_DATA_KEY, &persisted, sizeof(persisted));
+    persist_write_data(WEATHER_DATA_KEY, persisted, sizeof(PersistedWeatherData));
+    free(persisted);
     APP_LOG(APP_LOG_LEVEL_DEBUG, "saved weather data");
 }
 

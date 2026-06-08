@@ -325,7 +325,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         ClaySettings *settings = clay_get_settings();
         clay_log_settings_debug("received settings update", settings);
         clay_save_settings(settings);
-        main_reload_layout();
+        main_reload_layout(settings);
     }
 }
 
