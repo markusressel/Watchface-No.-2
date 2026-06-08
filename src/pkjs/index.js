@@ -6,6 +6,9 @@ let clay = new Clay(clayConfig);
 let config = require('./config/config');
 let weather = require('./weather/weather');
 
+/**
+ * Indicated whether the Watch app is ready to receive data, aka. we have received an "AppReady" message from it.
+ */
 let isPebbleReady = false;
 
 // When the config page is closed, Clay saves settings to 'clay-settings' in
@@ -46,6 +49,24 @@ function sendAllSettings() {
     }
 }
 
+function onAppReady() {
+    console.log("Watchface is ready! Sending pending data.");
+    isPebbleReady = true;
+    weather.getWeather();
+}
+
+function onRequestWeatherData() {
+    if (isPebbleReady) {
+        weather.getWeather();
+    }
+}
+
+function onRequestSettings() {
+    if (isPebbleReady) {
+        sendAllSettings();
+    }
+}
+
 // Listen for when an AppMessage is received
 Pebble.addEventListener('appmessage',
     function (e) {
@@ -55,17 +76,11 @@ Pebble.addEventListener('appmessage',
         console.log('AppMessage received: ' + JSON.stringify(dict));
 
         if ("AppReady" in dict) {
-            console.log("Watchface is ready! Sending pending data.");
-            isPebbleReady = true;
-            weather.getWeather();
+            onAppReady();
         } else if ("RequestWeatherData" in dict) {
-            if (isPebbleReady) {
-                weather.getWeather();
-            }
+            onRequestWeatherData()
         } else if ("RequestSettings" in dict) {
-            if (isPebbleReady) {
-                sendAllSettings();
-            }
+            onRequestSettings()
         }
     }
 );
