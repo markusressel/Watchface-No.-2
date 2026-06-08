@@ -6,6 +6,7 @@
 # - Added PEBBLE_RELEASE
 # - Added dynamic generation of generated_settings.js based on package.json messageKeys
 # - Added Babel transpilation step for modern JavaScript
+# - Added cppcheck static analysis
 #
 
 import os.path
