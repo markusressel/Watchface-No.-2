@@ -295,9 +295,9 @@ typedef void GContext;
 
 // New mocks for missing types
 typedef enum {
-  GTextAlignmentLeft,
-  GTextAlignmentCenter,
-  GTextAlignmentRight,
+    GTextAlignmentLeft,
+    GTextAlignmentCenter,
+    GTextAlignmentRight,
 } GTextAlignment;
 
 typedef Layer TextLayer; // Mock TextLayer as a Layer
