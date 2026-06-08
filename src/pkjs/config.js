@@ -1,4 +1,4 @@
-import Settings from './generated/settings';
+let Settings = require('./generated/settings');
 
 let CLAY_SETTINGS_KEY = 'clay-settings';
 
@@ -24,7 +24,7 @@ function loadSettingsFromPersistence() {
 
 function saveClaySettings(settings) {
     try {
-        let settingsJson = settings.toJSON();
+        let settingsJson = JSON.stringify(settings.toJSON());
         localStorage.setItem(CLAY_SETTINGS_KEY, settingsJson);
     } catch (e) {
         console.log('Could not save clay settings: ' + e);
