@@ -90,7 +90,7 @@ const mockConfig = {
         return this._weatherSimulationEnabled;
     })
 };
-jest.mock('../../src/pkjs/config', () => mockConfig);
+jest.mock('../../src/pkjs/config/config', () => mockConfig);
 
 // Mock the app_messaging module that weather.js requires
 const mockAppMessaging = {
@@ -109,7 +109,7 @@ jest.mock('../../src/pkjs/app_messaging', () => mockAppMessaging);
 
 
 // Now require weather.js
-const weather = require('../../src/pkjs/weather'); // Path adjusted for new test location
+const weather = require('../../src/pkjs/weather/weather'); // Path adjusted for new test location
 
 describe('weather.js', () => {
     const originalDateNow = Date.now;

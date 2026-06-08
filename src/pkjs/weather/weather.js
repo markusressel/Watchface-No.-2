@@ -1,12 +1,11 @@
-let config = require('./config');
-let appMessaging = require('./app_messaging');
+let config = require('../config/config');
+let appMessaging = require('../app_messaging');
 let owm = require("./openweathermap");
-let Persistence = require('./persistence');
-let timelineSimulation = require('./timeline.json');
+let Persistence = require('../persistence');
+let timelineSimulation = require('../timeline.json');
 
 
-let WEATHER_UPDATE_INTERVAL_MINUTES = 30;
-let WEATHER_UPDATE_INTERVAL_MS = WEATHER_UPDATE_INTERVAL_MINUTES * 60 * 1000;
+let WEATHER_UPDATE_INTERVAL_MS = 30.0.minutes;
 let FORECAST_POINT_COUNT = 100;
 
 

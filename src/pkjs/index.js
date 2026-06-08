@@ -1,10 +1,10 @@
 let util = require('./util');
 let Clay = require('@rebble/clay');
-let clayConfig = require('./configPage');
+let clayConfig = require('./config/configPage');
 let clay = new Clay(clayConfig);
 
-let config = require('./config');
-let weather = require('./weather');
+let config = require('./config/config');
+let weather = require('./weather/weather');
 
 let isPebbleReady = false;
 
