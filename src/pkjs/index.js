@@ -49,23 +49,6 @@ function sendAllSettings() {
     }
 }
 
-function onAppReady() {
-    console.log("Watchface is ready! Sending pending data.");
-    isPebbleReady = true;
-    weather.getWeather();
-}
-
-function onRequestWeatherData() {
-    if (isPebbleReady) {
-        weather.getWeather();
-    }
-}
-
-function onRequestSettings() {
-    if (isPebbleReady) {
-        sendAllSettings();
-    }
-}
 
 // Listen for when an AppMessage is received
 Pebble.addEventListener('appmessage',
@@ -84,3 +67,21 @@ Pebble.addEventListener('appmessage',
         }
     }
 );
+
+function onAppReady() {
+    console.log("Watchface is ready! Sending pending data.");
+    isPebbleReady = true;
+    weather.getWeather();
+}
+
+function onRequestWeatherData() {
+    if (isPebbleReady) {
+        weather.getWeather();
+    }
+}
+
+function onRequestSettings() {
+    if (isPebbleReady) {
+        sendAllSettings();
+    }
+}
