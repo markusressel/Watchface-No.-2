@@ -1,10 +1,9 @@
-let util = require('./util');
-let Clay = require('@rebble/clay');
-let clayConfig = require('./config/configPage');
-let clay = new Clay(clayConfig);
+import Clay from '@rebble/clay';
+import clayConfig from './config/configPage';
+import * as config from './config/config';
+import * as weather from './weather/weather';
 
-let config = require('./config/config');
-let weather = require('./weather/weather');
+const clay = new Clay(clayConfig);
 
 /**
  * Indicated whether the Watch app is ready to receive data, aka. we have received an "AppReady" message from it.
@@ -42,8 +41,8 @@ Pebble.addEventListener('ready',
 );
 
 function sendAllSettings() {
-    let settings = config.getClaySettings()
-    let settingsJson = settings.toJSON();
+    const settings = config.getClaySettings()
+    const settingsJson = settings.toJSON();
     if (settingsJson) {
         Pebble.sendAppMessage(settingsJson);
     }
@@ -54,7 +53,7 @@ function sendAllSettings() {
 Pebble.addEventListener('appmessage',
     function (e) {
         // Get the dictionary from the message
-        let dict = e.payload;
+        const dict = e.payload;
 
         console.log('AppMessage received: ' + JSON.stringify(dict));
 

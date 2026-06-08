@@ -26,7 +26,7 @@ def build(emulator: bool, release: bool):
     else:
         env.pop("PEBBLE_RELEASE", None)
 
-    subprocess.run(["pebble", "build"], env=env, check=True)
+    subprocess.run(["./scripts/build.py", "--minify"], env=env, check=True)
 
 
 def build_emu(debug_build: bool):

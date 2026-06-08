@@ -1,7 +1,7 @@
 /**
  * @enum {string}
  */
-let StorageKeys = Object.freeze({
+export const StorageKeys = Object.freeze({
     CLAY_SETTINGS_KEY: 'clay-settings',
 
     WEATHER_LAST_DATA_KEY: 'weather-last-data',
@@ -18,7 +18,7 @@ class Persistence {
      * @param value {object}
      */
     putJson(key, value) {
-        let stringified = JSON.stringify(value);
+        const stringified = JSON.stringify(value);
         localStorage.setItem(key, stringified);
     }
 
@@ -27,7 +27,7 @@ class Persistence {
      */
     getJson(key) {
         try {
-            let rawValue = localStorage.getItem(key)
+            const rawValue = localStorage.getItem(key)
             return rawValue ? JSON.parse(rawValue) : null;
         } catch (e) {
             console.error('Error retrieving JSON from localStorage:', e);
@@ -40,7 +40,7 @@ class Persistence {
      * @param value {string}
      */
     putString(key, value) {
-        let stringValue = String(value);
+        const stringValue = String(value);
         localStorage.setItem(String(key), stringValue);
     }
 
@@ -49,11 +49,11 @@ class Persistence {
      * @return {number|null}
      */
     getInt(key) {
-        let lastFetchRaw = localStorage.getItem(key);
+        const lastFetchRaw = localStorage.getItem(key);
         if (!lastFetchRaw) {
             return null;
         }
-        let parsed = parseInt(lastFetchRaw, 10);
+        const parsed = parseInt(lastFetchRaw, 10);
         if (isNaN(parsed)) {
             return null;
         }
@@ -62,5 +62,4 @@ class Persistence {
 
 }
 
-module.exports = new Persistence();
-module.exports.StorageKeys = StorageKeys;
+export default new Persistence();

@@ -1,4 +1,4 @@
-module.exports = [
+export default [
     {
         "type": "heading",
         "defaultValue": "Watchface No. 2"

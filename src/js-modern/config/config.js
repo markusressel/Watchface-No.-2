@@ -1,7 +1,7 @@
-let Settings = require('../generated/settings');
-let Persistence = require('../persistence');
+import Settings from '../generated/settings';
+import Persistence, {StorageKeys} from '../persistence';
 
-function getClaySettings() {
+export function getClaySettings() {
     return Settings(
         loadSettingsFromPersistence()
     )
@@ -15,7 +15,7 @@ function getClaySettings() {
  */
 function loadSettingsFromPersistence() {
     try {
-        return Persistence.getJson(Persistence.StorageKeys.CLAY_SETTINGS_KEY) || {};
+        return Persistence.getJson(StorageKeys.CLAY_SETTINGS_KEY) || {};
     } catch (e) {
         return {};
     }
@@ -23,27 +23,22 @@ function loadSettingsFromPersistence() {
 
 function saveClaySettings(settings) {
     try {
-        Persistence.putJson(Persistence.StorageKeys.CLAY_SETTINGS_KEY, settings.toJSON());
+        Persistence.putJson(StorageKeys.CLAY_SETTINGS_KEY, settings.toJSON());
     } catch (e) {
         console.log('Could not save clay settings: ' + e);
     }
 }
 
-function getWeatherApiKey() {
+export function getWeatherApiKey() {
     return getClaySettings().WeatherApiKey || '';
 }
 
-function isWeatherSimulationEnabled() {
+export function isWeatherSimulationEnabled() {
     return !!getClaySettings().WeatherUseSimulation;
 }
 
-function setWeatherSimulationEnabled(enabled) {
-    let settings = getClaySettings();
+export function setWeatherSimulationEnabled(enabled) {
+    const settings = getClaySettings();
     settings.WeatherUseSimulation = !!enabled;
     saveClaySettings(settings);
 }
-
-module.exports.getClaySettings = getClaySettings;
-module.exports.getWeatherApiKey = getWeatherApiKey;
-module.exports.isWeatherSimulationEnabled = isWeatherSimulationEnabled;
-module.exports.setWeatherSimulationEnabled = setWeatherSimulationEnabled;

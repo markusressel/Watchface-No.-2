@@ -1,16 +1,13 @@
-let config = require('../config/config');
-let appMessaging = require('../app_messaging');
-let owm = require("./openweathermap");
-let Persistence = require('../persistence');
-let timelineSimulation = require('./mock/timeline.json');
+import * as config from '../config/config';
+import * as appMessaging from '../app_messaging';
+import Persistence, {StorageKeys} from '../persistence';
+import timelineSimulation from './mock/timeline.json';
 
+const WEATHER_UPDATE_INTERVAL_MS = 30.0.minutes;
+const FORECAST_POINT_COUNT = 100;
 
-let WEATHER_UPDATE_INTERVAL_MS = 30.0.minutes;
-let FORECAST_POINT_COUNT = 100;
-
-
-function request_simulated_weather_data() {
-    let weatherData = process_timeline_payload(timelineSimulation, 'simulation/timeline.json');
+export function request_simulated_weather_data() {
+    const weatherData = process_timeline_payload(timelineSimulation, 'simulation/timeline.json');
     cache_weather_data(weatherData);
     send_weather_to_watch(
         weatherData,
@@ -19,16 +16,16 @@ function request_simulated_weather_data() {
     );
 }
 
-function cache_weather_data(dictionary) {
+export function cache_weather_data(dictionary) {
     try {
-        Persistence.putJson(Persistence.StorageKeys.WEATHER_LAST_DATA_KEY, dictionary);
-        Persistence.putString(Persistence.StorageKeys.WEATHER_LAST_FETCH_KEY, String(Date.now()));
+        Persistence.putJson(StorageKeys.WEATHER_LAST_DATA_KEY, dictionary);
+        Persistence.putString(StorageKeys.WEATHER_LAST_FETCH_KEY, String(Date.now()));
     } catch (e) {
         console.log('Could not cache weather data: ' + e);
     }
 }
 
-function process_timeline_payload(json, sourceLabel) {
+export function process_timeline_payload(json, sourceLabel) {
     if (!json || !json.data || json.data.length === 0) {
         console.log('No timeline data available from ' + sourceLabel + '.');
         return;
@@ -37,18 +34,18 @@ function process_timeline_payload(json, sourceLabel) {
     console.log('Weather source: ' + sourceLabel);
     console.log('JSON response is: ' + JSON.stringify(json));
 
-    let timeline = json.data || [];
-    let current = pick_closest_entry_to_now(timeline) || timeline[0] || {};
-    let minMax = day_min_max_from_timeline(timeline, current, json.timezone_offset || 0);
-    let minKelvin = minMax.minKelvin;
-    let maxKelvin = minMax.maxKelvin;
+    const timeline = json.data || [];
+    const current = pick_closest_entry_to_now(timeline) || timeline[0] || {};
+    const minMax = day_min_max_from_timeline(timeline, current, json.timezone_offset || 0);
+    const minKelvin = minMax.minKelvin;
+    const maxKelvin = minMax.maxKelvin;
 
     // Temperature in Kelvin requires adjustment
-    let temperatureCurrent = kelvin_to_celsius(current.temp);
+    const temperatureCurrent = kelvin_to_celsius(current.temp);
     console.log('Current Temperature is ' + temperatureCurrent);
-    let temperatureMin = kelvin_to_celsius(minKelvin);
+    const temperatureMin = kelvin_to_celsius(minKelvin);
     console.log('Min Temperature is ' + temperatureMin);
-    let temperatureMax = kelvin_to_celsius(maxKelvin);
+    const temperatureMax = kelvin_to_celsius(maxKelvin);
     console.log('Max Temperature is ' + temperatureMax);
 
     // Conditions
@@ -59,11 +56,11 @@ function process_timeline_payload(json, sourceLabel) {
     console.log('Conditions are ' + conditions);
 
     // Rain forecast based on selected 15-minute entry
-    let rainMm = (current.rain && current.rain['1h']) ? current.rain['1h'] : 0;
-    let popPercent = typeof current.pop === 'number' ? Math.round(current.pop * 100) : 0;
+    const rainMm = (current.rain && current.rain['1h']) ? current.rain['1h'] : 0;
+    const popPercent = typeof current.pop === 'number' ? Math.round(current.pop * 100) : 0;
     console.log('Rain from selected entry (mm/h): ' + rainMm + ', pop (%): ' + popPercent);
 
-    let temperatureForecastSeries = build_condensed_series(
+    const temperatureForecastSeries = build_condensed_series(
         timeline,
         function (entry) {
             return kelvin_to_celsius(entry && entry.temp);
@@ -71,10 +68,10 @@ function process_timeline_payload(json, sourceLabel) {
         FORECAST_POINT_COUNT
     );
 
-    let rainForecastSeries = build_condensed_series(
+    const rainForecastSeries = build_condensed_series(
         timeline,
         function (entry) {
-            let rain = (entry && entry.rain && entry.rain['1h']) ? entry.rain['1h'] : 0;
+            const rain = (entry && entry.rain && entry.rain['1h']) ? entry.rain['1h'] : 0;
             return one_decimal_to_int(rain);
         },
         FORECAST_POINT_COUNT
@@ -93,18 +90,18 @@ function process_timeline_payload(json, sourceLabel) {
     )
 }
 
-function pick_closest_entry_to_now(entries) {
+export function pick_closest_entry_to_now(entries) {
     if (!entries || entries.length === 0) {
         return null;
     }
 
-    let nowUtc = Math.floor(Date.now() / 1000);
+    const nowUtc = Math.floor(Date.now() / 1000);
     let best = entries[0];
     let bestDistance = Math.abs((best.dt || 0) - nowUtc);
 
     for (let i = 1; i < entries.length; i++) {
-        let candidate = entries[i];
-        let distance = Math.abs((candidate.dt || 0) - nowUtc);
+        const candidate = entries[i];
+        const distance = Math.abs((candidate.dt || 0) - nowUtc);
         if (distance < bestDistance) {
             best = candidate;
             bestDistance = distance;
@@ -114,8 +111,7 @@ function pick_closest_entry_to_now(entries) {
     return best;
 }
 
-
-function kelvin_to_celsius(kelvin) {
+export function kelvin_to_celsius(kelvin) {
     if (typeof kelvin !== 'number') {
         return 0;
     }
@@ -123,17 +119,16 @@ function kelvin_to_celsius(kelvin) {
     return Math.round(kelvin - 273.15);
 }
 
-
 function get_cached_weather_data() {
-    return Persistence.getJson(Persistence.StorageKeys.WEATHER_LAST_DATA_KEY);
+    return Persistence.getJson(StorageKeys.WEATHER_LAST_DATA_KEY);
 }
 
 /**
  * Retrieves the timestamp of the last weather fetch from local storage.
  * @returns {number|null} - The timestamp of the last fetch, or null if not found.
  */
-function get_last_fetch_timestamp() {
-    return Persistence.getInt(Persistence.StorageKeys.WEATHER_LAST_FETCH_KEY)
+export function get_last_fetch_timestamp() {
+    return Persistence.getInt(StorageKeys.WEATHER_LAST_FETCH_KEY)
 }
 
 /**
@@ -141,8 +136,8 @@ function get_last_fetch_timestamp() {
  * @param durationMs {number} - The duration in milliseconds to compare against.
  * @returns {boolean} - True if the time since the last fetch exceeds the duration, or no fetch has occurred yet. False otherwise.
  */
-function time_since_last_fetch_exceeds(durationMs) {
-    let lastFetchTimestamp = get_last_fetch_timestamp()
+export function time_since_last_fetch_exceeds(durationMs) {
+    const lastFetchTimestamp = get_last_fetch_timestamp()
     if (!lastFetchTimestamp) {
         return true;
     }
@@ -150,7 +145,7 @@ function time_since_last_fetch_exceeds(durationMs) {
 }
 
 function should_fetch_weather_from_api() {
-    let cached = get_cached_weather_data();
+    const cached = get_cached_weather_data();
     if (!cached) {
         return true;
     }
@@ -164,7 +159,7 @@ function should_fetch_weather_from_api() {
  * @param successMessage {string}
  * @param errorMessage {string}
  */
-function send_weather_to_watch(dictionary, successMessage, errorMessage) {
+export function send_weather_to_watch(dictionary, successMessage, errorMessage) {
     appMessaging.send_dict_to_watch(dictionary, successMessage, errorMessage);
 }
 
@@ -172,19 +167,19 @@ function local_day_index(utcTimestamp, timezoneOffsetSeconds) {
     return Math.floor((utcTimestamp + timezoneOffsetSeconds) / 86400);
 }
 
-function day_min_max_from_timeline(entries, referenceEntry, timezoneOffsetSeconds) {
+export function day_min_max_from_timeline(entries, referenceEntry, timezoneOffsetSeconds) {
     if (!entries || entries.length === 0) {
         return {minKelvin: undefined, maxKelvin: undefined};
     }
 
-    let reference = referenceEntry || entries[0];
-    let referenceDay = local_day_index(reference.dt || 0, timezoneOffsetSeconds || 0);
+    const reference = referenceEntry || entries[0];
+    const referenceDay = local_day_index(reference.dt || 0, timezoneOffsetSeconds || 0);
     let minKelvin = reference.temp;
     let maxKelvin = reference.temp;
 
     for (let i = 0; i < entries.length; i++) {
-        let entry = entries[i];
-        let t = entry && entry.temp;
+        const entry = entries[i];
+        const t = entry && entry.temp;
         if (typeof t !== 'number') {
             continue;
         }
@@ -203,7 +198,7 @@ function day_min_max_from_timeline(entries, referenceEntry, timezoneOffsetSecond
 
     if (typeof minKelvin !== 'number' || typeof maxKelvin !== 'number') {
         for (let j = 0; j < entries.length; j++) {
-            let fallbackTemp = entries[j] && entries[j].temp;
+            const fallbackTemp = entries[j] && entries[j].temp;
             if (typeof fallbackTemp !== 'number') {
                 continue;
             }
@@ -219,8 +214,8 @@ function day_min_max_from_timeline(entries, referenceEntry, timezoneOffsetSecond
     return {minKelvin: minKelvin, maxKelvin: maxKelvin};
 }
 
-function build_condensed_series(entries, extractor, maxCount) {
-    let samples = [];
+export function build_condensed_series(entries, extractor, maxCount) {
+    const samples = [];
     if (!entries || entries.length === 0) {
         return samples;
     }
@@ -233,16 +228,16 @@ function build_condensed_series(entries, extractor, maxCount) {
     }
 
     for (let n = 0; n < maxCount; n++) {
-        let idx = Math.round((n * (entries.length - 1)) / (maxCount - 1));
+        const idx = Math.round((n * (entries.length - 1)) / (maxCount - 1));
         samples.push(extractor(entries[idx]));
     }
 
     return samples;
 }
 
-let xhrRequest = async function (url, type) {
+const xhrRequest = async function (url, type) {
     return new Promise((resolve, reject) => {
-        let xhr = new XMLHttpRequest();
+        const xhr = new XMLHttpRequest();
         xhr.onload = function () {
             resolve(this.responseText);
         };
@@ -263,7 +258,7 @@ let xhrRequest = async function (url, type) {
  */
 function createUrl(baseUrl, queryParams) {
     let url = baseUrl;
-    let params = [];
+    const params = [];
     for (const key in queryParams) {
         if (queryParams.hasOwnProperty(key)) {
             params.push(`${key}=${queryParams[key]}`);
@@ -287,15 +282,15 @@ async function fetch_weather_data(latitude, longitude) {
         lon: longitude,
         appid: config.getWeatherApiKey()
     };
-    let url = createUrl(baseUrl, queryParams);
+    const url = createUrl(baseUrl, queryParams);
 
     console.log("Weather request URL is: " + url);
 
     try {
         // Send request to OpenWeatherMap
-        let responseText = await xhrRequest(url, 'GET');
-        let json = JSON.parse(responseText);
-        let weatherData = process_timeline_payload(json, 'api/openweathermap');
+        const responseText = await xhrRequest(url, 'GET');
+        const json = JSON.parse(responseText);
+        const weatherData = process_timeline_payload(json, 'api/openweathermap');
         cache_weather_data(weatherData);
         send_weather_to_watch(
             weatherData,
@@ -315,21 +310,21 @@ async function fetch_weather_data(latitude, longitude) {
  * Caches the last fetched weather data for [WEATHER_UPDATE_INTERVAL_MS] milliseconds to minimize unnecessary API calls.
  * Handles geolocation retrieval and API response processing, sending the relevant weather data to the Pebble watchface.
  */
-function getWeather() {
+export function getWeather() {
     if (config.isWeatherSimulationEnabled()) {
         console.log('Simulation mode enabled. Using timeline.json weather data.');
         request_simulated_weather_data();
         return;
     }
 
-    let apiKey = config.getWeatherApiKey();
+    const apiKey = config.getWeatherApiKey();
 
     // If no API key is configured, clear any stale weather data
     if (!apiKey || apiKey.length === 0) {
         console.log("No OpenWeatherMap API key configured. Clearing weather data.");
 
         // Send empty weather data to clear the display on the watchface
-        let clearDictionary = createWeatherData(
+        const clearDictionary = createWeatherData(
             0,
             0,
             0,
@@ -352,7 +347,7 @@ function getWeather() {
     }
 
     if (!should_fetch_weather_from_api()) {
-        let cachedDictionary = get_cached_weather_data();
+        const cachedDictionary = get_cached_weather_data();
         if (cachedDictionary) {
             console.log('Using cached weather data, skipping API call.');
             send_weather_to_watch(
@@ -398,22 +393,8 @@ function createWeatherData(
  * @param {number|null} value - The number to convert.
  * @returns {number} The converted integer value.
  */
-function one_decimal_to_int(value) {
+export function one_decimal_to_int(value) {
     return appMessaging.encode_decimal_as_int(value, 1)
 }
 
-
-module.exports.getWeather = getWeather;
-module.exports.setSimulationModeEnabled = config.setWeatherSimulationEnabled;
-
-// Exporting for testing purposes
-module.exports.kelvin_to_celsius = kelvin_to_celsius;
-module.exports.one_decimal_to_int = one_decimal_to_int;
-module.exports.process_timeline_payload = process_timeline_payload;
-module.exports.cache_weather_data = cache_weather_data;
-module.exports.send_weather_to_watch = send_weather_to_watch;
-module.exports.pick_closest_entry_to_now = pick_closest_entry_to_now;
-module.exports.day_min_max_from_timeline = day_min_max_from_timeline;
-module.exports.build_condensed_series = build_condensed_series;
-module.exports.get_last_fetch_timestamp = get_last_fetch_timestamp;
-module.exports.time_since_last_fetch_exceeds = time_since_last_fetch_exceeds;
+export const setSimulationModeEnabled = config.setWeatherSimulationEnabled;
