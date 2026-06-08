@@ -1,6 +1,7 @@
 let config = require('./config');
 let appMessaging = require('./app_messaging');
 let owm = require("./openweathermap");
+let Persistence = require('./persistence');
 let timelineSimulation = require('./timeline.json');
 
 
@@ -23,8 +24,8 @@ function request_simulated_weather_data() {
 
 function cache_weather_data(dictionary) {
     try {
-        localStorage.setItem(WEATHER_LAST_DATA_KEY, JSON.stringify(dictionary));
-        localStorage.setItem(WEATHER_LAST_FETCH_KEY, String(Date.now()));
+        Persistence.putJson(WEATHER_LAST_DATA_KEY, dictionary);
+        Persistence.putString(WEATHER_LAST_FETCH_KEY, Date.now());
     } catch (e) {
         console.log('Could not cache weather data: ' + e);
     }
@@ -127,12 +128,7 @@ function kelvin_to_celsius(kelvin) {
 
 
 function get_cached_weather_data() {
-    try {
-        let cached = localStorage.getItem(WEATHER_LAST_DATA_KEY);
-        return cached ? JSON.parse(cached) : null;
-    } catch (e) {
-        return null;
-    }
+    return Persistence.getJson(WEATHER_LAST_DATA_KEY);
 }
 
 /**
