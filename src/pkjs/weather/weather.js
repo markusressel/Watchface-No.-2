@@ -2,7 +2,7 @@ let config = require('../config/config');
 let appMessaging = require('../app_messaging');
 let owm = require("./openweathermap");
 let Persistence = require('../persistence');
-let timelineSimulation = require('../timeline.json');
+let timelineSimulation = require('./mock/timeline.json');
 
 
 let WEATHER_UPDATE_INTERVAL_MS = 30.0.minutes;
