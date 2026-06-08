@@ -48,7 +48,7 @@ void test_clay_load_settings_with_valid_version(void) {
     // Arrange: Simulate current version data exists
     mock_storage_set_version(SETTINGS_VERSION);
 
-    ClaySettings *saved_settings = clay_default_settings();
+    ClaySettings *saved_settings = clay_reset_to_default_settings();
     saved_settings->LayoutRowCount = layout_row_count_max_for_platform();
     saved_settings->ShowSeconds = true;
     clay_save_settings(saved_settings);

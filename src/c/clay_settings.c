@@ -133,7 +133,7 @@ ClaySettings *clay_sanitize_settings(ClaySettings *settings) {
 
 // Initialize the default settings
 // Note: Defaults are also set in the configPage.json, keep them in sync!
-static ClaySettings *clay_default_settings() {
+static ClaySettings *clay_reset_to_default_settings() {
     ClaySettings *settings = clay_get_settings();
 
     settings->BackgroundColor = GColorWhite;
@@ -196,7 +196,7 @@ ClaySettings *clay_get_settings() {
 // Read settings from persistent storage
 ClaySettings *clay_load_settings() {
     // Load the default settings
-    ClaySettings *settings = clay_default_settings();
+    ClaySettings *settings = clay_reset_to_default_settings();
 
     // Migrate/reset settings when the struct layout changes across versions.
     if (!persist_exists(SETTINGS_VERSION_KEY) ||
@@ -216,7 +216,7 @@ ClaySettings *clay_load_settings() {
         const int bytes = persist_read_data(SETTINGS_KEY, settings, sizeof(*settings));
         if (bytes != sizeof(*settings)) {
             APP_LOG(APP_LOG_LEVEL_WARNING, "Could not read settings, using defaults.");
-            settings = clay_default_settings();
+            settings = clay_reset_to_default_settings();
             return settings;
         }
     }
