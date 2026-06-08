@@ -7,8 +7,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: extractions/setup-just@v4
+      - name: Install cppcheck (used within just build)
+        run: sudo apt-get update && sudo apt-get install -y cppcheck
       - uses: spr4bhu/pebble-actions@v1
         id: pebble
-      - run: just build
+      - run: just release
       - run: echo "Built with SDK ${{ steps.pebble.outputs.sdk-version }}"
       - run: just test

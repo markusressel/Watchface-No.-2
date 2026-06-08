@@ -51,8 +51,7 @@ def run_cppcheck(ctx):
         except ErrorReturnCode as e:
             ctx.fatal("\ncppcheck failed:\n" + e.stdout)
     except (ImportError, CommandNotFound):
-        print("cppcheck not found, skipping static analysis")
-
+        ctx.fatal("\ncppcheck command not found. Please install cppcheck.")
 
 def build(ctx):
     subprocess.run(["just", "generate"], check=True)
