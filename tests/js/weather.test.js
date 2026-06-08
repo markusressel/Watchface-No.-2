@@ -96,7 +96,14 @@ jest.mock('../../src/pkjs/config', () => mockConfig);
 const mockAppMessaging = {
     send_dict_to_watch: jest.fn((dictionary, successMessage, errorMessage) => {
         mockPebble.sendAppMessage(dictionary, () => console.log(successMessage), () => console.log(errorMessage));
-    })
+    }),
+    encode_decimal_as_int: jest.fn((value, decimalPlaces) => {
+        if (typeof value !== 'number') {
+            return 0;
+        }
+        return Math.round(value * (decimalPlaces * 10));
+    }),
+    encode_number_array: jest.fn(values => values.join(','))
 };
 jest.mock('../../src/pkjs/app_messaging', () => mockAppMessaging);
 

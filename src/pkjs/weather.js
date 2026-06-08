@@ -180,8 +180,8 @@ function day_min_max_from_timeline(entries, referenceEntry, timezoneOffsetSecond
 
     let reference = referenceEntry || entries[0];
     let referenceDay = local_day_index(reference.dt || 0, timezoneOffsetSeconds || 0);
-    let minKelvin;
-    let maxKelvin;
+    let minKelvin = reference.temp;
+    let maxKelvin = reference.temp;
 
     for (let i = 0; i < entries.length; i++) {
         let entry = entries[i];
@@ -372,7 +372,7 @@ function getWeather() {
         function (err) {
             console.log("Error requesting location!");
         },
-        {timeout: 15000, maximumAge: 60000}
+        {timeout: 15.0.seconds, maximumAge: 60.0.seconds}
     );
 }
 
@@ -388,32 +388,19 @@ function createWeatherData(
         'WEATHER_CONDITION': conditions,
         'WEATHER_RAIN_NEXT_HOUR_MM_X10': one_decimal_to_int(rainMm),
         'WEATHER_RAIN_POP_PERCENT': popPercent,
-        'WEATHER_TEMP_FORECAST_ENCODED': encode_number_array(temperatureForecastSeries),
-        'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': encode_number_array(rainForecastSeries)
+        'WEATHER_TEMP_FORECAST_ENCODED': appMessaging.encode_number_array(temperatureForecastSeries),
+        'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': appMessaging.encode_number_array(rainForecastSeries)
     }
 }
 
 /**
  * Converts a number with one decimal place (e.g. 1.2) to an integer (e.g. 12) by multiplying by 10 and rounding.
  * This allows us to send decimal values in an integer format, which is necessary because Pebble's AppMessage system does not support floating-point numbers.
- * @param {number} value - The number to convert.
+ * @param {number|null} value - The number to convert.
  * @returns {number} The converted integer value.
  */
 function one_decimal_to_int(value) {
-    if (typeof value !== 'number') {
-        return 0;
-    }
-
-    return Math.round(value * 10);
-}
-
-/**
- * Encodes an array of numbers into a comma-separated string for transmission via Pebble's AppMessage system, which does not support arrays.
- * @param {number[]} values - The array of numbers to encode.
- * @returns {string} The encoded string.
- */
-function encode_number_array(values) {
-    return values.join(',');
+    return appMessaging.encode_decimal_as_int(value, 1)
 }
 
 
@@ -429,6 +416,5 @@ module.exports.send_weather_to_watch = send_weather_to_watch;
 module.exports.pick_closest_entry_to_now = pick_closest_entry_to_now;
 module.exports.day_min_max_from_timeline = day_min_max_from_timeline;
 module.exports.build_condensed_series = build_condensed_series;
-module.exports.encode_number_array = encode_number_array;
 module.exports.get_last_fetch_timestamp = get_last_fetch_timestamp;
 module.exports.time_since_last_fetch_exceeds = time_since_last_fetch_exceeds;

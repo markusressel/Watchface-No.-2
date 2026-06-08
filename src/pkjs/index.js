@@ -1,3 +1,4 @@
+let util = require('./util');
 let Clay = require('@rebble/clay');
 let clayConfig = require('./configPage');
 let clay = new Clay(clayConfig);
