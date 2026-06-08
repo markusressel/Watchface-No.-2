@@ -2,7 +2,9 @@
 const mockPebble = {
     sendAppMessage: jest.fn((dictionary, successCallback, errorCallback) => {
         mockPebble.lastSentMessage = dictionary;
-        successCallback();
+        if (successCallback) {
+            successCallback();
+        }
     })
 };
 
@@ -51,7 +53,9 @@ const mockXMLHttpRequest = jest.fn(() => ({
         } else {
             this.responseText = JSON.stringify({});
         }
-        this.onload();
+        if (this.onload) {
+            this.onload();
+        }
     })
 }));
 
@@ -75,23 +79,14 @@ global.navigator = {geolocation: mockGeolocation};
 
 // Mock the config module that weather.js requires
 const mockConfig = {
-    _weatherApiKey: 'test_api_key',
-    _weatherSimulationEnabled: false,
-    getWeatherApiKey: jest.fn(function () {
-        return this._weatherApiKey;
-    }),
-    isWeatherSimulationEnabled: jest.fn(function () {
-        return !!this._weatherSimulationEnabled;
-    }),
-    setWeatherSimulationEnabled: jest.fn(function (enabled) {
-        this._weatherSimulationEnabled = !!enabled;
-    }),
-    toggleWeatherSimulation: jest.fn(function () {
-        this._weatherSimulationEnabled = !this._weatherSimulationEnabled;
-        return this._weatherSimulationEnabled;
-    })
+    getWeatherApiKey: jest.fn(() => 'test_api_key'),
+    isWeatherSimulationEnabled: jest.fn(() => false),
+    setWeatherSimulationEnabled: jest.fn(),
 };
-jest.mock('../../../src/js-modern/config/config', () => mockConfig);
+jest.mock('../../../src/js-modern/config/config', () => ({
+    __esModule: true,
+    ...mockConfig
+}));
 
 // Mock the app_messaging module that weather.js requires
 const mockAppMessaging = {
@@ -106,11 +101,14 @@ const mockAppMessaging = {
     }),
     encode_number_array: jest.fn(values => values.join(','))
 };
-jest.mock('../../../src/js-modern/app_messaging', () => mockAppMessaging);
+jest.mock('../../../src/js-modern/app_messaging', () => ({
+    __esModule: true,
+    ...mockAppMessaging,
+}));
 
 
 // Now require weather.js
-const weather = require('../../../src/js-modern/weather/weather'); // Path adjusted for new test location
+const weather = require('../../../src/js-modern/weather/weather');
 
 describe('weather.js', () => {
     const originalDateNow = Date.now;
@@ -120,8 +118,8 @@ describe('weather.js', () => {
         jest.clearAllMocks();
         mockLocalStorage.clear();
         mockPebble.lastSentMessage = null;
-        mockConfig._weatherApiKey = 'test_api_key';
-        mockConfig._weatherSimulationEnabled = false;
+        mockConfig.getWeatherApiKey.mockReturnValue('test_api_key');
+        mockConfig.isWeatherSimulationEnabled.mockReturnValue(false);
         Date.now = originalDateNow; // Restore Date.now
     });
 
@@ -192,8 +190,8 @@ describe('weather.js', () => {
             'WEATHER_CONDITION': 'Clouds',
             'WEATHER_RAIN_NEXT_HOUR_MM_X10': 5, // 0.5 * 10
             'WEATHER_RAIN_POP_PERCENT': 20, // 0.2 * 100
-            'WEATHER_TEMP_FORECAST_ENCODED': '7,8,9,12', // Condensed series, assuming FORECAST_POINT_COUNT is 4 for this small data set
-            'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': '5,12,1,0' // Condensed series
+            'WEATHER_TEMP_FORECAST_ENCODED': '7,8,9,12',
+            'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': '5,12,1,0'
         };
 
         expect(result).toEqual(expectedDictionary);
@@ -202,13 +200,13 @@ describe('weather.js', () => {
     test('send_weather_to_watch', () => {
         const exampleData = {
             'WEATHER_TEMPERATURE_CURRENT': 7,
-            'WEATHER_TEMPERATURE_MIN': 7, // Min for the day (15th March)
-            'WEATHER_TEMPERATURE_MAX': 9, // Max for the day (15th March)
+            'WEATHER_TEMPERATURE_MIN': 7,
+            'WEATHER_TEMPERATURE_MAX': 9,
             'WEATHER_CONDITION': 'Clouds',
-            'WEATHER_RAIN_NEXT_HOUR_MM_X10': 5, // 0.5 * 10
-            'WEATHER_RAIN_POP_PERCENT': 20, // 0.2 * 100
-            'WEATHER_TEMP_FORECAST_ENCODED': '7,8,9,12', // Condensed series, assuming FORECAST_POINT_COUNT is 4 for this small data set
-            'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': '5,12,1,0' // Condensed series
+            'WEATHER_RAIN_NEXT_HOUR_MM_X10': 5,
+            'WEATHER_RAIN_POP_PERCENT': 20,
+            'WEATHER_TEMP_FORECAST_ENCODED': '7,8,9,12',
+            'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': '5,12,1,0'
         };
 
         weather.send_weather_to_watch(exampleData);
@@ -220,13 +218,13 @@ describe('weather.js', () => {
     test('cache_weather_data stores data and timestamp in localStorage', () => {
         const exampleData = {
             'WEATHER_TEMPERATURE_CURRENT': 7,
-            'WEATHER_TEMPERATURE_MIN': 7, // Min for the day (15th March)
-            'WEATHER_TEMPERATURE_MAX': 9, // Max for the day (15th March)
+            'WEATHER_TEMPERATURE_MIN': 7,
+            'WEATHER_TEMPERATURE_MAX': 9,
             'WEATHER_CONDITION': 'Clouds',
-            'WEATHER_RAIN_NEXT_HOUR_MM_X10': 5, // 0.5 * 10
-            'WEATHER_RAIN_POP_PERCENT': 20, // 0.2 * 100
-            'WEATHER_TEMP_FORECAST_ENCODED': '7,8,9,12', // Condensed series, assuming FORECAST_POINT_COUNT is 4 for this small data set
-            'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': '5,12,1,0' // Condensed series
+            'WEATHER_RAIN_NEXT_HOUR_MM_X10': 5,
+            'WEATHER_RAIN_POP_PERCENT': 20,
+            'WEATHER_TEMP_FORECAST_ENCODED': '7,8,9,12',
+            'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': '5,12,1,0'
         };
 
         weather.cache_weather_data(exampleData);
@@ -238,21 +236,16 @@ describe('weather.js', () => {
 
     // Test getWeather with simulation enabled
     test('getWeather uses simulated data when simulation is enabled', () => {
-        mockConfig.setWeatherSimulationEnabled(true);
+        mockConfig.isWeatherSimulationEnabled.mockReturnValue(true);
         weather.getWeather();
 
-        // The actual timeline.json has different values, so this needs to be adjusted
-        // based on the actual timeline.json content.
-        // For now, we'll just check if a message was sent, as the internal logic of
-        // process_timeline_payload is covered by its own test.
         expect(mockAppMessaging.send_dict_to_watch).toHaveBeenCalledTimes(1);
-        expect(mockPebble.lastSentMessage).not.toBeNull(); // Fixed typo here
-        // Further assertions would require parsing timeline.json and replicating its logic.
+        expect(mockPebble.lastSentMessage).not.toBeNull();
     });
 
     // Test getWeather with no API key
     test('getWeather sends clear data when no API key is configured', () => {
-        mockConfig._weatherApiKey = ''; // Simulate no API key
+        mockConfig.getWeatherApiKey.mockReturnValue('');
         weather.getWeather();
 
         const expectedClearDictionary = {
@@ -314,8 +307,8 @@ describe('weather.js', () => {
             'WEATHER_CONDITION': 'Clouds',
             'WEATHER_RAIN_NEXT_HOUR_MM_X10': 5,
             'WEATHER_RAIN_POP_PERCENT': 20,
-            'WEATHER_TEMP_FORECAST_ENCODED': '7,8', // Only 2 entries in mock data
-            'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': '5,12' // Only 2 entries in mock data
+            'WEATHER_TEMP_FORECAST_ENCODED': '7,8',
+            'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': '5,12'
         };
 
         expect(mockGeolocation.getCurrentPosition).toHaveBeenCalledTimes(1);

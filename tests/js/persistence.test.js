@@ -1,4 +1,6 @@
-const Persistence = require('../../src/js-modern/persistence');
+const persistenceModule = require('../../src/js-modern/persistence');
+const Persistence = persistenceModule.default || persistenceModule;
+const StorageKeys = persistenceModule.StorageKeys;
 
 // Mock localStorage if it does not exist
 if (typeof localStorage === 'undefined') {
@@ -23,7 +25,7 @@ describe('Persistence', () => {
 
     describe('putJson', () => {
         test('should stringify and store the value', () => {
-            const key = Persistence.StorageKeys.WEATHER_LAST_DATA_KEY;
+            const key = StorageKeys.WEATHER_LAST_DATA_KEY;
             const value = {a: 1, b: 'test'};
             Persistence.putJson(key, value);
             expect(localStorage.setItem).toHaveBeenCalledWith(key, JSON.stringify(value));
@@ -32,7 +34,7 @@ describe('Persistence', () => {
 
     describe('getJson', () => {
         test('should retrieve the value from localStorage', () => {
-            const key = Persistence.StorageKeys.WEATHER_LAST_DATA_KEY;
+            const key = StorageKeys.WEATHER_LAST_DATA_KEY;
             const value = {a: 1, b: 'test'};
             // Mock the return value for this specific call
             localStorage.getItem = jest.fn().mockReturnValueOnce(JSON.stringify(value));
