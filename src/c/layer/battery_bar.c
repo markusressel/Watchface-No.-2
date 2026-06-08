@@ -21,14 +21,14 @@ static int s_battery_layer_count = 0;
 static int s_current_battery_level;
 
 // battery charging animation callbacks
-static AnimationImplementation batteryChargingAnimImpl;
+static AnimationImplementation battery_charging_anim_impl;
 
 static Animation *charging_animation;
 
 // battery charging animation durations
-static int s_battery_charging_animation_duration = 2000;
+static int s_battery_charging_animation_duration_ms = 2000;
 // delay between a full battery charging animation cycle
-static int s_battery_charging_animation_delay = 600;
+static int s_battery_charging_animation_delay_ms = 600;
 static const int s_battery_charging_animation_repeat_count = ANIMATION_DURATION_INFINITE;
 
 static BatteryLayerInstance *find_battery_instance(Layer *layer) {
@@ -77,11 +77,11 @@ static void draw_battery_fill(int percent) {
 
 // update battery charging animation
 static void batteryChargingAnimUpdate(Animation *animation, const AnimationProgress progress) {
-    int progressPercent = (progress * 100 / ANIMATION_NORMALIZED_MAX);
+    const int progress_percent = (progress * 100 / ANIMATION_NORMALIZED_MAX);
     // calculate animation fill rate
-    int fillPercent = s_battery_level + (progressPercent * (100 - s_battery_level) / 100);
+    const int fill_percent = s_battery_level + (progress_percent * (100 - s_battery_level) / 100);
 
-    draw_battery_fill(fillPercent);
+    draw_battery_fill(fill_percent);
 }
 
 // draw the battery layer
@@ -226,13 +226,13 @@ static void destroy_battery_charging_animation() {
 }
 
 static void initialize_battery_charging_animation() {
-    batteryChargingAnimImpl.update = batteryChargingAnimUpdate;
+    battery_charging_anim_impl.update = batteryChargingAnimUpdate;
 
     charging_animation = animation_create();
-    animation_set_duration(charging_animation, s_battery_charging_animation_duration);
-    animation_set_delay(charging_animation, s_battery_charging_animation_delay);
+    animation_set_duration(charging_animation, s_battery_charging_animation_duration_ms);
+    animation_set_delay(charging_animation, s_battery_charging_animation_delay_ms);
     animation_set_curve(charging_animation, AnimationCurveLinear);
-    animation_set_implementation(charging_animation, &batteryChargingAnimImpl);
+    animation_set_implementation(charging_animation, &battery_charging_anim_impl);
     animation_set_play_count(charging_animation, s_battery_charging_animation_repeat_count);
     //animation_set_handlers(animation,(AnimationHandlers){
     //  .started = animationStartedHandler,
