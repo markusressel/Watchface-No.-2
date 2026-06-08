@@ -23,6 +23,7 @@ const mockLocalStorage = (() => {
 // Mock XMLHttpRequest
 const mockXMLHttpRequest = jest.fn(() => ({
     onload: null,
+    onerror: null,
     open: jest.fn(),
     send: jest.fn(function () {
         // Simulate a successful response for testing purposes
@@ -90,7 +91,7 @@ const mockConfig = {
         return this._weatherSimulationEnabled;
     })
 };
-jest.mock('../../../src/pkjs/config/config', () => mockConfig);
+jest.mock('../../../src/js-modern/config/config', () => mockConfig);
 
 // Mock the app_messaging module that weather.js requires
 const mockAppMessaging = {
@@ -105,11 +106,11 @@ const mockAppMessaging = {
     }),
     encode_number_array: jest.fn(values => values.join(','))
 };
-jest.mock('../../../src/pkjs/app_messaging', () => mockAppMessaging);
+jest.mock('../../../src/js-modern/app_messaging', () => mockAppMessaging);
 
 
 // Now require weather.js
-const weather = require('../../../src/pkjs/weather/weather'); // Path adjusted for new test location
+const weather = require('../../../src/js-modern/weather/weather'); // Path adjusted for new test location
 
 describe('weather.js', () => {
     const originalDateNow = Date.now;
@@ -293,7 +294,7 @@ describe('weather.js', () => {
     });
 
     // Test getWeather with API call (mocked XHR)
-    test('getWeather makes API call when update is needed', () => {
+    test('getWeather makes API call when update is needed', async () => {
         // Simulate old timestamp to trigger API call
         mockLocalStorage.setItem('weather-last-fetch-ts', String(Date.now() - (31 * 60 * 1000)));
 
@@ -301,6 +302,9 @@ describe('weather.js', () => {
         Date.now = jest.fn(() => 1678886400 * 1000); // Set current time to match the first entry in mock XHR data
 
         weather.getWeather();
+
+        // wait for promises to resolve
+        await new Promise(resolve => setImmediate(resolve));
 
         // The expected dictionary will be based on the mocked XMLHttpRequest response
         const expectedDictionary = {

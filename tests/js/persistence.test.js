@@ -1,4 +1,4 @@
-const Persistence = require('../../src/pkjs/persistence');
+const Persistence = require('../../src/js-modern/persistence');
 
 // Mock localStorage if it does not exist
 if (typeof localStorage === 'undefined') {
