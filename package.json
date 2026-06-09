@@ -81,11 +81,16 @@
     "description": "A dot-styled watchface for the Pebble platform",
     "main": "index.js",
     "devDependencies": {
-        "jest": "^30.4.2",
-        "terser": "^5.31.3",
-        "@babel/core": "^7.29.7",
         "@babel/cli": "^7.29.7",
-        "@babel/preset-env": "^7.29.7"
+        "@babel/core": "^7.29.7",
+        "@babel/eslint-parser": "^7.29.7",
+        "@babel/preset-env": "^7.29.7",
+        "@eslint/eslintrc": "^3.3.5",
+        "@eslint/js": "^9.39.4",
+        "eslint": "^9.39.4",
+        "globals": "^17.6.0",
+        "jest": "^30.4.2",
+        "terser": "^5.31.3"
     },
     "jest": {
         "setupFilesAfterEnv": [

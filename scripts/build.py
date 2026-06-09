@@ -33,14 +33,14 @@ def main():
     print("Running pebble build...")
     if run_command("pebble build", env=env) != 0:
         print("Pebble build command failed.")
-        return
+        exit(1)
 
     if args.minify:
         print("Minifying JS files...")
         pkjs_dir = "src/pkjs"
         if not os.path.isdir(pkjs_dir):
             print(f"Directory not found: {pkjs_dir}. Skipping minification.")
-            return
+            exit(1)
 
         for root, _, files in os.walk(pkjs_dir):
             for filename in files:

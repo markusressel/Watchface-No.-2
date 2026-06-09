@@ -49,14 +49,26 @@ def run_cppcheck(ctx):
                 _err_to_out=True
             )
         except ErrorReturnCode as e:
-            ctx.fatal("\ncppcheck failed:\n" + e.stdout)
+            ctx.fatal(f"\ncppcheck failed:\n" + e.stdout.decode('utf-8'))
     except (ImportError, CommandNotFound):
         ctx.fatal("\ncppcheck command not found. Please install cppcheck.")
+
+def run_lint_js(ctx):
+    try:
+        from sh import npx, CommandNotFound, ErrorReturnCode
+        print("Running eslint...")
+        try:
+            npx('eslint', 'src/js-modern/', _tty_out=False)
+        except ErrorReturnCode as e:
+            ctx.fatal("\nESLint linting failed!\n" + e.stdout.decode('utf-8'))
+    except (ImportError, CommandNotFound):
+        ctx.fatal("\nnpx or eslint command not found.")
 
 def build(ctx):
     subprocess.run(["just", "generate"], check=True)
 
     run_cppcheck(ctx)
+    run_lint_js(ctx)
 
     # Clean the old pkjs directory
     pkjs_dir = os.path.join('src', 'pkjs')
