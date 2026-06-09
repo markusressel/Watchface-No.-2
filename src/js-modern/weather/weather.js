@@ -2,6 +2,7 @@ import * as config from '../config/config';
 import * as appMessaging from '../app_messaging';
 import Persistence, {StorageKeys} from '../persistence';
 import timelineSimulation from './mock/timeline.json';
+import * as owm from './openweathermap';
 
 const WEATHER_UPDATE_INTERVAL_MS = 30.0.minutes;
 const FORECAST_POINT_COUNT = 100;
@@ -308,40 +309,6 @@ export function build_condensed_series(entries, extractor, maxCount) {
     return samples;
 }
 
-const xhrRequest = async function (url, type) {
-    return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.onload = function () {
-            resolve(this.responseText);
-        };
-        xhr.onerror = function () {
-            console.log("Network error");
-            reject(new Error("Network error"));
-        };
-        xhr.open(type, url);
-        xhr.send();
-    });
-};
-
-/**
- * Constructs a URL with query parameters.
- * @param {string} baseUrl - The base URL.
- * @param {object} queryParams - An object containing key-value pairs for query parameters.
- * @returns {string} The constructed URL.
- */
-function createUrl(baseUrl, queryParams) {
-    let url = baseUrl;
-    const params = [];
-    for (const key in queryParams) {
-        if (queryParams.hasOwnProperty(key)) {
-            params.push(`${key}=${queryParams[key]}`);
-        }
-    }
-    if (params.length > 0) {
-        url += '?' + params.join('&');
-    }
-    return url;
-}
 
 /**
  * Fetches weather data from the OpenWeatherMap API.
@@ -350,20 +317,8 @@ function createUrl(baseUrl, queryParams) {
  * @returns {Promise<WeatherData|null>} A promise that resolves with the weather data.
  */
 async function fetch_weather_data(latitude, longitude) {
-    const baseUrl = "https://api.openweathermap.org/data/4.0/onecall/timeline/15min";
-    const queryParams = {
-        lat: latitude,
-        lon: longitude,
-        appid: config.getWeatherApiKey()
-    };
-    const url = createUrl(baseUrl, queryParams);
-
-    console.log("Weather request URL is: " + url);
-
     try {
-        // Send request to OpenWeatherMap
-        const responseText = await xhrRequest(url, 'GET');
-        const json = JSON.parse(responseText);
+        const json = await owm.fetch_weather_data(latitude, longitude);
         return process_timeline_payload(json, 'api/openweathermap');
     } catch (error) {
         console.log('Error during API weather request or processing: ' + error);
