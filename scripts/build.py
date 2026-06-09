@@ -50,6 +50,7 @@ def main():
                     # Use npx to ensure terser is found
                     if run_command(f"npx terser {filepath} -o {filepath} -c -m", env=env) != 0:
                         print(f"Minification failed for {filepath}")
+                        exit(1)
                     else:
                         print(f"Successfully minified {filepath}")
 
