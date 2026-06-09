@@ -64,14 +64,9 @@ def run_lint_js(ctx):
     except (ImportError, CommandNotFound):
         ctx.fatal("\nnpx or eslint command not found.")
 
-def build(ctx):
-    subprocess.run(["just", "generate"], check=True)
-
-    run_cppcheck(ctx)
-    run_lint_js(ctx)
-
+def run_babel_transpilation(ctx):
     # Clean the old pkjs directory
-    pkjs_dir = os.path.join('src', 'pkjs')
+    pkjs_dir = os.path.join('build', 'generated', 'pkjs')
     if os.path.exists(pkjs_dir):
         shutil.rmtree(pkjs_dir)
 
@@ -81,6 +76,14 @@ def build(ctx):
     if npm_bin is None:
         ctx.fatal("npm command not found. Please install Node.js and npm.")
     subprocess.run([npm_bin, "run", "babel"], check=True)
+
+
+def build(ctx):
+    subprocess.run(["just", "generate"], check=True)
+
+    run_cppcheck(ctx)
+    run_lint_js(ctx)
+    run_babel_transpilation(ctx)
 
     if False and hint is not None:
         try:

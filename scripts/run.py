@@ -102,4 +102,4 @@ if __name__ == "__main__":
         build_and_deploy(args.platforms, args.logs, debug_build)
         print("✅ All targets processed!")
     except KeyboardInterrupt:
-        print("KeyboardInterrupt")
+        pass
