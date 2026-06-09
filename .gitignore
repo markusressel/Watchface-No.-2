@@ -40,4 +40,3 @@ node_modules
 .idea
 
 /src/js-modern/generated
-/src/pkjs

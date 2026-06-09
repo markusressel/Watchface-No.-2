@@ -37,7 +37,7 @@ def main():
 
     if args.minify:
         print("Minifying JS files...")
-        pkjs_dir = "src/pkjs"
+        pkjs_dir = "build/generated/pkjs"
         if not os.path.isdir(pkjs_dir):
             print(f"Directory not found: {pkjs_dir}. Skipping minification.")
             exit(1)

@@ -79,7 +79,7 @@ To avoid these issues use heap allocation for large data structures and avoid re
 ### JavaScript Engine (pkjs)
 
 This project uses babel to transpile modern JS features into a compatible style for the Pebble SDK build environment.
-Source code is written in `src/js-modern`, transpiled code lands in `src/pkjs`, which is picked up by the pebble sdk.
+Source code is written in `src/js-modern`, transpiled code lands in `build/generated/pkjs`, which is picked up by the pebble sdk.
 
 # Codestyle
 

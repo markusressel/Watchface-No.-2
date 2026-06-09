@@ -75,7 +75,7 @@
     },
     "scripts": {
         "test": "jest",
-        "babel": "babel src/js-modern --out-dir src/pkjs --copy-files"
+        "babel": "babel src/js-modern --out-dir build/generated/pkjs --copy-files"
     },
     "version": "1.3.0",
     "description": "A dot-styled watchface for the Pebble platform",

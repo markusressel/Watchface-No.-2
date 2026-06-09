@@ -77,7 +77,6 @@ def run_babel_transpilation(ctx):
         ctx.fatal("npm command not found. Please install Node.js and npm.")
     subprocess.run([npm_bin, "run", "babel"], check=True)
 
-
 def build(ctx):
     subprocess.run(["just", "generate"], check=True)
 
@@ -126,4 +125,10 @@ def build(ctx):
             binaries.append({'platform': p, 'app_elf': app_elf})
 
     ctx.set_group('bundle')
-    ctx.pbl_bundle(binaries=binaries, js=ctx.path.ant_glob(['src/pkjs/**/*.js', 'src/pkjs/**/*.json']), js_entry_file='src/pkjs/index.js')
+
+    # Correctly find JS files inside the build directory using bldnode
+    pkjs_node = ctx.bldnode.make_node('generated/pkjs')
+    js_files = pkjs_node.ant_glob(['**/*.js', '**/*.json'])
+    js_entry = 'build/generated/pkjs/index.js'
+
+    ctx.pbl_bundle(binaries=binaries, js=js_files, js_entry_file=js_entry)
