@@ -80,23 +80,26 @@ def build_and_deploy(platforms: List[str], follow_logs: bool, debug_build: bool)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Build and deploy Pebble app to emulators and/or phone")
-    parser.add_argument("platforms", nargs="+", choices=VALID_PLATFORMS)
-    parser.add_argument("--logs", action="store_true", help="Follow logs after install (single target only)")
+    try:
+        parser = argparse.ArgumentParser(description="Build and deploy Pebble app to emulators and/or phone")
+        parser.add_argument("platforms", nargs="+", choices=VALID_PLATFORMS)
+        parser.add_argument("--logs", action="store_true", help="Follow logs after install (single target only)")
 
-    mode = parser.add_mutually_exclusive_group()
-    mode.add_argument("--debug", action="store_true", help="Build debug variant")
-    mode.add_argument("--release", action="store_true", help="Build release variant (default)")
+        mode = parser.add_mutually_exclusive_group()
+        mode.add_argument("--debug", action="store_true", help="Build debug variant")
+        mode.add_argument("--release", action="store_true", help="Build release variant (default)")
 
-    args = parser.parse_args()
+        args = parser.parse_args()
 
-    if args.logs and len(args.platforms) > 1:
-        print("The --logs flag can only be used with a single target.")
-        sys.exit(1)
+        if args.logs and len(args.platforms) > 1:
+            print("The --logs flag can only be used with a single target.")
+            sys.exit(1)
 
-    debug_build = args.debug
+        debug_build = args.debug
 
-    print(f"🚀 Processing targets: {', '.join(args.platforms)}")
-    print(f"🔧 Build mode: {'Debug' if debug_build else 'Release'}")
-    build_and_deploy(args.platforms, args.logs, debug_build)
-    print("✅ All targets processed!")
+        print(f"🚀 Processing targets: {', '.join(args.platforms)}")
+        print(f"🔧 Build mode: {'Debug' if debug_build else 'Release'}")
+        build_and_deploy(args.platforms, args.logs, debug_build)
+        print("✅ All targets processed!")
+    except KeyboardInterrupt:
+        print("KeyboardInterrupt")
