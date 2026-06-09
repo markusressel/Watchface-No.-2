@@ -99,7 +99,7 @@ const mockAppMessaging = {
         }
         return Math.round(value * (decimalPlaces * 10));
     }),
-    encode_number_array: jest.fn(values => values.join(','))
+    encode_number_array: jest.fn(values => Array.isArray(values) ? values.join(',') : '')
 };
 jest.mock('../../../src/js-modern/app_messaging', () => ({
     __esModule: true,
@@ -109,6 +109,7 @@ jest.mock('../../../src/js-modern/app_messaging', () => ({
 
 // Now require weather.js
 const weather = require('../../../src/js-modern/weather/weather');
+const {WeatherData} = require("../../../src/js-modern/weather/weather");
 
 describe('weather.js', () => {
     const originalDateNow = Date.now;
@@ -194,47 +195,55 @@ describe('weather.js', () => {
             'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': '5,12,1,0'
         };
 
-        expect(result).toEqual(expectedDictionary);
+        expect(result.toDict()).toEqual(expectedDictionary);
     });
 
     test('send_weather_to_watch', () => {
-        const exampleData = {
-            'WEATHER_TEMPERATURE_CURRENT': 7,
-            'WEATHER_TEMPERATURE_MIN': 7,
-            'WEATHER_TEMPERATURE_MAX': 9,
-            'WEATHER_CONDITION': 'Clouds',
-            'WEATHER_RAIN_NEXT_HOUR_MM_X10': 5,
-            'WEATHER_RAIN_POP_PERCENT': 20,
-            'WEATHER_TEMP_FORECAST_ENCODED': '7,8,9,12',
-            'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': '5,12,1,0'
-        };
+        const exampleData = new WeatherData(
+            7,
+            7,
+            9,
+            'Clouds',
+            0.5,
+            20,
+            [7, 8, 9, 12],
+            [5, 12, 1, 0],
+        );
 
-        weather.send_weather_to_watch(exampleData);
+        weather.send_weather_to_watch(exampleData, "success", "error");
 
         expect(mockAppMessaging.send_dict_to_watch).toHaveBeenCalledTimes(1);
-        expect(mockAppMessaging.send_dict_to_watch).toHaveBeenCalledWith(exampleData, undefined, undefined);
+        expect(mockAppMessaging.send_dict_to_watch).toHaveBeenCalledWith(exampleData.toDict(), "success", "error");
+    });
+
+    test('send_weather_to_watch throws error if not passed a WeatherData instance', () => {
+        expect(() => weather.send_weather_to_watch({some: 'data'}, 'success', 'error')).toThrow('send_weather_to_watch expects a WeatherData object');
     });
 
     test('cache_weather_data stores data and timestamp in localStorage', () => {
-        const exampleData = {
-            'WEATHER_TEMPERATURE_CURRENT': 7,
-            'WEATHER_TEMPERATURE_MIN': 7,
-            'WEATHER_TEMPERATURE_MAX': 9,
-            'WEATHER_CONDITION': 'Clouds',
-            'WEATHER_RAIN_NEXT_HOUR_MM_X10': 5,
-            'WEATHER_RAIN_POP_PERCENT': 20,
-            'WEATHER_TEMP_FORECAST_ENCODED': '7,8,9,12',
-            'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': '5,12,1,0'
-        };
+        const exampleData = new WeatherData(
+            7,
+            7,
+            9,
+            'Clouds',
+            0.5,
+            20,
+            [7, 8, 9, 12],
+            [5, 12, 1, 0],
+        );
 
         weather.cache_weather_data(exampleData);
 
         const cachedData = JSON.parse(mockLocalStorage.getItem('weather-last-data'));
-        expect(cachedData).toEqual(exampleData);
+        expect(cachedData).toEqual(exampleData.toDict());
         expect(mockLocalStorage.getItem('weather-last-fetch-ts')).not.toBeNull();
     });
 
-    // Test getWeather with simulation enabled
+    test('cache_weather_data throws error if not passed a WeatherData instance', () => {
+        expect(() => weather.cache_weather_data({some: 'data'})).toThrow('cache_weather_data expects a WeatherData object');
+    });
+
+// Test getWeather with simulation enabled
     test('getWeather uses simulated data when simulation is enabled', () => {
         mockConfig.isWeatherSimulationEnabled.mockReturnValue(true);
         weather.getWeather();
@@ -243,7 +252,7 @@ describe('weather.js', () => {
         expect(mockPebble.lastSentMessage).not.toBeNull();
     });
 
-    // Test getWeather with no API key
+// Test getWeather with no API key
     test('getWeather sends clear data when no API key is configured', () => {
         mockConfig.getWeatherApiKey.mockReturnValue('');
         weather.getWeather();
@@ -264,7 +273,7 @@ describe('weather.js', () => {
         expect(JSON.parse(mockLocalStorage.getItem('weather-last-data'))).toEqual(expectedClearDictionary);
     });
 
-    // Test getWeather with cached data and not needing update
+// Test getWeather with cached data and not needing update
     test('getWeather uses cached data if not needing update', () => {
         const cachedDictionary = {
             'WEATHER_TEMPERATURE_CURRENT': 10,
@@ -286,7 +295,7 @@ describe('weather.js', () => {
         expect(mockGeolocation.getCurrentPosition).not.toHaveBeenCalled(); // Should not call geolocation
     });
 
-    // Test getWeather with API call (mocked XHR)
+// Test getWeather with API call (mocked XHR)
     test('getWeather makes API call when update is needed', async () => {
         // Simulate old timestamp to trigger API call
         mockLocalStorage.setItem('weather-last-fetch-ts', String(Date.now() - (31 * 60 * 1000)));
@@ -317,7 +326,7 @@ describe('weather.js', () => {
         expect(mockPebble.lastSentMessage).toEqual(expectedDictionary);
     });
 
-    // Test get_last_fetch_timestamp
+// Test get_last_fetch_timestamp
     test('get_last_fetch_timestamp returns null if no timestamp is stored', () => {
         expect(weather.get_last_fetch_timestamp()).toBeNull();
     });
@@ -333,7 +342,7 @@ describe('weather.js', () => {
         expect(weather.get_last_fetch_timestamp()).toBe(timestamp);
     });
 
-    // Test time_since_last_fetch_exceeds
+// Test time_since_last_fetch_exceeds
     test('time_since_last_fetch_exceeds returns true if no timestamp is stored', () => {
         expect(weather.time_since_last_fetch_exceeds(10000)).toBe(true);
     });

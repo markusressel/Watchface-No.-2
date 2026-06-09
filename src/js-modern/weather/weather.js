@@ -6,6 +6,54 @@ import timelineSimulation from './mock/timeline.json';
 const WEATHER_UPDATE_INTERVAL_MS = 30.0.minutes;
 const FORECAST_POINT_COUNT = 100;
 
+export class WeatherData {
+
+    /**
+     * @param temperatureCurrent {number}
+     * @param temperatureMin {number}
+     * @param temperatureMax {number}
+     * @param conditions {string}
+     * @param rainMm {number}
+     * @param popPercent {number}
+     * @param temperatureForecastSeries {number[]}
+     * @param rainForecastSeries {number[]}
+     */
+    constructor(
+        temperatureCurrent, temperatureMin, temperatureMax, conditions,
+        rainMm, popPercent,
+        temperatureForecastSeries, rainForecastSeries
+    ) {
+        this.WEATHER_TEMPERATURE_CURRENT = temperatureCurrent;
+        this.WEATHER_TEMPERATURE_MIN = temperatureMin;
+        this.WEATHER_TEMPERATURE_MAX = temperatureMax;
+        this.WEATHER_CONDITION = conditions;
+        this.WEATHER_RAIN_NEXT_HOUR_MM_X10 = one_decimal_to_int(rainMm);
+        this.WEATHER_RAIN_POP_PERCENT = popPercent;
+        this.WEATHER_TEMP_FORECAST_ENCODED = appMessaging.encode_number_array(temperatureForecastSeries);
+        this.WEATHER_RAIN_FORECAST_MM_X10_ENCODED = appMessaging.encode_number_array(rainForecastSeries);
+    }
+
+    static fromDict(dict) {
+        if (!dict) return null;
+        const instance = Object.create(WeatherData.prototype);
+        Object.assign(instance, dict);
+        return instance;
+    }
+
+    toDict() {
+        return {
+            'WEATHER_TEMPERATURE_CURRENT': this.WEATHER_TEMPERATURE_CURRENT,
+            'WEATHER_TEMPERATURE_MIN': this.WEATHER_TEMPERATURE_MIN,
+            'WEATHER_TEMPERATURE_MAX': this.WEATHER_TEMPERATURE_MAX,
+            'WEATHER_CONDITION': this.WEATHER_CONDITION,
+            'WEATHER_RAIN_NEXT_HOUR_MM_X10': this.WEATHER_RAIN_NEXT_HOUR_MM_X10,
+            'WEATHER_RAIN_POP_PERCENT': this.WEATHER_RAIN_POP_PERCENT,
+            'WEATHER_TEMP_FORECAST_ENCODED': this.WEATHER_TEMP_FORECAST_ENCODED,
+            'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': this.WEATHER_RAIN_FORECAST_MM_X10_ENCODED
+        };
+    }
+}
+
 export function request_simulated_weather_data() {
     const weatherData = process_timeline_payload(timelineSimulation, 'simulation/timeline.json');
     cache_weather_data(weatherData);
@@ -16,15 +64,27 @@ export function request_simulated_weather_data() {
     );
 }
 
-export function cache_weather_data(dictionary) {
+/**
+ *
+ * @param weatherData {WeatherData}
+ */
+export function cache_weather_data(weatherData) {
+    if (!(weatherData instanceof WeatherData)) {
+        throw new Error('cache_weather_data expects a WeatherData object');
+    }
     try {
-        Persistence.putJson(StorageKeys.WEATHER_LAST_DATA_KEY, dictionary);
+        Persistence.putJson(StorageKeys.WEATHER_LAST_DATA_KEY, weatherData.toDict());
         Persistence.putString(StorageKeys.WEATHER_LAST_FETCH_KEY, String(Date.now()));
     } catch (e) {
         console.log('Could not cache weather data: ' + e);
     }
 }
 
+/**
+ *
+ * @param json {object}
+ * @param sourceLabel {string}
+ */
 export function process_timeline_payload(json, sourceLabel) {
     if (!json || !json.data || json.data.length === 0) {
         console.log('No timeline data available from ' + sourceLabel + '.');
@@ -78,7 +138,7 @@ export function process_timeline_payload(json, sourceLabel) {
     );
 
     // Assemble dictionary using our keys
-    return createWeatherData(
+    return new WeatherData(
         temperatureCurrent,
         temperatureMin,
         temperatureMax,
@@ -87,9 +147,13 @@ export function process_timeline_payload(json, sourceLabel) {
         popPercent,
         temperatureForecastSeries,
         rainForecastSeries
-    )
+    );
 }
 
+/**
+ * @param entries {object[]|null}
+ * @return {*|null}
+ */
 export function pick_closest_entry_to_now(entries) {
     if (!entries || entries.length === 0) {
         return null;
@@ -111,6 +175,11 @@ export function pick_closest_entry_to_now(entries) {
     return best;
 }
 
+/**
+ * Converts a temperature in Kelvin to Celsius.
+ * @param kelvin {number}
+ * @return {number}
+ */
 export function kelvin_to_celsius(kelvin) {
     if (typeof kelvin !== 'number') {
         return 0;
@@ -120,7 +189,8 @@ export function kelvin_to_celsius(kelvin) {
 }
 
 function get_cached_weather_data() {
-    return Persistence.getJson(StorageKeys.WEATHER_LAST_DATA_KEY);
+    const dict = Persistence.getJson(StorageKeys.WEATHER_LAST_DATA_KEY);
+    return WeatherData.fromDict(dict);
 }
 
 /**
@@ -155,12 +225,15 @@ function should_fetch_weather_from_api() {
 
 /**
  * Sends a dictionary to the watch and logs the result.
- * @param dictionary {object}
+ * @param weatherData {WeatherData}
  * @param successMessage {string}
  * @param errorMessage {string}
  */
-export function send_weather_to_watch(dictionary, successMessage, errorMessage) {
-    appMessaging.send_dict_to_watch(dictionary, successMessage, errorMessage);
+export function send_weather_to_watch(weatherData, successMessage, errorMessage) {
+    if (!(weatherData instanceof WeatherData)) {
+        throw new Error('send_weather_to_watch expects a WeatherData object');
+    }
+    appMessaging.send_dict_to_watch(weatherData.toDict(), successMessage, errorMessage);
 }
 
 function local_day_index(utcTimestamp, timezoneOffsetSeconds) {
@@ -274,6 +347,7 @@ function createUrl(baseUrl, queryParams) {
  * Fetches weather data from the OpenWeatherMap API.
  * @param {number} latitude - The latitude coordinate for weather data.
  * @param {number} longitude - The longitude coordinate for weather data.
+ * @returns {Promise<WeatherData|null>} A promise that resolves with the weather data.
  */
 async function fetch_weather_data(latitude, longitude) {
     const baseUrl = "https://api.openweathermap.org/data/4.0/onecall/timeline/15min";
@@ -290,16 +364,11 @@ async function fetch_weather_data(latitude, longitude) {
         // Send request to OpenWeatherMap
         const responseText = await xhrRequest(url, 'GET');
         const json = JSON.parse(responseText);
-        const weatherData = process_timeline_payload(json, 'api/openweathermap');
-        cache_weather_data(weatherData);
-        send_weather_to_watch(
-            weatherData,
-            'Weather data sent to Pebble successfully!',
-            'Error sending weather data to Pebble!'
-        );
+        return process_timeline_payload(json, 'api/openweathermap');
     } catch (error) {
         console.log('Error during API weather request or processing: ' + error);
     }
+    return null;
 }
 
 /**
@@ -324,7 +393,7 @@ export function getWeather() {
         console.log("No OpenWeatherMap API key configured. Clearing weather data.");
 
         // Send empty weather data to clear the display on the watchface
-        const clearDictionary = createWeatherData(
+        const clearDictionary = new WeatherData(
             0,
             0,
             0,
@@ -361,30 +430,25 @@ export function getWeather() {
 
     navigator.geolocation.getCurrentPosition(
         function (pos) {
-            fetch_weather_data(pos.coords.latitude, pos.coords.longitude);
+            fetch_weather_data(pos.coords.latitude, pos.coords.longitude)
+                .then(weatherData => {
+                    console.log('Weather fetch process completed.');
+                    if (weatherData) {
+                        cache_weather_data(weatherData);
+                        send_weather_to_watch(
+                            weatherData,
+                            'Weather data sent to Pebble successfully!',
+                            'Error sending weather data to Pebble!'
+                        );
+                    }
+                })
+                .catch(e => console.log('Error in weather fetch process: ' + e));
         },
         function (err) {
             console.log("Error requesting location!");
         },
         {timeout: 15.0.seconds, maximumAge: 60.0.seconds}
     );
-}
-
-function createWeatherData(
-    temperatureCurrent, temperatureMin, temperatureMax, conditions,
-    rainMm, popPercent,
-    temperatureForecastSeries, rainForecastSeries
-) {
-    return {
-        'WEATHER_TEMPERATURE_CURRENT': temperatureCurrent,
-        'WEATHER_TEMPERATURE_MIN': temperatureMin,
-        'WEATHER_TEMPERATURE_MAX': temperatureMax,
-        'WEATHER_CONDITION': conditions,
-        'WEATHER_RAIN_NEXT_HOUR_MM_X10': one_decimal_to_int(rainMm),
-        'WEATHER_RAIN_POP_PERCENT': popPercent,
-        'WEATHER_TEMP_FORECAST_ENCODED': appMessaging.encode_number_array(temperatureForecastSeries),
-        'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': appMessaging.encode_number_array(rainForecastSeries)
-    }
 }
 
 /**
