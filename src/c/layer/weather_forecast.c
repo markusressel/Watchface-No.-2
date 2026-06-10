@@ -53,6 +53,7 @@ static const int s_rain_scale_steps[] = {100, 250, 500, 1000};
 typedef struct {
     GraphDataSeries data[NUM_GRAPH_SERIES];
     GraphSeriesConfig series_configs[NUM_GRAPH_SERIES];
+    GraphYAxisScalingConfig y_axis_scaling_configs[NUM_GRAPH_SERIES];
     GraphInstance forecast_graph;
 } WeatherForecastLayerData;
 
@@ -120,6 +121,25 @@ Layer *create_temperature_forecast_layer(LayerBuilder builder) {
 
     WeatherForecastLayerData *data = layer_get_data(layer);
 
+    // Rain Y-axis scaling
+    data->y_axis_scaling_configs[0] = (GraphYAxisScalingConfig) {
+        .has_y_axis_range = true,
+        .y_min = 0,
+        .y_max = 0,
+#if defined(PBL_COLOR)
+        .y_axis_max_scale_steps = s_rain_scale_steps,
+        .y_axis_max_scale_step_count = (int) (sizeof(s_rain_scale_steps) / sizeof(s_rain_scale_steps[0])),
+#else
+        .y_axis_max_scale_steps = NULL,
+        .y_axis_max_scale_step_count = 0,
+#endif
+    };
+
+    // Temperature Y-axis scaling (auto)
+    data->y_axis_scaling_configs[1] = (GraphYAxisScalingConfig) {
+        .has_y_axis_range = false,
+    };
+
     // Rain series config
     data->series_configs[0] = (GraphSeriesConfig) {
         .graph_type = GRAPH_TYPE_LINE,
@@ -136,6 +156,7 @@ Layer *create_temperature_forecast_layer(LayerBuilder builder) {
         .color_stops = NULL,
         .color_stop_count = 0,
 #endif
+        .y_axis_scaling = &data->y_axis_scaling_configs[0],
     };
 
     // Temperature series config
@@ -154,22 +175,13 @@ Layer *create_temperature_forecast_layer(LayerBuilder builder) {
         .color_stops = NULL,
         .color_stop_count = 0,
 #endif
+        .y_axis_scaling = &data->y_axis_scaling_configs[1],
     };
 
     GraphDrawConfig draw_config = {
         .series = data->series_configs,
         .series_count = NUM_GRAPH_SERIES,
         .axis = {
-            .has_y_axis_range = false,
-            .y_min = 0,
-            .y_max = 0,
-#if defined(PBL_COLOR)
-            .y_axis_max_scale_steps = s_rain_scale_steps,
-            .y_axis_max_scale_step_count = (int) (sizeof(s_rain_scale_steps) / sizeof(s_rain_scale_steps[0])),
-#else
-            .y_axis_max_scale_steps = NULL,
-            .y_axis_max_scale_step_count = 0,
-#endif
             .tick_interval_x = 4, // 1 hour (4 * 15min)
             .tick_color_x = GColorDarkGray,
             .tick_length_y = 3,

@@ -20,6 +20,14 @@ typedef struct GraphColorStop {
     GColor color;
 } GraphColorStop;
 
+typedef struct GraphYAxisScalingConfig {
+    bool has_y_axis_range;
+    int y_min;
+    int y_max;
+    const int *y_axis_max_scale_steps;
+    int y_axis_max_scale_step_count;
+} GraphYAxisScalingConfig;
+
 typedef struct GraphSeriesConfig {
     GraphType graph_type;
     int dot_size;
@@ -32,14 +40,10 @@ typedef struct GraphSeriesConfig {
     int color_stop_count;
     GraphColorForValueFn color_for_value;
     void *color_context;
+    const GraphYAxisScalingConfig *y_axis_scaling;
 } GraphSeriesConfig;
 
 typedef struct GraphAxisConfig {
-    bool has_y_axis_range;
-    int y_min;
-    int y_max;
-    const int *y_axis_max_scale_steps;
-    int y_axis_max_scale_step_count;
     int tick_interval_x;
     GColor tick_color_x;
     int tick_length_y;
