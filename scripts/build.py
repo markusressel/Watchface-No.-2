@@ -24,7 +24,7 @@ def main():
     if "PEBBLE_RELEASE" in env:
         print(f"PEBBLE_RELEASE is set to: {env['PEBBLE_RELEASE']}")
 
-    if args.emu:
+    if args.emu or "PEBBLE_EMULATOR_BUILD" in env:
         env["PEBBLE_EMULATOR_BUILD"] = "1"
     else:
         env.pop("PEBBLE_EMULATOR_BUILD", None)

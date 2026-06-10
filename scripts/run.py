@@ -16,17 +16,15 @@ def build(emulator: bool, release: bool):
     print(f"🛠️  Building project, target: {target} mode: {mode}...")
 
     env = os.environ.copy()
+    args = ["./scripts/build.py"]
     if emulator:
+        args += ["--emu"]
         env["PEBBLE_EMULATOR_BUILD"] = "1"
-    else:
-        env.pop("PEBBLE_EMULATOR_BUILD", None)
-
     if release:
+        args += ["--minify"]
         env["PEBBLE_RELEASE"] = "1"
-    else:
-        env.pop("PEBBLE_RELEASE", None)
 
-    subprocess.run(["./scripts/build.py", "--minify"], env=env, check=True)
+    subprocess.run(args, env=env, check=True)
 
 
 def build_emu(debug_build: bool):
