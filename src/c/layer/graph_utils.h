@@ -20,7 +20,7 @@ typedef struct GraphColorStop {
     GColor color;
 } GraphColorStop;
 
-typedef struct GraphDrawConfig {
+typedef struct GraphSeriesConfig {
     GraphType graph_type;
     int dot_size;
     int min_interpolated_dot_distance_px;
@@ -32,31 +32,36 @@ typedef struct GraphDrawConfig {
     int color_stop_count;
     GraphColorForValueFn color_for_value;
     void *color_context;
+} GraphSeriesConfig;
+
+typedef struct GraphAxisConfig {
     bool has_y_axis_range;
     int y_min;
     int y_max;
     const int *y_axis_max_scale_steps;
     int y_axis_max_scale_step_count;
+    int tick_interval_x;
+    GColor tick_color_x;
+    int tick_length_y;
+} GraphAxisConfig;
+
+typedef struct GraphDrawConfig {
+    const GraphSeriesConfig *series;
+    int series_count;
+    GraphAxisConfig axis;
 } GraphDrawConfig;
 
-typedef struct GraphInstance {
+typedef struct GraphDataSeries {
     const int *values;
     int value_count;
+} GraphDataSeries;
+
+typedef struct GraphInstance {
+    GraphDataSeries *data;
+    int data_count;
     GraphDrawConfig config;
 } GraphInstance;
 
-void graph_draw_series(
-    GContext *ctx,
-    GRect bounds,
-    const int *values,
-    int value_count,
-    const GraphDrawConfig *config
-);
-
-void graph_instance_init(GraphInstance *instance, const int *values, int value_count);
-
-void graph_instance_set_config(GraphInstance *instance, const GraphDrawConfig *config);
-
-void graph_instance_set_y_axis_range(GraphInstance *instance, int y_min, int y_max);
+void graph_instance_init(GraphInstance *instance, GraphDataSeries *data, int data_count, const GraphDrawConfig *config);
 
 void graph_instance_draw(const GraphInstance *instance, GContext *ctx, GRect bounds);

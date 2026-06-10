@@ -25,6 +25,7 @@ void destroy_temperature_forecast_layer(Layer *layer) {
 
 #define MAX_TEMPERATURE_FORECAST_LAYERS 7
 #define MAX_FORECAST_POINTS 100
+#define NUM_GRAPH_SERIES 2
 
 #if defined(PBL_COLOR)
 static const GraphColorStop s_temperature_color_stops[] = {
@@ -50,8 +51,9 @@ static const int s_rain_scale_steps[] = {100, 250, 500, 1000};
 #endif
 
 typedef struct {
-    GraphInstance temperature_graph;
-    GraphInstance rain_graph;
+    GraphDataSeries data[NUM_GRAPH_SERIES];
+    GraphSeriesConfig series_configs[NUM_GRAPH_SERIES];
+    GraphInstance forecast_graph;
 } WeatherForecastLayerData;
 
 static Layer *s_layers[MAX_TEMPERATURE_FORECAST_LAYERS];
@@ -59,11 +61,10 @@ static int s_layer_count = 0;
 
 static void update_proc(Layer *layer, GContext *ctx) {
     WeatherForecastLayerData *data = layer_get_data(layer);
-
     const GRect bounds = layer_get_bounds(layer);
     WeatherData *weather_data = weather_get_data();
 
-    // Update rain graph
+    // Update rain data
     int rain_value_count = weather_data->RainForecastMmX10Count;
     const int *rain_render_values = weather_data->RainForecastMmX10;
     int rain_fallback_value[1];
@@ -74,11 +75,10 @@ static void update_proc(Layer *layer, GContext *ctx) {
     } else if (rain_value_count > MAX_FORECAST_POINTS) {
         rain_value_count = MAX_FORECAST_POINTS;
     }
-    data->rain_graph.values = rain_render_values;
-    data->rain_graph.value_count = rain_value_count;
-    graph_instance_draw(&data->rain_graph, ctx, bounds);
+    data->data[0].values = rain_render_values;
+    data->data[0].value_count = rain_value_count;
 
-    // Update temperature graph
+    // Update temperature data
     int temp_value_count = weather_data->TemperatureForecastCount;
     const int *temp_render_values = weather_data->TemperatureForecast;
     int temp_fallback_value[1];
@@ -89,9 +89,10 @@ static void update_proc(Layer *layer, GContext *ctx) {
     } else if (temp_value_count > MAX_FORECAST_POINTS) {
         temp_value_count = MAX_FORECAST_POINTS;
     }
-    data->temperature_graph.values = temp_render_values;
-    data->temperature_graph.value_count = temp_value_count;
-    graph_instance_draw(&data->temperature_graph, ctx, bounds);
+    data->data[1].values = temp_render_values;
+    data->data[1].value_count = temp_value_count;
+
+    graph_instance_draw(&data->forecast_graph, ctx, bounds);
 }
 
 void update_temperature_forecast() {
@@ -119,9 +120,26 @@ Layer *create_temperature_forecast_layer(LayerBuilder builder) {
 
     WeatherForecastLayerData *data = layer_get_data(layer);
 
-    // Init temperature graph
-    graph_instance_init(&data->temperature_graph, NULL, 0);
-    GraphDrawConfig temp_config = {
+    // Rain series config
+    data->series_configs[0] = (GraphSeriesConfig) {
+        .graph_type = GRAPH_TYPE_LINE,
+        .dot_size = 1,
+        .min_interpolated_dot_distance_px = 0,
+        .fill_area_under_line = true,
+        .suppress_exact_zero_value = true,
+        .interpolate_color_stops = false,
+        .default_color = GColorBlue,
+#if defined(PBL_COLOR)
+        .color_stops = s_rain_color_stops,
+        .color_stop_count = (int) (sizeof(s_rain_color_stops) / sizeof(s_rain_color_stops[0])),
+#else
+        .color_stops = NULL,
+        .color_stop_count = 0,
+#endif
+    };
+
+    // Temperature series config
+    data->series_configs[1] = (GraphSeriesConfig) {
         .graph_type = GRAPH_TYPE_LINE,
         .dot_size = 1,
         .min_interpolated_dot_distance_px = 0,
@@ -136,40 +154,29 @@ Layer *create_temperature_forecast_layer(LayerBuilder builder) {
         .color_stops = NULL,
         .color_stop_count = 0,
 #endif
-        .has_y_axis_range = false,
-        .y_min = 0,
-        .y_max = 0,
-        .y_axis_max_scale_steps = NULL,
-        .y_axis_max_scale_step_count = 0,
     };
-    graph_instance_set_config(&data->temperature_graph, &temp_config);
 
-    // Init rain graph
-    graph_instance_init(&data->rain_graph, NULL, 0);
-    GraphDrawConfig rain_config = {
-        .graph_type = GRAPH_TYPE_LINE,
-        .dot_size = 1,
-        .min_interpolated_dot_distance_px = 0,
-        .fill_area_under_line = true,
-        .suppress_exact_zero_value = true,
-        .interpolate_color_stops = false,
-        .default_color = GColorBlue,
+    GraphDrawConfig draw_config = {
+        .series = data->series_configs,
+        .series_count = NUM_GRAPH_SERIES,
+        .axis = {
+            .has_y_axis_range = false,
+            .y_min = 0,
+            .y_max = 0,
 #if defined(PBL_COLOR)
-        .color_stops = s_rain_color_stops,
-        .color_stop_count = (int) (sizeof(s_rain_color_stops) / sizeof(s_rain_color_stops[0])),
-        .y_axis_max_scale_steps = s_rain_scale_steps,
-        .y_axis_max_scale_step_count = (int) (sizeof(s_rain_scale_steps) / sizeof(s_rain_scale_steps[0])),
+            .y_axis_max_scale_steps = s_rain_scale_steps,
+            .y_axis_max_scale_step_count = (int) (sizeof(s_rain_scale_steps) / sizeof(s_rain_scale_steps[0])),
 #else
-        .color_stops = NULL,
-        .color_stop_count = 0,
-        .y_axis_max_scale_steps = NULL,
-        .y_axis_max_scale_step_count = 0,
+            .y_axis_max_scale_steps = NULL,
+            .y_axis_max_scale_step_count = 0,
 #endif
-        .has_y_axis_range = true,
-        .y_min = 0,
-        .y_max = 0,
+            .tick_interval_x = 4, // 1 hour (4 * 15min)
+            .tick_color_x = GColorDarkGray,
+            .tick_length_y = 3,
+        }
     };
-    graph_instance_set_config(&data->rain_graph, &rain_config);
+
+    graph_instance_init(&data->forecast_graph, data->data, NUM_GRAPH_SERIES, &draw_config);
 
     s_layers[s_layer_count++] = layer;
     layer_mark_dirty(layer);

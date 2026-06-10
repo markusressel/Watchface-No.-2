@@ -56,7 +56,7 @@ static GColor interpolate_color(const GColor from, const GColor to, const int t_
 }
 
 static GColor graph_color_for_stops(
-    const GraphDrawConfig *config,
+    const GraphSeriesConfig *config,
     const int value
 ) {
     if (!config->color_stops || config->color_stop_count <= 0) {
@@ -102,7 +102,7 @@ static GColor graph_color_for_stops(
 }
 
 static GColor graph_color_for_value(
-    const GraphDrawConfig *config,
+    const GraphSeriesConfig *config,
     const int value,
     const int min_value,
     const int max_value
@@ -151,23 +151,6 @@ static int graph_value_to_y(
 
     const int normalized = (value - min_value) * drawable_height / (max_value - min_value);
     return drawable_height - normalized;
-}
-
-static void compute_min_max(const int *values, const int value_count, int *out_min, int *out_max) {
-    int min_value = values[0];
-    int max_value = values[0];
-
-    for (int i = 1; i < value_count; i++) {
-        if (values[i] < min_value) {
-            min_value = values[i];
-        }
-        if (values[i] > max_value) {
-            max_value = values[i];
-        }
-    }
-
-    *out_min = min_value;
-    *out_max = max_value;
 }
 
 static int smoothstep_interpolate(const int start, const int end, const int step, const int steps_per_segment) {
@@ -221,7 +204,7 @@ static int interpolation_steps_for_segment(const int x_start, const int x_end, c
     return clamp_int(steps, 0, 32);
 }
 
-static bool should_suppress_value(const GraphDrawConfig *config, const int value) {
+static bool should_suppress_value(const GraphSeriesConfig *config, const int value) {
     return config->suppress_exact_zero_value && value == 0;
 }
 
@@ -233,7 +216,7 @@ static void draw_line_fill_column(
     const int min_value,
     const int max_value,
     const int drawable_height,
-    const GraphDrawConfig *config
+    const GraphSeriesConfig *config
 ) {
     if (!config->fill_area_under_line || x < 0 || x >= bounds.size.w) {
         return;
@@ -260,7 +243,7 @@ static void draw_bar_at_x(
     const int min_value,
     const int max_value,
     const int dot_size,
-    const GraphDrawConfig *config
+    const GraphSeriesConfig *config
 ) {
     if (should_suppress_value(config, value)) {
         return;
@@ -283,12 +266,14 @@ static void draw_bar_at_x(
     }
 }
 
-void graph_draw_series(
+static void draw_single_series(
     GContext *ctx,
     const GRect bounds,
     const int *values,
     const int value_count,
-    const GraphDrawConfig *config
+    const GraphSeriesConfig *config,
+    const int min_value,
+    const int max_value
 ) {
     if (!ctx || !values || !config || value_count <= 0 || bounds.size.w <= 0 || bounds.size.h <= 0) {
         return;
@@ -298,60 +283,6 @@ void graph_draw_series(
     const int min_interpolated_dot_distance_px = config->min_interpolated_dot_distance_px >= 0
                                                      ? config->min_interpolated_dot_distance_px
                                                      : 2;
-
-    int min_value;
-    int max_value;
-
-    if (config->has_y_axis_range && (!config->y_axis_max_scale_steps || config->y_axis_max_scale_step_count <= 0)) {
-        min_value = config->y_min;
-        max_value = config->y_max;
-    } else {
-        compute_min_max(values, value_count, &min_value, &max_value);
-
-        if (config->y_axis_max_scale_steps && config->y_axis_max_scale_step_count > 0) {
-            int best_step = max_value;
-            bool found_step = false;
-            for (int i = 0; i < config->y_axis_max_scale_step_count; i++) {
-                int step = config->y_axis_max_scale_steps[i];
-                if (step >= max_value) {
-                    if (!found_step || step < best_step) {
-                        best_step = step;
-                        found_step = true;
-                    }
-                }
-            }
-            if (!found_step) {
-                best_step = config->y_axis_max_scale_steps[0];
-                for (int i = 1; i < config->y_axis_max_scale_step_count; i++) {
-                    if (config->y_axis_max_scale_steps[i] > best_step) {
-                        best_step = config->y_axis_max_scale_steps[i];
-                    }
-                }
-                if (max_value > best_step) {
-                    best_step = max_value;
-                }
-            }
-            max_value = best_step;
-        }
-
-        if (config->has_y_axis_range) {
-            min_value = config->y_min;
-        } else {
-            // Bar and line graphs should keep a true zero baseline so positive values
-            // grow upward from zero and negative values grow downward from zero.
-            if (config->graph_type == GRAPH_TYPE_BAR || config->graph_type == GRAPH_TYPE_LINE) {
-                if (min_value > 0) {
-                    min_value = 0;
-                }
-                if (max_value < 0) {
-                    max_value = 0;
-                }
-                if (max_value == min_value) {
-                    max_value = min_value + 1;
-                }
-            }
-        }
-    }
 
     int drawable_height = bounds.size.h - dot_size;
     if (drawable_height < 1) {
@@ -530,43 +461,137 @@ void graph_draw_series(
     }
 }
 
-void graph_instance_init(GraphInstance *instance, const int *values, const int value_count) {
+void graph_instance_init(GraphInstance *instance, GraphDataSeries *data, const int data_count, const GraphDrawConfig *config) {
     if (!instance) return;
-    instance->values = values;
-    instance->value_count = value_count;
-
-    // Default config initialization (just zero out everything to be safe)
-    instance->config.graph_type = GRAPH_TYPE_POINTS;
-    instance->config.dot_size = 1;
-    instance->config.min_interpolated_dot_distance_px = 0;
-    instance->config.fill_area_under_line = false;
-    instance->config.suppress_exact_zero_value = false;
-    instance->config.interpolate_color_stops = false;
-    instance->config.default_color = GColorClear;
-    instance->config.color_stops = NULL;
-    instance->config.color_stop_count = 0;
-    instance->config.color_for_value = NULL;
-    instance->config.color_context = NULL;
-    instance->config.has_y_axis_range = false;
-    instance->config.y_min = 0;
-    instance->config.y_max = 0;
-    instance->config.y_axis_max_scale_steps = NULL;
-    instance->config.y_axis_max_scale_step_count = 0;
-}
-
-void graph_instance_set_config(GraphInstance *instance, const GraphDrawConfig *config) {
-    if (!instance || !config) return;
-    instance->config = *config;
-}
-
-void graph_instance_set_y_axis_range(GraphInstance *instance, const int y_min, const int y_max) {
-    if (!instance) return;
-    instance->config.has_y_axis_range = true;
-    instance->config.y_min = y_min;
-    instance->config.y_max = y_max;
+    instance->data = data;
+    instance->data_count = data_count;
+    if (config) {
+        instance->config = *config;
+    } else {
+        instance->config.series = NULL;
+        instance->config.series_count = 0;
+        instance->config.axis.has_y_axis_range = false;
+        instance->config.axis.y_min = 0;
+        instance->config.axis.y_max = 0;
+        instance->config.axis.y_axis_max_scale_steps = NULL;
+        instance->config.axis.y_axis_max_scale_step_count = 0;
+        instance->config.axis.tick_interval_x = 0;
+        instance->config.axis.tick_color_x = GColorClear;
+        instance->config.axis.tick_length_y = 0;
+    }
 }
 
 void graph_instance_draw(const GraphInstance *instance, GContext *ctx, const GRect bounds) {
-    if (!instance) return;
-    graph_draw_series(ctx, bounds, instance->values, instance->value_count, &instance->config);
+    if (!instance || instance->data_count <= 0 || !instance->config.series || instance->config.series_count <= 0) return;
+
+    int min_value = 0;
+    int max_value = 0;
+    bool has_data = false;
+
+    if (instance->config.axis.has_y_axis_range && (!instance->config.axis.y_axis_max_scale_steps || instance->config.axis.y_axis_max_scale_step_count <= 0)) {
+        min_value = instance->config.axis.y_min;
+        max_value = instance->config.axis.y_max;
+        has_data = true;
+    } else {
+        for (int s = 0; s < instance->data_count; s++) {
+            const int *values = instance->data[s].values;
+            const int value_count = instance->data[s].value_count;
+            if (!values || value_count <= 0) continue;
+
+            for (int i = 0; i < value_count; i++) {
+                if (!has_data) {
+                    min_value = values[i];
+                    max_value = values[i];
+                    has_data = true;
+                } else {
+                    if (values[i] < min_value) min_value = values[i];
+                    if (values[i] > max_value) max_value = values[i];
+                }
+            }
+        }
+
+        if (!has_data) {
+            min_value = 0;
+            max_value = 1;
+        }
+
+        if (instance->config.axis.y_axis_max_scale_steps && instance->config.axis.y_axis_max_scale_step_count > 0) {
+            int best_step = max_value;
+            bool found_step = false;
+            for (int i = 0; i < instance->config.axis.y_axis_max_scale_step_count; i++) {
+                int step = instance->config.axis.y_axis_max_scale_steps[i];
+                if (step >= max_value) {
+                    if (!found_step || step < best_step) {
+                        best_step = step;
+                        found_step = true;
+                    }
+                }
+            }
+            if (!found_step) {
+                best_step = instance->config.axis.y_axis_max_scale_steps[0];
+                for (int i = 1; i < instance->config.axis.y_axis_max_scale_step_count; i++) {
+                    if (instance->config.axis.y_axis_max_scale_steps[i] > best_step) {
+                        best_step = instance->config.axis.y_axis_max_scale_steps[i];
+                    }
+                }
+                if (max_value > best_step) {
+                    best_step = max_value;
+                }
+            }
+            max_value = best_step;
+        }
+
+        if (instance->config.axis.has_y_axis_range) {
+            min_value = instance->config.axis.y_min;
+        } else {
+            bool needs_zero_anchor = false;
+            for (int s = 0; s < instance->config.series_count; s++) {
+                if (instance->config.series[s].graph_type == GRAPH_TYPE_BAR || instance->config.series[s].graph_type == GRAPH_TYPE_LINE) {
+                    needs_zero_anchor = true;
+                    break;
+                }
+            }
+            if (needs_zero_anchor) {
+                if (min_value > 0) min_value = 0;
+                if (max_value < 0) max_value = 0;
+                if (max_value == min_value) max_value = min_value + 1;
+            }
+        }
+    }
+
+    // Determine max value_count to draw the x-axis properly
+    int max_points = 0;
+    for (int s = 0; s < instance->data_count; s++) {
+        if (instance->data[s].value_count > max_points) {
+            max_points = instance->data[s].value_count;
+        }
+    }
+
+    // Draw x-axis ticks behind the series
+    if (max_points > 0 && instance->config.axis.tick_interval_x > 0 && !gcolor_equal(instance->config.axis.tick_color_x, GColorClear)) {
+        // Find a representative dot size. We can just take the largest dot size from the series.
+        int max_dot_size = 1;
+        for (int s = 0; s < instance->config.series_count; s++) {
+            if (instance->config.series[s].dot_size > max_dot_size) {
+                max_dot_size = instance->config.series[s].dot_size;
+            }
+        }
+
+        graphics_context_set_stroke_color(ctx, instance->config.axis.tick_color_x);
+        for (int i = 0; i < max_points; i++) {
+            if ((i % instance->config.axis.tick_interval_x) == 0) {
+                int x = x_for_index(i, max_points, bounds.size.w, max_dot_size) + (max_dot_size / 2);
+                int y_bottom = bounds.size.h;
+                int y_top = y_bottom - instance->config.axis.tick_length_y;
+                if (y_top < 0) y_top = 0;
+                graphics_draw_line(ctx, GPoint(x, y_bottom), GPoint(x, y_top));
+            }
+        }
+    }
+
+    // Draw all series
+    int num_to_draw = instance->data_count < instance->config.series_count ? instance->data_count : instance->config.series_count;
+    for (int s = 0; s < num_to_draw; s++) {
+        draw_single_series(ctx, bounds, instance->data[s].values, instance->data[s].value_count, &instance->config.series[s], min_value, max_value);
+    }
 }
