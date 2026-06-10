@@ -111,7 +111,7 @@ static WeatherLayerInstance s_weather_layers[MAX_WEATHER_LAYERS];
 static int s_weather_layer_count = 0;
 
 WeatherData *weather_get_data() {
-    if (DEV_OPTIONS.IsEmulator || clay_get_settings()->WeatherUseSimulation) {
+    if (clay_get_settings()->WeatherUseSimulation) {
         memcpy(&s_mock_weather_data, &s_mock_weather_data_template, sizeof(WeatherData));
         return &s_mock_weather_data;
     }
@@ -173,7 +173,7 @@ void weather_delete_pesisted_data() {
 static void save_current_weather_data(WeatherData *weather_data) {
     APP_LOG(APP_LOG_LEVEL_DEBUG, "saving current weather data: %p", weather_data);
 
-    if (DEV_OPTIONS.IsEmulator || clay_get_settings()->WeatherUseSimulation) {
+    if (clay_get_settings()->WeatherUseSimulation) {
         APP_LOG(APP_LOG_LEVEL_DEBUG, "skipping saving weather data in simulation mode");
         return;
     }

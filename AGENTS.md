@@ -81,6 +81,11 @@ To avoid these issues use heap allocation for large data structures and avoid re
 This project uses babel to transpile modern JS features into a compatible style for the Pebble SDK build environment.
 Source code is written in `src/js-modern`, transpiled code lands in `build/generated/pkjs`, which is picked up by the pebble sdk.
 
+### Dependencies NOT ALLOWED
+
+- No external dependencies are allowed in the JavaScript code.
+- No external dependencies are allowed in the C code.
+
 # Codestyle
 
 ## C

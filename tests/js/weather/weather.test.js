@@ -81,7 +81,6 @@ global.navigator = {geolocation: mockGeolocation};
 const mockConfig = {
     getWeatherApiKey: jest.fn(() => 'test_api_key'),
     isWeatherSimulationEnabled: jest.fn(() => false),
-    setWeatherSimulationEnabled: jest.fn(),
 };
 jest.mock('../../../src/js-modern/config/config', () => ({
     __esModule: true,

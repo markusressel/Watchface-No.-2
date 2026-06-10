@@ -1,23 +1,23 @@
-import * as config from "../config/config";
-
 /**
- * Fetches weather data from the OpenWeatherMap API.
+ * Fetches weather data from the OpenMeteo API.
  * @param {number} latitude - The latitude coordinate for weather data.
  * @param {number} longitude - The longitude coordinate for weather data.
  * @returns {Promise<JSON>} A promise that resolves with the weather data.
  */
 export async function fetch_weather_data(latitude, longitude) {
-    const baseUrl = "https://api.openweathermap.org/data/4.0/onecall/timeline/15min";
+    const baseUrl = "https://api.open-meteo.com/v1/forecast";
     const queryParams = {
-        lat: latitude,
-        lon: longitude,
-        appid: config.getWeatherApiKey()
+        latitude: latitude,
+        longitude: longitude,
+        minutely_15: "precipitation,temperature_2m,apparent_temperature,rain",
+        forecast_days: 1,
+        timezone: "auto"
     };
     const url = createUrl(baseUrl, queryParams);
 
     console.log("Weather request URL is: " + url);
 
-    // Send request to OpenWeatherMap
+    // Send request to OpenMeteo
     const responseText = await xhrRequest(url, 'GET');
     return JSON.parse(responseText);
 }
