@@ -122,7 +122,7 @@ Layer *create_temperature_forecast_layer(LayerBuilder builder) {
     WeatherForecastLayerData *data = layer_get_data(layer);
 
     // Rain Y-axis scaling
-    data->y_axis_scaling_configs[0] = (GraphYAxisScalingConfig) {
+    data->y_axis_scaling_configs[0] = (GraphYAxisScalingConfig){
         .has_y_axis_range = true,
         .y_min = 0,
         .y_max = 0,
@@ -136,7 +136,7 @@ Layer *create_temperature_forecast_layer(LayerBuilder builder) {
     };
 
     // Temperature Y-axis scaling (auto)
-    data->y_axis_scaling_configs[1] = (GraphYAxisScalingConfig) {
+    data->y_axis_scaling_configs[1] = (GraphYAxisScalingConfig){
         .has_y_axis_range = false,
     };
 
@@ -146,8 +146,9 @@ Layer *create_temperature_forecast_layer(LayerBuilder builder) {
         .dot_size = 1,
         .min_interpolated_dot_distance_px = 0,
         .fill_area_under_line = true,
+        .dither_colors = true,
         .suppress_exact_zero_value = true,
-        .interpolate_color_stops = false,
+        .interpolate_color_stops = true,
         .default_color = GColorBlue,
 #if defined(PBL_COLOR)
         .color_stops = s_rain_color_stops,
@@ -165,6 +166,7 @@ Layer *create_temperature_forecast_layer(LayerBuilder builder) {
         .dot_size = 1,
         .min_interpolated_dot_distance_px = 0,
         .fill_area_under_line = false,
+        .dither_colors = false,
         .suppress_exact_zero_value = false,
         .interpolate_color_stops = true,
         .default_color = theme_get_theme()->WeatherTextColor,

@@ -20,10 +20,26 @@ static int channel8_to_2(const int value8) {
     // Round to the nearest Pebble 2-bit channel bucket.
     return (clamped + 42) / 85;
 }
+
+static const uint8_t s_bayer_matrix_8x8[8][8] = {
+    {  0, 32,  8, 40,  2, 34, 10, 42 },
+    { 48, 16, 56, 24, 50, 18, 58, 26 },
+    { 12, 44,  4, 36, 14, 46,  6, 38 },
+    { 60, 28, 52, 20, 62, 30, 54, 22 },
+    {  3, 35, 11, 43,  1, 33,  9, 41 },
+    { 51, 19, 59, 27, 49, 17, 57, 25 },
+    { 15, 47,  7, 39, 13, 45,  5, 37 },
+    { 63, 31, 55, 23, 61, 29, 53, 21 }
+};
 #endif
 
-static GColor interpolate_color(const GColor from, const GColor to, const int t_scaled) {
+static GColor interpolate_color(const GColor from, const GColor to, const int t_scaled, bool dither, int x, int y) {
 #if defined(PBL_COLOR)
+    int dither_offset = 0;
+    if (dither) {
+        dither_offset = (s_bayer_matrix_8x8[y % 8][x % 8] * 85) / 64 - 42;
+    }
+
     const int t = clamp_int(t_scaled, 0, 1000);
     const int from_a = channel2_to_8((from.argb >> 6) & 0x3);
     const int from_r = channel2_to_8((from.argb >> 4) & 0x3);
@@ -42,22 +58,28 @@ static GColor interpolate_color(const GColor from, const GColor to, const int t_
 
     GColor out = GColorBlack;
     out.argb = (uint8_t) (
-        (channel8_to_2(out_a) << 6) |
-        (channel8_to_2(out_r) << 4) |
-        (channel8_to_2(out_g) << 2) |
-        channel8_to_2(out_b)
+        (channel8_to_2(out_a + dither_offset) << 6) |
+        (channel8_to_2(out_r + dither_offset) << 4) |
+        (channel8_to_2(out_g + dither_offset) << 2) |
+        channel8_to_2(out_b + dither_offset)
     );
     return out;
 #else
     (void) to;
     (void) t_scaled;
+    (void) dither;
+    (void) x;
+    (void) y;
     return from;
 #endif
 }
 
 static GColor graph_color_for_stops(
     const GraphSeriesConfig *config,
-    const int value
+    const int value,
+    int x,
+    int y,
+    bool dither
 ) {
     if (!config->color_stops || config->color_stop_count <= 0) {
         return config->default_color;
@@ -95,7 +117,7 @@ static GColor graph_color_for_stops(
         }
 
         const int t = ((value - left.value) * 1000) / (right.value - left.value);
-        return interpolate_color(left.color, right.color, t);
+        return interpolate_color(left.color, right.color, t, dither, x, y);
     }
 
     return config->default_color;
@@ -105,10 +127,13 @@ static GColor graph_color_for_value(
     const GraphSeriesConfig *config,
     const int value,
     const int min_value,
-    const int max_value
+    const int max_value,
+    int x,
+    int y,
+    bool dither
 ) {
     if (config->color_stops && config->color_stop_count > 0) {
-        return graph_color_for_stops(config, value);
+        return graph_color_for_stops(config, value, x, y, dither);
     }
 
     if (config->color_for_value) {
@@ -244,9 +269,10 @@ static void draw_line_fill_column(
     }
 
     int y = clamp_int(y_start, 0, drawable_height);
+
     while (y <= drawable_height) {
         const int value_at_y = graph_y_to_value(y, min_value, max_value, drawable_height);
-        const GColor color = graph_color_for_value(config, value_at_y, min_value, max_value);
+        const GColor color = graph_color_for_value(config, value_at_y, min_value, max_value, x, y, config->dither_colors);
         draw_square_dot(ctx, bounds, x, y, 1, color);
         y++;
     }
@@ -276,9 +302,9 @@ static void draw_bar_at_x(
     const int y_value = graph_value_to_y(value, min_value, max_value, drawable_height);
     const int y_start = y_zero < y_value ? y_zero : y_value;
     const int y_end = y_zero > y_value ? y_zero : y_value;
-    const GColor color = graph_color_for_value(config, value, min_value, max_value);
 
     for (int y = y_start; y <= y_end; y += step_size) {
+        const GColor color = graph_color_for_value(config, value, min_value, max_value, x, y, config->dither_colors);
         draw_square_dot(ctx, bounds, x, y, dot_size, color);
     }
 }
@@ -307,6 +333,53 @@ static void draw_single_series(
     }
 
     if (config->graph_type == GRAPH_TYPE_LINE) {
+        // Pass 1: Filled Area (drawn first, below the line)
+        if (config->fill_area_under_line) {
+            for (int i = 0; i < value_count - 1; i++) {
+                const int x0 = x_for_index(i, value_count, bounds.size.w, dot_size);
+                const int x1 = x_for_index(i + 1, value_count, bounds.size.w, dot_size);
+                const int v0 = values[i];
+                const int v1 = values[i + 1];
+                const int interpolation_steps = interpolation_steps_for_segment(
+                    x0, x1, min_interpolated_dot_distance_px
+                );
+
+                for (int step = 0; step <= interpolation_steps; step++) {
+                    const int x = x0 + ((x1 - x0) * step) / (interpolation_steps + 1);
+                    const int value = smoothstep_interpolate(v0, v1, step, interpolation_steps + 1);
+                    const int y = graph_value_to_y(value, min_value, max_value, drawable_height);
+                    const bool drawable = !should_suppress_value(config, value);
+
+                    if (drawable) {
+                        draw_line_fill_column(ctx, bounds, x, y, min_value, max_value, drawable_height, config);
+                    }
+                }
+            }
+
+            if (value_count > 1) {
+                const int x_last = x_for_index(value_count - 1, value_count, bounds.size.w, dot_size);
+                const int last_value = values[value_count - 1];
+                const int y_last = graph_value_to_y(last_value, min_value, max_value, drawable_height);
+                const bool final_drawable = !should_suppress_value(config, last_value);
+
+                if (final_drawable) {
+                    draw_line_fill_column(ctx, bounds, x_last, y_last, min_value, max_value, drawable_height, config);
+                }
+            }
+        }
+
+        // Pass 2: Line Stroke and Single Point
+        if (value_count == 1) {
+            if (!should_suppress_value(config, values[0])) {
+                const int y = graph_value_to_y(values[0], min_value, max_value, drawable_height);
+                draw_square_dot(
+                    ctx, bounds, 0, y, dot_size,
+                    graph_color_for_value(config, values[0], min_value, max_value, 0, y, false)
+                );
+            }
+            return;
+        }
+
         bool has_previous = false;
         bool previous_drawable = false;
         GPoint previous_point = GPoint(0, 0);
@@ -318,9 +391,7 @@ static void draw_single_series(
             const int v0 = values[i];
             const int v1 = values[i + 1];
             const int interpolation_steps = interpolation_steps_for_segment(
-                x0,
-                x1,
-                min_interpolated_dot_distance_px
+                x0, x1, min_interpolated_dot_distance_px
             );
 
             for (int step = 0; step <= interpolation_steps; step++) {
@@ -330,22 +401,10 @@ static void draw_single_series(
                 const GPoint point = GPoint(x, y + (dot_size / 2));
                 const bool drawable = !should_suppress_value(config, value);
 
-                if (drawable) {
-                    draw_line_fill_column(
-                        ctx,
-                        bounds,
-                        x,
-                        y,
-                        min_value,
-                        max_value,
-                        drawable_height,
-                        config
-                    );
-                }
-
                 if (has_previous && previous_drawable && drawable) {
                     const int mid_value = (value + previous_value) / 2;
-                    const GColor stroke_color = graph_color_for_value(config, mid_value, min_value, max_value);
+                    // Draw lines without dithering so the stroke remains solid
+                    const GColor stroke_color = graph_color_for_value(config, mid_value, min_value, max_value, (point.x + previous_point.x) / 2, (point.y + previous_point.y) / 2, false);
                     if (!gcolor_equal(stroke_color, GColorClear)) {
                         graphics_context_set_stroke_color(ctx, stroke_color);
                         graphics_draw_line(ctx, previous_point, point);
@@ -359,48 +418,15 @@ static void draw_single_series(
             }
         }
 
-        if (value_count == 1) {
-            if (should_suppress_value(config, values[0])) {
-                return;
-            }
-
-            const int y = graph_value_to_y(values[0], min_value, max_value, drawable_height);
-            draw_square_dot(
-                ctx,
-                bounds,
-                0,
-                y,
-                dot_size,
-                graph_color_for_value(config, values[0], min_value, max_value)
-            );
-            return;
-        }
-
         const int x_last = x_for_index(value_count - 1, value_count, bounds.size.w, dot_size);
         const int last_value = values[value_count - 1];
         const int y_last = graph_value_to_y(last_value, min_value, max_value, drawable_height);
         const GPoint final_point = GPoint(x_last, y_last + (dot_size / 2));
         const bool final_drawable = !should_suppress_value(config, last_value);
 
-        if (final_drawable) {
-            draw_line_fill_column(
-                ctx,
-                bounds,
-                x_last,
-                y_last,
-                min_value,
-                max_value,
-                drawable_height,
-                config
-            );
-        }
-
         if (has_previous && previous_drawable && final_drawable) {
             const GColor final_stroke_color = graph_color_for_value(
-                config,
-                last_value,
-                min_value,
-                max_value
+                config, last_value, min_value, max_value, final_point.x, final_point.y, false
             );
             if (!gcolor_equal(final_stroke_color, GColorClear)) {
                 graphics_context_set_stroke_color(ctx, final_stroke_color);
@@ -445,7 +471,7 @@ static void draw_single_series(
                 x,
                 y,
                 dot_size,
-                graph_color_for_value(config, value, min_value, max_value)
+                graph_color_for_value(config, value, min_value, max_value, x, y, false)
             );
         }
 
@@ -471,7 +497,7 @@ static void draw_single_series(
                     x_interp,
                     y_interp,
                     1,
-                    graph_color_for_value(config, value_interp, min_value, max_value)
+                    graph_color_for_value(config, value_interp, min_value, max_value, x_interp, y_interp, false)
                 );
             }
         }

@@ -33,6 +33,7 @@ typedef struct GraphSeriesConfig {
     int dot_size;
     int min_interpolated_dot_distance_px;
     bool fill_area_under_line;
+    bool dither_colors;
     bool suppress_exact_zero_value;
     bool interpolate_color_stops;
     GColor default_color;
