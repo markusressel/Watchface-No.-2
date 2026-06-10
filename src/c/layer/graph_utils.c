@@ -61,7 +61,7 @@ static GColor interpolate_color(const GColor from, const GColor to, const int t_
         (channel8_to_2(out_a + dither_offset) << 6) |
         (channel8_to_2(out_r + dither_offset) << 4) |
         (channel8_to_2(out_g + dither_offset) << 2) |
-        channel8_to_2(out_b + dither_offset)
+        (channel8_to_2(out_b + dither_offset))
     );
     return out;
 #else
@@ -134,10 +134,6 @@ static GColor graph_color_for_value(
 ) {
     if (config->color_stops && config->color_stop_count > 0) {
         return graph_color_for_stops(config, value, x, y, dither);
-    }
-
-    if (config->color_for_value) {
-        return config->color_for_value(value, min_value, max_value, config->color_context);
     }
 
     return config->default_color;

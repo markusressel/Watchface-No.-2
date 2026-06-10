@@ -13,8 +13,8 @@ typedef enum GraphType {
  * @brief Defines a specific color at a specific value point in a gradient.
  */
 typedef struct GraphColorStop {
-    int value;      /**< The data value at which this color should be applied. */
-    GColor color;   /**< The color to apply at this value. */
+    int value; /**< The data value at which this color should be applied. */
+    GColor color; /**< The color to apply at this value. */
 } GraphColorStop;
 
 /**
@@ -22,11 +22,11 @@ typedef struct GraphColorStop {
  * @brief Configuration for how a series' Y-axis should be scaled.
  */
 typedef struct GraphYAxisScalingConfig {
-    bool has_y_axis_range;              /**< If true, use the manual y_min and y_max values. If false, autoscale based on data. */
-    int y_min;                          /**< The fixed minimum value for the Y-axis. */
-    int y_max;                          /**< The fixed maximum value for the Y-axis. */
-    const int *y_axis_max_scale_steps;  /**< An array of predefined values to snap the Y-axis maximum to. The smallest step that is >= the data's max value will be used. */
-    int y_axis_max_scale_step_count;    /**< The number of steps in the y_axis_max_scale_steps array. */
+    bool has_y_axis_range; /**< If true, use the manual y_min and y_max values. If false, autoscale based on data. */
+    int y_min; /**< The fixed minimum value for the Y-axis. */
+    int y_max; /**< The fixed maximum value for the Y-axis. */
+    const int *y_axis_max_scale_steps; /**< An array of predefined values to snap the Y-axis maximum to. The smallest step that is >= the data's max value will be used. */
+    int y_axis_max_scale_step_count; /**< The number of steps in the y_axis_max_scale_steps array. */
 } GraphYAxisScalingConfig;
 
 /**
@@ -34,16 +34,16 @@ typedef struct GraphYAxisScalingConfig {
  * @brief Configuration for the visual style of a single data series.
  */
 typedef struct GraphSeriesConfig {
-    GraphType graph_type;                       /**< The type of graph to draw (points, line, or bar). */
-    int dot_size;                               /**< The size of the dots for point graphs, or the thickness of the line for line graphs. */
-    int min_interpolated_dot_distance_px;       /**< The minimum pixel distance between interpolated points. Set to 0 to disable interpolation. */
-    bool fill_area_under_line;                  /**< For line graphs, whether to fill the area below the line. */
-    bool dither_colors;                         /**< Whether to apply Bayer dithering to color gradients to reduce banding. */
-    bool suppress_exact_zero_value;             /**< If true, values of exactly zero will not be drawn. */
-    bool interpolate_color_stops;               /**< If true, colors will be smoothly interpolated between the defined color stops. */
-    GColor default_color;                       /**< The default color to use if no color stops are defined. */
-    const GraphColorStop *color_stops;          /**< An array of color stops that define the gradient. */
-    int color_stop_count;                       /**< The number of color stops in the color_stops array. */
+    GraphType graph_type; /**< The type of graph to draw (points, line, or bar). */
+    int dot_size; /**< The size of the dots for point graphs, or the thickness of the line for line graphs. */
+    int min_interpolated_dot_distance_px; /**< The minimum pixel distance between interpolated points. Set to 0 to disable interpolation. */
+    bool fill_area_under_line; /**< For line graphs, whether to fill the area below the line. */
+    bool dither_colors; /**< Whether to apply Bayer dithering to color gradients to reduce banding. */
+    bool suppress_exact_zero_value; /**< If true, values of exactly zero will not be drawn. */
+    bool interpolate_color_stops; /**< If true, colors will be smoothly interpolated between the defined color stops. */
+    GColor default_color; /**< The default color to use if no color stops are defined. */
+    const GraphColorStop *color_stops; /**< An array of color stops that define the gradient. */
+    int color_stop_count; /**< The number of color stops in the color_stops array. */
     const GraphYAxisScalingConfig *y_axis_scaling; /**< A pointer to the Y-axis scaling configuration for this series. */
 } GraphSeriesConfig;
 
@@ -52,9 +52,9 @@ typedef struct GraphSeriesConfig {
  * @brief Configuration for the shared graph axes.
  */
 typedef struct GraphAxisConfig {
-    int tick_interval_x;    /**< The interval (in data points) at which to draw a vertical tick mark on the X-axis. Set to 0 to disable. */
-    GColor tick_color_x;    /**< The color of the X-axis tick marks. */
-    int tick_length_y;      /**< The height (in pixels) of the X-axis tick marks. */
+    int tick_interval_x; /**< The interval (in data points) at which to draw a vertical tick mark on the X-axis. Set to 0 to disable. */
+    GColor tick_color_x; /**< The color of the X-axis tick marks. */
+    int tick_length_y; /**< The height (in pixels) of the X-axis tick marks. */
 } GraphAxisConfig;
 
 /**
@@ -62,9 +62,9 @@ typedef struct GraphAxisConfig {
  * @brief The main configuration that holds the series and axis configs.
  */
 typedef struct GraphDrawConfig {
-    const GraphSeriesConfig *series;    /**< A pointer to an array of series configurations. */
-    int series_count;                   /**< The number of series configurations in the array. */
-    GraphAxisConfig axis;               /**< The configuration for the shared axes. */
+    const GraphSeriesConfig *series; /**< A pointer to an array of series configurations. */
+    int series_count; /**< The number of series configurations in the array. */
+    GraphAxisConfig axis; /**< The configuration for the shared axes. */
 } GraphDrawConfig;
 
 /**
@@ -72,8 +72,8 @@ typedef struct GraphDrawConfig {
  * @brief Represents a single series of data points to be plotted.
  */
 typedef struct GraphDataSeries {
-    const int *values;  /**< A pointer to an array of integer data points. */
-    int value_count;    /**< The number of data points in the values array. */
+    const int *values; /**< A pointer to an array of integer data points. */
+    int value_count; /**< The number of data points in the values array. */
 } GraphDataSeries;
 
 /**
@@ -81,9 +81,9 @@ typedef struct GraphDataSeries {
  * @brief The main graph object that holds the data and configuration.
  */
 typedef struct GraphInstance {
-    GraphDataSeries *data;      /**< A pointer to an array of data series. */
-    int data_count;             /**< The number of data series in the array. */
-    GraphDrawConfig config;     /**< The drawing configuration for the graph. */
+    GraphDataSeries *data; /**< A pointer to an array of data series. */
+    int data_count; /**< The number of data series in the array. */
+    GraphDrawConfig config; /**< The drawing configuration for the graph. */
 } GraphInstance;
 
 /**
