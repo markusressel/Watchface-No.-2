@@ -1,8 +1,8 @@
 #include <pebble.h>
-#include "clay_settings.h"
-#include "layer/widget.h"
-#include "app_messaging.h"
-#include "watch_layout.h"
+#include "../clay_settings.h"
+#include "../layer/widget.h"
+#include "../app_messaging/app_messaging.h"
+#include "../ui/watch_layout.h"
 
 #ifdef PBL_EMULATOR
 const char *THEME_DEFAULT = THEME_DARK_STR;

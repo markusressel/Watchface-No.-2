@@ -60,10 +60,10 @@ Working with settings requires many different parts:
       clean build is required**.
 2. App Messaging - This is the part of the watchface that handles the communication between the watchface and the JavaScript Configuration Page. It receives the settings from the
    JavaScript Configuration Page and saves them in persistent storage.
-    1. [C Implementation](./src/c/app_messaging.c) - This is the C implementation of the App Messaging. It uses the Pebble C API to receive messages from the JavaScript
+    1. [C Implementation](src/c/app_messaging/app_messaging.c) - This is the C implementation of the App Messaging. It uses the Pebble C API to receive messages from the JavaScript
        Configuration Page and save them in persistent storage.
     2. [package.json](./package.json) - Requires "pebble"->"messageKeys" to be set to the keys used in the JavaScript Configuration Page.
-3. [Settings Storage](./src/c/clay_settings.c) - This is the C implementation of the persistent storage for the settings.
+3. [Settings Storage](src/c/settings/clay_settings.c) - This is the C implementation of the persistent storage for the settings.
 
 # Platform limitations
 

@@ -1,4 +1,4 @@
-#include "pixel_matrix_drawer.h"
+#include "../pixel_matrix_drawer.h"
 
 // Visual macros to "draw" the pixels in the code
 #define X 1

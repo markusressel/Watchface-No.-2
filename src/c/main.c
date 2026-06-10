@@ -1,20 +1,20 @@
 #include "main.h"
 
 #include <pebble.h>
-#include "theme.h"
-#include "clay_settings.h"
-#include "watch_layout.h"
+#include "ui/theme.h"
+#include "settings/clay_settings.h"
+#include "ui/watch_layout.h"
 #include "layer/time.h"
-#include "tick_listener.h"
+#include "system/tick_listener.h"
 #include "layer/date.h"
 #include "layer/battery_bar.h"
-#include "battery_listener.h"
+#include "system/battery_listener.h"
 #include "layer/weather.h"
-#include "app_messaging.h"
+#include "app_messaging/app_messaging.h"
 #include "layer/stepcount.h"
 #include "layer/heartrate.h"
 #include "layer/weather_forecast.h"
-#include "health_listener.h"
+#include "system/health_listener.h"
 #include "layer/widget.h"
 
 // Main Window

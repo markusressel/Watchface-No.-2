@@ -1,10 +1,10 @@
 #include <pebble.h>
 #include "stepcount.h"
-#include "../clay_settings.h"
-#include "../health_listener.h"
-#include "../theme.h"
-#include "../dotted_text_layer.h"
-#include "../layer_factory.h"
+#include "../settings/clay_settings.h"
+#include "../system/health_listener.h"
+#include "../ui/theme.h"
+#include "dotted_text_layer.h"
+#include "../ui/layer_factory.h"
 
 #define MAX_STEPCOUNT_LAYERS 7
 

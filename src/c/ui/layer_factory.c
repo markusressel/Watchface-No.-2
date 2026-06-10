@@ -1,5 +1,5 @@
-#include "layer_factory.h"
-#include "developer_options.h"
+#include "../layer_factory.h"
+#include "../developer_options.h"
 
 static void debug_border_update_proc(Layer *layer, GContext *ctx) {
     graphics_context_set_stroke_color(ctx, GColorRed);

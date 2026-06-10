@@ -1,6 +1,6 @@
-#include "forecast_series.h"
-#include "graph_utils.h"
-#include "weather.h"
+#include "../layer/forecast_series.h"
+#include "../layer/graph_utils.h"
+#include "../layer/weather.h"
 
 static size_t forecast_bounded_cstring_length(const char *value, const size_t capacity) {
     if (!value || capacity == 0) {

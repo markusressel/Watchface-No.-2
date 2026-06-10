@@ -5,7 +5,7 @@
 #include <string.h>  // For strcmp
 #include <pebble.h>  // Include pebble.h for GColor, GFont, etc.
 
-#include "../../src/c/theme.h" // Include the header for the functions being tested
+#include "../../src/c/ui/theme.h"
 #include "../../src/c/theme.c" // Include the C implementation file directly for testing
 
 // Unity setup and teardown functions (required even if empty)

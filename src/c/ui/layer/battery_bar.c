@@ -1,8 +1,8 @@
 #include "battery_bar.h"
-#include "../battery.h"
-#include "../theme.h"
-#include "../clay_settings.h"
-#include "../layer_factory.h"
+#include "../system/battery.h"
+#include "../ui/theme.h"
+#include "../settings/clay_settings.h"
+#include "../ui/layer_factory.h"
 
 #define MAX_BATTERY_LAYERS 5
 
@@ -97,8 +97,8 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
 
     ClaySettings *settings = clay_get_settings();
     float scale_factor = settings->DotAutoScale
-        ? auto_scale_for_height(settings, bounds.size.h)
-        : settings->DotScaleFactor;
+                             ? auto_scale_for_height(settings, bounds.size.h)
+                             : settings->DotScaleFactor;
     if (scale_factor <= 0.0f) {
         scale_factor = 1.0f;
     }

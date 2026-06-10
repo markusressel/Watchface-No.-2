@@ -2,7 +2,7 @@
 
 #include <pebble.h>
 #include <stdbool.h>
-#include "persist_keys.h"
+#include "../persist_keys.h"
 
 // Persistent storage key
 #define SETTINGS_KEY PERSIST_KEY_SETTINGS
@@ -68,7 +68,10 @@ typedef struct ClaySettings {
     bool DotAutoScale;
 
     bool WeatherUseSimulation;
-} __attribute__((__packed__)) ClaySettings;
+} __attribute__((__packed__)
+
+)
+ClaySettings;
 
 // get current settings struct
 ClaySettings *clay_get_settings();

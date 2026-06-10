@@ -19,7 +19,7 @@ void destroy_temperature_forecast_layer(Layer *layer) {
 #include <pebble.h>
 #include <string.h>
 
-#include "../theme.h"
+#include "../ui/theme.h"
 #include "weather.h"
 #include "graph_utils.h"
 

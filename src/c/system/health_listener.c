@@ -1,8 +1,8 @@
 #include <pebble.h>
 #define EXTERN
-#include "health_listener.h"
-#include "layer/stepcount.h"
-#include "layer/heartrate.h"
+#include "../health_listener.h"
+#include "../layer/stepcount.h"
+#include "../layer/heartrate.h"
 
 static bool registered = false;
 

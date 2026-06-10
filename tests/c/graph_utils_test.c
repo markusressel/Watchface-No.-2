@@ -329,7 +329,7 @@ void test_graph_instance_draw_points_basic(void) {
     GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     int values[] = {10, 50, 90};
-    GraphDataSeries data = { .values = values, .value_count = 3 };
+    GraphDataSeries data = {.values = values, .value_count = 3};
 
     GraphSeriesConfig s_config = {
         .graph_type = GRAPH_TYPE_POINTS,
@@ -362,7 +362,7 @@ void test_graph_instance_draw_points_suppress_zero(void) {
     GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     int values[] = {10, 0, 20};
-    GraphDataSeries data = { .values = values, .value_count = 3 };
+    GraphDataSeries data = {.values = values, .value_count = 3};
 
     GraphSeriesConfig s_config = {
         .graph_type = GRAPH_TYPE_POINTS,
@@ -391,7 +391,7 @@ void test_graph_instance_draw_line_basic(void) {
     GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     int values[] = {10, 50, 90};
-    GraphDataSeries data = { .values = values, .value_count = 3 };
+    GraphDataSeries data = {.values = values, .value_count = 3};
 
     GraphSeriesConfig s_config = {
         .graph_type = GRAPH_TYPE_LINE,
@@ -431,7 +431,7 @@ void test_graph_instance_draw_line_interpolation(void) {
     GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 10, 10); // Small bounds to force interpolation
     int values[] = {0, 100};
-    GraphDataSeries data = { .values = values, .value_count = 2 };
+    GraphDataSeries data = {.values = values, .value_count = 2};
 
     GraphSeriesConfig s_config = {
         .graph_type = GRAPH_TYPE_LINE,
@@ -459,7 +459,7 @@ void test_graph_instance_draw_bar_basic(void) {
     GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     int values[] = {10, 50, 90};
-    GraphDataSeries data = { .values = values, .value_count = 3 };
+    GraphDataSeries data = {.values = values, .value_count = 3};
 
     GraphSeriesConfig s_config = {
         .graph_type = GRAPH_TYPE_BAR,
@@ -495,7 +495,7 @@ void test_graph_instance_draw_bar_negative_values(void) {
     GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     int values[] = {-10, 0, 10};
-    GraphDataSeries data = { .values = values, .value_count = 3 };
+    GraphDataSeries data = {.values = values, .value_count = 3};
 
     GraphSeriesConfig s_config = {
         .graph_type = GRAPH_TYPE_BAR,
@@ -523,7 +523,7 @@ void test_graph_instance_draw_line_single_point(void) {
     GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     int values[] = {50};
-    GraphDataSeries data = { .values = values, .value_count = 1 };
+    GraphDataSeries data = {.values = values, .value_count = 1};
 
     GraphSeriesConfig s_config = {
         .graph_type = GRAPH_TYPE_LINE,
@@ -554,7 +554,7 @@ void test_graph_instance_draw_line_single_point_suppress_zero(void) {
     GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     int values[] = {0};
-    GraphDataSeries data = { .values = values, .value_count = 1 };
+    GraphDataSeries data = {.values = values, .value_count = 1};
 
     GraphSeriesConfig s_config = {
         .graph_type = GRAPH_TYPE_LINE,
@@ -582,7 +582,7 @@ void test_graph_instance_y_axis_scaling(void) {
     GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     int values[] = {10, 50, 90};
-    GraphDataSeries data = { .values = values, .value_count = 3 };
+    GraphDataSeries data = {.values = values, .value_count = 3};
 
     int scale_steps[] = {20, 50, 100, 200};
 
@@ -636,7 +636,7 @@ void test_graph_instance_draw_axis_ticks(void) {
     GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     int values[] = {10, 50, 90, 40, 20}; // 5 points
-    GraphDataSeries data = { .values = values, .value_count = 5 };
+    GraphDataSeries data = {.values = values, .value_count = 5};
 
     GraphSeriesConfig s_config = {
         .graph_type = GRAPH_TYPE_LINE,

@@ -1,11 +1,11 @@
 #include <pebble.h>
 #include <string.h>
 #include "app_messaging.h"
-#include "main.h"
-#include "layer/forecast_series.h"
-#include "layer/weather.h"
-#include "clay_settings.h"
-#include "watch_layout.h"
+#include "../main.h"
+#include "forecast_series.h"
+#include "../layer/weather.h"
+#include "../settings/clay_settings.h"
+#include "../ui/watch_layout.h"
 
 void queue_message(const uint32_t key, const int value) {
     DictionaryIterator *iter;

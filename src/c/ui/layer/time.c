@@ -1,7 +1,7 @@
 #include "time.h"
-#include "../theme.h"
-#include "../clay_settings.h"
-#include "../layer_factory.h"
+#include "../ui/theme.h"
+#include "../settings/clay_settings.h"
+#include "../ui/layer_factory.h"
 
 #define MAX_TIME_LAYERS 5
 
