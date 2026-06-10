@@ -52,6 +52,9 @@ void graph_draw_series(
 );
 
 void graph_instance_init(GraphInstance *instance, const int *values, int value_count);
+
 void graph_instance_set_config(GraphInstance *instance, const GraphDrawConfig *config);
+
 void graph_instance_set_y_axis_range(GraphInstance *instance, int y_min, int y_max);
+
 void graph_instance_draw(const GraphInstance *instance, GContext *ctx, GRect bounds);
