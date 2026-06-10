@@ -24,7 +24,8 @@ void destroy_temperature_forecast_layer(Layer *layer) {
 #include "graph_utils.h"
 
 #define MAX_TEMPERATURE_FORECAST_LAYERS 7
-#define MAX_FORECAST_POINTS 100
+#define FORECAST_POINTS_PER_HOUR 4
+#define MAX_FORECAST_POINTS (FORECAST_POINTS_PER_HOUR * 6)
 #define NUM_GRAPH_SERIES 2
 
 #if defined(PBL_COLOR)
@@ -141,7 +142,7 @@ Layer *create_temperature_forecast_layer(LayerBuilder builder) {
     };
 
     // Rain series config
-    data->series_configs[0] = (GraphSeriesConfig) {
+    data->series_configs[0] = (GraphSeriesConfig){
         .graph_type = GRAPH_TYPE_LINE,
         .dot_size = 1,
         .min_interpolated_dot_distance_px = 0,
@@ -161,7 +162,7 @@ Layer *create_temperature_forecast_layer(LayerBuilder builder) {
     };
 
     // Temperature series config
-    data->series_configs[1] = (GraphSeriesConfig) {
+    data->series_configs[1] = (GraphSeriesConfig){
         .graph_type = GRAPH_TYPE_LINE,
         .dot_size = 1,
         .min_interpolated_dot_distance_px = 0,

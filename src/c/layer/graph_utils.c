@@ -22,14 +22,14 @@ static int channel8_to_2(const int value8) {
 }
 
 static const uint8_t s_bayer_matrix_8x8[8][8] = {
-    {  0, 32,  8, 40,  2, 34, 10, 42 },
-    { 48, 16, 56, 24, 50, 18, 58, 26 },
-    { 12, 44,  4, 36, 14, 46,  6, 38 },
-    { 60, 28, 52, 20, 62, 30, 54, 22 },
-    {  3, 35, 11, 43,  1, 33,  9, 41 },
-    { 51, 19, 59, 27, 49, 17, 57, 25 },
-    { 15, 47,  7, 39, 13, 45,  5, 37 },
-    { 63, 31, 55, 23, 61, 29, 53, 21 }
+    {0, 32, 8, 40, 2, 34, 10, 42},
+    {48, 16, 56, 24, 50, 18, 58, 26},
+    {12, 44, 4, 36, 14, 46, 6, 38},
+    {60, 28, 52, 20, 62, 30, 54, 22},
+    {3, 35, 11, 43, 1, 33, 9, 41},
+    {51, 19, 59, 27, 49, 17, 57, 25},
+    {15, 47, 7, 39, 13, 45, 5, 37},
+    {63, 31, 55, 23, 61, 29, 53, 21}
 };
 #endif
 
@@ -404,7 +404,8 @@ static void draw_single_series(
                 if (has_previous && previous_drawable && drawable) {
                     const int mid_value = (value + previous_value) / 2;
                     // Draw lines without dithering so the stroke remains solid
-                    const GColor stroke_color = graph_color_for_value(config, mid_value, min_value, max_value, (point.x + previous_point.x) / 2, (point.y + previous_point.y) / 2, false);
+                    const GColor stroke_color = graph_color_for_value(config, mid_value, min_value, max_value, (point.x + previous_point.x) / 2, (point.y + previous_point.y) / 2,
+                                                                      false);
                     if (!gcolor_equal(stroke_color, GColorClear)) {
                         graphics_context_set_stroke_color(ctx, stroke_color);
                         graphics_draw_line(ctx, previous_point, point);
