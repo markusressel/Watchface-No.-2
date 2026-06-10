@@ -7,7 +7,7 @@
 #include <pebble.h>
 
 // 2. Include the headers and source file to be tested.
-#include "../../src/c/clay_settings.h"
+#include "../../src/c/settings/clay_settings.h"
 #include "../../src/c/settings/clay_settings.c"
 
 // --- Mocks ---

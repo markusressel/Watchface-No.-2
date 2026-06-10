@@ -2,7 +2,7 @@
 
 #include <pebble.h>
 #include <stdbool.h>
-#include "../persist_keys.h"
+#include "persist_keys.h"
 
 // Persistent storage key
 #define SETTINGS_KEY PERSIST_KEY_SETTINGS

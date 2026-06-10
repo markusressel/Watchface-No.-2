@@ -1,5 +1,5 @@
 #pragma once
-#include "../ui/layer_factory.h"
+#include "../../ui/layer_factory.h"
 
 // update all battery bar layer instances (backward compatible wrapper)
 void update_battery_bar();

@@ -3,8 +3,8 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "../../src/c/layer/graph_utils.h"
-#include "../../src/c/layer/graph_utils.c" // Include the C implementation file directly for testing
+#include "../../src/c/ui/graphics/graph_utils.h"
+#include "../../src/c/ui/graphics/graph_utils.c"
 #include "pebble/pebble.h" // Mock Pebble SDK
 
 // Helper to compare GRects

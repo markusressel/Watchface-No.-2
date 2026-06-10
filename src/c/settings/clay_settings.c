@@ -1,6 +1,6 @@
 #include <pebble.h>
-#include "../clay_settings.h"
-#include "../layer/widget.h"
+#include "clay_settings.h"
+#include "../ui/layer/widget.h"
 #include "../app_messaging/app_messaging.h"
 #include "../ui/watch_layout.h"
 

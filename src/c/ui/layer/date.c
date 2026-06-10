@@ -1,9 +1,11 @@
 #include <pebble.h>
+
 #include "date.h"
-#include "../settings/clay_settings.h"
-#include "../ui/theme.h"
+
+#include "../../settings/clay_settings.h"
+#include "../../ui/theme.h"
 #include "dotted_text_layer.h"
-#include "../ui/layer_factory.h"
+#include "../../ui/layer_factory.h"
 
 #define MAX_DATE_LAYERS 5
 

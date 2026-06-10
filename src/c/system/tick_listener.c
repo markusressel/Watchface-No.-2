@@ -1,7 +1,7 @@
 #include <pebble.h>
-#include "../tick_listener.h"
-#include "../layer/time.h"
-#include "../layer/date.h"
+#include "tick_listener.h"
+#include "../ui/layer/time.h"
+#include "../ui/layer/date.h"
 #include "../settings/clay_settings.h"
 
 static bool registered = false;

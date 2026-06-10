@@ -1,4 +1,4 @@
-#include "../layer_factory.h"
+#include "layer_factory.h"
 #include "../developer_options.h"
 
 static void debug_border_update_proc(Layer *layer, GContext *ctx) {
@@ -20,8 +20,10 @@ LayerBuilder layer_builder(Layer *parent, LayerLayout layout) {
     GRect parent_bounds = layer_get_bounds(parent);
     return (LayerBuilder)
     {
-        .parent = parent,
-        .bounds = GRect(
+        .
+        parent = parent,
+        .
+        bounds = GRect(
             layout.x,
             layout.y,
             parent_bounds.size.w - layout.width_margin,
@@ -33,8 +35,10 @@ LayerBuilder layer_builder(Layer *parent, LayerLayout layout) {
 LayerBuilder layer_builder_from_rect(Layer *parent, GRect bounds) {
     return (LayerBuilder)
     {
-        .parent = parent,
-        .bounds = bounds,
+        .
+        parent = parent,
+        .
+        bounds = bounds,
     };
 }
 

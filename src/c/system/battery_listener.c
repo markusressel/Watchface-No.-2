@@ -1,8 +1,8 @@
 #include <pebble.h>
 #define EXTERN
 #include "battery.h"
-#include "../battery_listener.h"
-#include "../layer/battery_bar.h"
+#include "battery_listener.h"
+#include "../ui/layer/battery_bar.h"
 
 static bool registered = false;
 

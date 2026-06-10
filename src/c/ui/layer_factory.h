@@ -1,7 +1,7 @@
 #pragma once
 
 #include <pebble.h>
-#include "../layer/dotted_text_layer.h"
+#include "layer/dotted_text_layer.h"
 
 typedef struct TextLayerStyle {
     GColor background_color;

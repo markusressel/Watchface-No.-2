@@ -1,8 +1,10 @@
 #include "battery_bar.h"
-#include "../system/battery.h"
-#include "../ui/theme.h"
-#include "../settings/clay_settings.h"
-#include "../ui/layer_factory.h"
+
+#include "dotted_text_layer.h"
+#include "../../system/battery.h"
+#include "../../ui/theme.h"
+#include "../../settings/clay_settings.h"
+#include "../../ui/layer_factory.h"
 
 #define MAX_BATTERY_LAYERS 5
 

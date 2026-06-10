@@ -2,7 +2,7 @@
 
 #include <pebble.h>
 #include "layer_factory.h"
-#include "../layer/widget.h"
+#include "../ui/layer/widget.h"
 
 // A single row in the layout.
 typedef struct WatchRow {

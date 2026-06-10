@@ -3,7 +3,7 @@
 #include "app_messaging.h"
 #include "../main.h"
 #include "forecast_series.h"
-#include "../layer/weather.h"
+#include "../ui/layer/weather.h"
 #include "../settings/clay_settings.h"
 #include "../ui/watch_layout.h"
 

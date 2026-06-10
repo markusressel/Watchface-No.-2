@@ -3,8 +3,8 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "../../src/c/pixel_matrix_drawer.h"
-#include "../../src/c/graphics/pixel_matrix_drawer.c"
+#include "../../src/c/ui/graphics/pixel_matrix_drawer.h"
+#include "../../src/c/ui/graphics/pixel_matrix_drawer.c"
 #include "pebble/pebble.h" // Mock Pebble SDK
 
 // Helper to compare GRects

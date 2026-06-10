@@ -1,11 +1,11 @@
 #include "weather.h"
 #include <string.h>
 #include <stdlib.h>
-#include "../developer_options.h"
-#include "../ui/theme.h"
-#include "../settings/clay_settings.h"
+#include "../../developer_options.h"
+#include "../../ui/theme.h"
+#include "../../settings/clay_settings.h"
 #include "dotted_text_layer.h"
-#include "../ui/layer_factory.h"
+#include "../../ui/layer_factory.h"
 #include "weather_forecast.h"
 
 #define MAX_WEATHER_LAYERS 7
