@@ -161,7 +161,7 @@ static void restore_saved_weather_data() {
     sanitize_weather_data();
 }
 
-void weather_delete_pesisted_data() {
+void weather_delete_persisted_data() {
     if (!persist_exists(WEATHER_DATA_KEY)) {
         return;
     }
@@ -180,7 +180,7 @@ static void save_current_weather_data(WeatherData *weather_data) {
 
     if (weather_data == NULL) {
         APP_LOG(APP_LOG_LEVEL_WARNING, "cannot save NULL weather data");
-        weather_delete_pesisted_data();
+        weather_delete_persisted_data();
         return;
     }
 

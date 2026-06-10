@@ -117,14 +117,14 @@ export function process_timeline_payload(json, sourceLabel) {
     console.log('Conditions are ' + conditions);
 
     // Rain forecast based on selected 15-minute entry
-    const rainMm = (current.rain && current.rain['1h']) ? current.rain['1h'] : 0;
+    const rainMm = (current.rain !== null) ? current.rain : 0;
     const popPercent = typeof current.pop === 'number' ? Math.round(current.pop * 100) : 0;
     console.log('Rain from selected entry (mm/h): ' + rainMm + ', pop (%): ' + popPercent);
 
     const temperatureForecastSeries = build_condensed_series(
         timeline,
         function (entry) {
-            return kelvin_to_celsius(entry && entry.temp);
+            return kelvin_to_celsius(entry.temp);
         },
         FORECAST_POINT_COUNT
     );
@@ -132,13 +132,16 @@ export function process_timeline_payload(json, sourceLabel) {
     const rainForecastSeries = build_condensed_series(
         timeline,
         function (entry) {
-            const rain = (entry && entry.rain && entry.rain['1h']) ? entry.rain['1h'] : 0;
-            return one_decimal_to_int(rain);
+            const rain = entry.rain;
+            return appMessaging.encode_decimal_as_int(rain, 1);
         },
         FORECAST_POINT_COUNT
     );
 
-    // Assemble dictionary using our keys
+    console.log('Temperature forecast series: ' + temperatureForecastSeries);
+    console.log('Rain forecast series: ' + rainForecastSeries);
+
+    // Assemble a dictionary using our keys
     return new WeatherData(
         temperatureCurrent,
         temperatureMin,
@@ -163,7 +166,7 @@ function process_openmeteo_payload(json, sourceLabel) {
         timeline.push({
             dt: Math.floor(new Date(data.time[i]).getTime() / 1000),
             temp: data.temperature_2m[i] + 273.15, // Convert to Kelvin
-            rain: {'1h': data.rain[i]},
+            rain: data.rain[i],
             pop: 0, // Not available
             weather: [{main: ''}] // Not available
         });
@@ -237,12 +240,13 @@ export function time_since_last_fetch_exceeds(durationMs) {
 }
 
 function should_fetch_weather_from_api() {
-    const cached = get_cached_weather_data();
-    if (!cached) {
-        return true;
-    }
-
-    return time_since_last_fetch_exceeds(WEATHER_UPDATE_INTERVAL_MS);
+    return true;
+    // const cached = get_cached_weather_data();
+    // if (!cached) {
+    //     return true;
+    // }
+    //
+    // return time_since_last_fetch_exceeds(WEATHER_UPDATE_INTERVAL_MS);
 }
 
 /**
