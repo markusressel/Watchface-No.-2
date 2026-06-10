@@ -45,6 +45,8 @@ static const GraphColorStop s_rain_color_stops[] = {
     {.value = 50, .color = GColorBlue},
     {.value = 100, .color = GColorDukeBlue},
 };
+
+static const int s_rain_scale_steps[] = {100, 250, 500, 1000};
 #endif
 
 typedef struct {
@@ -56,7 +58,8 @@ static Layer *s_layers[MAX_TEMPERATURE_FORECAST_LAYERS];
 static int s_layer_count = 0;
 
 static void update_proc(Layer *layer, GContext *ctx) {
-    WeatherForecastLayerData *data = (WeatherForecastLayerData *)layer_get_data(layer);
+    WeatherForecastLayerData *data = layer_get_data(layer);
+
     const GRect bounds = layer_get_bounds(layer);
     WeatherData *weather_data = weather_get_data();
 
@@ -136,6 +139,8 @@ Layer *create_temperature_forecast_layer(LayerBuilder builder) {
         .has_y_axis_range = false,
         .y_min = 0,
         .y_max = 0,
+        .y_axis_max_scale_steps = NULL,
+        .y_axis_max_scale_step_count = 0,
     };
     graph_instance_set_config(&data->temperature_graph, &temp_config);
 
@@ -152,16 +157,19 @@ Layer *create_temperature_forecast_layer(LayerBuilder builder) {
 #if defined(PBL_COLOR)
         .color_stops = s_rain_color_stops,
         .color_stop_count = (int) (sizeof(s_rain_color_stops) / sizeof(s_rain_color_stops[0])),
+        .y_axis_max_scale_steps = s_rain_scale_steps,
+        .y_axis_max_scale_step_count = (int) (sizeof(s_rain_scale_steps) / sizeof(s_rain_scale_steps[0])),
 #else
         .color_stops = NULL,
         .color_stop_count = 0,
+        .y_axis_max_scale_steps = NULL,
+        .y_axis_max_scale_step_count = 0,
 #endif
-        .has_y_axis_range = false,
+        .has_y_axis_range = true,
         .y_min = 0,
         .y_max = 0,
     };
     graph_instance_set_config(&data->rain_graph, &rain_config);
-    graph_instance_set_y_axis_range(&data->rain_graph, 0, 50);
 
     s_layers[s_layer_count++] = layer;
     layer_mark_dirty(layer);

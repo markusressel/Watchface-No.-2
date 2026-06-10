@@ -35,6 +35,8 @@ typedef struct GraphDrawConfig {
     bool has_y_axis_range;
     int y_min;
     int y_max;
+    const int *y_axis_max_scale_steps;
+    int y_axis_max_scale_step_count;
 } GraphDrawConfig;
 
 typedef struct GraphInstance {

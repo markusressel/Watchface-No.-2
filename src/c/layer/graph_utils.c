@@ -302,22 +302,53 @@ void graph_draw_series(
     int min_value;
     int max_value;
 
-    if (config->has_y_axis_range) {
+    if (config->has_y_axis_range && (!config->y_axis_max_scale_steps || config->y_axis_max_scale_step_count <= 0)) {
         min_value = config->y_min;
         max_value = config->y_max;
     } else {
         compute_min_max(values, value_count, &min_value, &max_value);
-        // Bar and line graphs should keep a true zero baseline so positive values
-        // grow upward from zero and negative values grow downward from zero.
-        if (config->graph_type == GRAPH_TYPE_BAR || config->graph_type == GRAPH_TYPE_LINE) {
-            if (min_value > 0) {
-                min_value = 0;
+
+        if (config->y_axis_max_scale_steps && config->y_axis_max_scale_step_count > 0) {
+            int best_step = max_value;
+            bool found_step = false;
+            for (int i = 0; i < config->y_axis_max_scale_step_count; i++) {
+                int step = config->y_axis_max_scale_steps[i];
+                if (step >= max_value) {
+                    if (!found_step || step < best_step) {
+                        best_step = step;
+                        found_step = true;
+                    }
+                }
             }
-            if (max_value < 0) {
-                max_value = 0;
+            if (!found_step) {
+                best_step = config->y_axis_max_scale_steps[0];
+                for (int i = 1; i < config->y_axis_max_scale_step_count; i++) {
+                    if (config->y_axis_max_scale_steps[i] > best_step) {
+                        best_step = config->y_axis_max_scale_steps[i];
+                    }
+                }
+                if (max_value > best_step) {
+                    best_step = max_value;
+                }
             }
-            if (max_value == min_value) {
-                max_value = min_value + 1;
+            max_value = best_step;
+        }
+
+        if (config->has_y_axis_range) {
+            min_value = config->y_min;
+        } else {
+            // Bar and line graphs should keep a true zero baseline so positive values
+            // grow upward from zero and negative values grow downward from zero.
+            if (config->graph_type == GRAPH_TYPE_BAR || config->graph_type == GRAPH_TYPE_LINE) {
+                if (min_value > 0) {
+                    min_value = 0;
+                }
+                if (max_value < 0) {
+                    max_value = 0;
+                }
+                if (max_value == min_value) {
+                    max_value = min_value + 1;
+                }
             }
         }
     }
@@ -519,6 +550,8 @@ void graph_instance_init(GraphInstance *instance, const int *values, const int v
     instance->config.has_y_axis_range = false;
     instance->config.y_min = 0;
     instance->config.y_max = 0;
+    instance->config.y_axis_max_scale_steps = NULL;
+    instance->config.y_axis_max_scale_step_count = 0;
 }
 
 void graph_instance_set_config(GraphInstance *instance, const GraphDrawConfig *config) {
