@@ -29,7 +29,7 @@ run mode *platforms:
 
 [arg("platform", pattern="basalt|chalk|diorite|emery|flint")]
 app-config platform:
-    BROWSER="./scripts/config.py" pebble emu-app-config --emulator "{{ platform }}"
+    ./scripts/config.py --emulator "{{ platform }}"
 
 kill:
     pebble kill
