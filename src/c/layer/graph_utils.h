@@ -32,7 +32,16 @@ typedef struct GraphDrawConfig {
     int color_stop_count;
     GraphColorForValueFn color_for_value;
     void *color_context;
+    bool has_y_axis_range;
+    int y_min;
+    int y_max;
 } GraphDrawConfig;
+
+typedef struct GraphInstance {
+    const int *values;
+    int value_count;
+    GraphDrawConfig config;
+} GraphInstance;
 
 void graph_draw_series(
     GContext *ctx,
@@ -42,3 +51,7 @@ void graph_draw_series(
     const GraphDrawConfig *config
 );
 
+void graph_instance_init(GraphInstance *instance, const int *values, int value_count);
+void graph_instance_set_config(GraphInstance *instance, const GraphDrawConfig *config);
+void graph_instance_set_y_axis_range(GraphInstance *instance, int y_min, int y_max);
+void graph_instance_draw(const GraphInstance *instance, GContext *ctx, GRect bounds);

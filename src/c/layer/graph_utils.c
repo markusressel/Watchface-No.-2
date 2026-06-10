@@ -299,21 +299,26 @@ void graph_draw_series(
                                                      ? config->min_interpolated_dot_distance_px
                                                      : 2;
 
-    int min_value = 0;
-    int max_value = 0;
-    compute_min_max(values, value_count, &min_value, &max_value);
+    int min_value;
+    int max_value;
 
-    // Bar and line graphs should keep a true zero baseline so positive values
-    // grow upward from zero and negative values grow downward from zero.
-    if (config->graph_type == GRAPH_TYPE_BAR || config->graph_type == GRAPH_TYPE_LINE) {
-        if (min_value > 0) {
-            min_value = 0;
-        }
-        if (max_value < 0) {
-            max_value = 0;
-        }
-        if (max_value == min_value) {
-            max_value = min_value + 1;
+    if (config->has_y_axis_range) {
+        min_value = config->y_min;
+        max_value = config->y_max;
+    } else {
+        compute_min_max(values, value_count, &min_value, &max_value);
+        // Bar and line graphs should keep a true zero baseline so positive values
+        // grow upward from zero and negative values grow downward from zero.
+        if (config->graph_type == GRAPH_TYPE_BAR || config->graph_type == GRAPH_TYPE_LINE) {
+            if (min_value > 0) {
+                min_value = 0;
+            }
+            if (max_value < 0) {
+                max_value = 0;
+            }
+            if (max_value == min_value) {
+                max_value = min_value + 1;
+            }
         }
     }
 
@@ -494,3 +499,41 @@ void graph_draw_series(
     }
 }
 
+void graph_instance_init(GraphInstance *instance, const int *values, const int value_count) {
+    if (!instance) return;
+    instance->values = values;
+    instance->value_count = value_count;
+
+    // Default config initialization (just zero out everything to be safe)
+    instance->config.graph_type = GRAPH_TYPE_POINTS;
+    instance->config.dot_size = 1;
+    instance->config.min_interpolated_dot_distance_px = 0;
+    instance->config.fill_area_under_line = false;
+    instance->config.suppress_exact_zero_value = false;
+    instance->config.interpolate_color_stops = false;
+    instance->config.default_color = GColorClear;
+    instance->config.color_stops = NULL;
+    instance->config.color_stop_count = 0;
+    instance->config.color_for_value = NULL;
+    instance->config.color_context = NULL;
+    instance->config.has_y_axis_range = false;
+    instance->config.y_min = 0;
+    instance->config.y_max = 0;
+}
+
+void graph_instance_set_config(GraphInstance *instance, const GraphDrawConfig *config) {
+    if (!instance || !config) return;
+    instance->config = *config;
+}
+
+void graph_instance_set_y_axis_range(GraphInstance *instance, const int y_min, const int y_max) {
+    if (!instance) return;
+    instance->config.has_y_axis_range = true;
+    instance->config.y_min = y_min;
+    instance->config.y_max = y_max;
+}
+
+void graph_instance_draw(const GraphInstance *instance, GContext *ctx, const GRect bounds) {
+    if (!instance) return;
+    graph_draw_series(ctx, bounds, instance->values, instance->value_count, &instance->config);
+}

@@ -140,10 +140,15 @@ void draw_temperature_forecast_graph(
 #endif
         .color_for_value = NULL,
         .color_context = NULL,
+        .has_y_axis_range = false,
+        .y_min = 0,
+        .y_max = 0,
     };
 
-    // Cast const away safely for the drawing framework api
-    graph_draw_series(ctx, bounds, (int *) render_values, value_count, &graph_config);
+    GraphInstance graph_instance;
+    graph_instance_init(&graph_instance, render_values, value_count);
+    graph_instance_set_config(&graph_instance, &graph_config);
+    graph_instance_draw(&graph_instance, ctx, bounds);
 }
 
 
@@ -207,7 +212,14 @@ void draw_rain_forecast_graph(
 #endif
         .color_for_value = NULL,
         .color_context = NULL,
+        .has_y_axis_range = false,
+        .y_min = 0,
+        .y_max = 0,
     };
 
-    graph_draw_series(ctx, bounds, (int *) render_values, value_count, &graph_config);
+    GraphInstance graph_instance;
+    graph_instance_init(&graph_instance, render_values, value_count);
+    graph_instance_set_config(&graph_instance, &graph_config);
+    graph_instance_set_y_axis_range(&graph_instance, 0, 50); // 5mm
+    graph_instance_draw(&graph_instance, ctx, bounds);
 }
