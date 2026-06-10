@@ -69,9 +69,9 @@ void test_interpolate_color(void) {
     GColor to = GColorWhite; // ARGB 0b11111111
 
     // t=0 -> from
-    TEST_ASSERT_EQUAL_GCOLOR(GColorBlack, interpolate_color(from, to, 0));
+    TEST_ASSERT_EQUAL_GCOLOR(GColorBlack, interpolate_color(from, to, 0, false, 0, 0));
     // t=1000 -> to
-    TEST_ASSERT_EQUAL_GCOLOR(GColorWhite, interpolate_color(from, to, 1000));
+    TEST_ASSERT_EQUAL_GCOLOR(GColorWhite, interpolate_color(from, to, 1000, false, 0, 0));
 
     // Midpoint (t=500) - should be a greyish color
     // Black (0,0,0) to White (255,255,255)
@@ -79,14 +79,14 @@ void test_interpolate_color(void) {
     // channel8_to_2(127) = 1
     // So ARGB 0b11010101
     GColor expected_mid_bw = (GColor){.argb = 0b11010101};
-    TEST_ASSERT_EQUAL_GCOLOR(expected_mid_bw, interpolate_color(from, to, 500));
+    TEST_ASSERT_EQUAL_GCOLOR(expected_mid_bw, interpolate_color(from, to, 500, false, 0, 0));
 
     // Test with specific colors
     from = GColorRed; // 0b11110000 (A=3, R=3, G=0, B=0)
     to = GColorBlue; // 0b11000011 (A=3, R=0, G=0, B=3)
     // t=500: A=3, R=2, G=0, B=1 -> 0b11100001 (calculated: out_r=128 -> channel8_to_2(128)=2)
     GColor expected_mid_rb = (GColor){.argb = 0b11100001};
-    TEST_ASSERT_EQUAL_GCOLOR(expected_mid_rb, interpolate_color(from, to, 500));
+    TEST_ASSERT_EQUAL_GCOLOR(expected_mid_rb, interpolate_color(from, to, 500, false, 0, 0));
 }
 
 void test_compute_min_max(void) {
@@ -190,8 +190,8 @@ void test_smoothstep_interpolate(void) {
 }
 
 void test_should_suppress_value(void) {
-    GraphDrawConfig config_no_suppress = {.suppress_exact_zero_value = false};
-    GraphDrawConfig config_suppress = {.suppress_exact_zero_value = true};
+    GraphSeriesConfig config_no_suppress = {.suppress_exact_zero_value = false};
+    GraphSeriesConfig config_suppress = {.suppress_exact_zero_value = true};
 
     TEST_ASSERT_FALSE(should_suppress_value(&config_no_suppress, 0));
     TEST_ASSERT_FALSE(should_suppress_value(&config_no_suppress, 10));
@@ -201,36 +201,25 @@ void test_should_suppress_value(void) {
 
 // --- Test graph_color_for_stops ---
 
-static GColor custom_color_fn(int value, int min_value, int max_value, void *context) {
-    (void) min_value;
-    (void) max_value;
-    (void) context;
-    if (value > 50) return GColorRed;
-    if (value < 0) return GColorBlue;
-    return GColorGreen;
-}
-
 void test_graph_color_for_stops_no_stops(void) {
-    GraphDrawConfig config = {
+    GraphSeriesConfig config = {
         .default_color = GColorBlack,
         .color_stops = NULL,
         .color_stop_count = 0,
-        .color_for_value = NULL
     };
-    TEST_ASSERT_EQUAL_GCOLOR(GColorBlack, graph_color_for_stops(&config, 10));
+    TEST_ASSERT_EQUAL_GCOLOR(GColorBlack, graph_color_for_stops(&config, 10, 0, 0, false));
 }
 
 void test_graph_color_for_stops_single_stop(void) {
     GraphColorStop stops[] = {{.value = 50, .color = GColorRed}};
-    GraphDrawConfig config = {
+    GraphSeriesConfig config = {
         .default_color = GColorBlack,
         .color_stops = stops,
         .color_stop_count = 1,
-        .color_for_value = NULL
     };
-    TEST_ASSERT_EQUAL_GCOLOR(GColorRed, graph_color_for_stops(&config, 10));
-    TEST_ASSERT_EQUAL_GCOLOR(GColorRed, graph_color_for_stops(&config, 50));
-    TEST_ASSERT_EQUAL_GCOLOR(GColorRed, graph_color_for_stops(&config, 100));
+    TEST_ASSERT_EQUAL_GCOLOR(GColorRed, graph_color_for_stops(&config, 10, 0, 0, false));
+    TEST_ASSERT_EQUAL_GCOLOR(GColorRed, graph_color_for_stops(&config, 50, 0, 0, false));
+    TEST_ASSERT_EQUAL_GCOLOR(GColorRed, graph_color_for_stops(&config, 100, 0, 0, false));
 }
 
 void test_graph_color_for_stops_multiple_stops_no_interpolation(void) {
@@ -239,21 +228,20 @@ void test_graph_color_for_stops_multiple_stops_no_interpolation(void) {
         {.value = 50, .color = GColorGreen},
         {.value = 100, .color = GColorRed}
     };
-    GraphDrawConfig config = {
+    GraphSeriesConfig config = {
         .default_color = GColorBlack,
         .color_stops = stops,
         .color_stop_count = 3,
         .interpolate_color_stops = false,
-        .color_for_value = NULL
     };
 
-    TEST_ASSERT_EQUAL_GCOLOR(GColorBlue, graph_color_for_stops(&config, -10));
-    TEST_ASSERT_EQUAL_GCOLOR(GColorBlue, graph_color_for_stops(&config, 0));
-    TEST_ASSERT_EQUAL_GCOLOR(GColorBlue, graph_color_for_stops(&config, 49));
-    TEST_ASSERT_EQUAL_GCOLOR(GColorGreen, graph_color_for_stops(&config, 50));
-    TEST_ASSERT_EQUAL_GCOLOR(GColorGreen, graph_color_for_stops(&config, 99));
-    TEST_ASSERT_EQUAL_GCOLOR(GColorRed, graph_color_for_stops(&config, 100));
-    TEST_ASSERT_EQUAL_GCOLOR(GColorRed, graph_color_for_stops(&config, 110));
+    TEST_ASSERT_EQUAL_GCOLOR(GColorBlue, graph_color_for_stops(&config, -10, 0, 0, false));
+    TEST_ASSERT_EQUAL_GCOLOR(GColorBlue, graph_color_for_stops(&config, 0, 0, 0, false));
+    TEST_ASSERT_EQUAL_GCOLOR(GColorBlue, graph_color_for_stops(&config, 49, 0, 0, false));
+    TEST_ASSERT_EQUAL_GCOLOR(GColorGreen, graph_color_for_stops(&config, 50, 0, 0, false));
+    TEST_ASSERT_EQUAL_GCOLOR(GColorGreen, graph_color_for_stops(&config, 99, 0, 0, false));
+    TEST_ASSERT_EQUAL_GCOLOR(GColorRed, graph_color_for_stops(&config, 100, 0, 0, false));
+    TEST_ASSERT_EQUAL_GCOLOR(GColorRed, graph_color_for_stops(&config, 110, 0, 0, false));
 }
 
 void test_graph_color_for_stops_multiple_stops_with_interpolation(void) {
@@ -261,55 +249,29 @@ void test_graph_color_for_stops_multiple_stops_with_interpolation(void) {
         {.value = 0, .color = GColorBlack}, // 0b11000000
         {.value = 100, .color = GColorWhite} // 0b11111111
     };
-    GraphDrawConfig config = {
+    GraphSeriesConfig config = {
         .default_color = GColorBlack,
         .color_stops = stops,
         .color_stop_count = 2,
         .interpolate_color_stops = true,
-        .color_for_value = NULL
     };
 
-    TEST_ASSERT_EQUAL_GCOLOR(GColorBlack, graph_color_for_stops(&config, -10));
-    TEST_ASSERT_EQUAL_GCOLOR(GColorBlack, graph_color_for_stops(&config, 0));
-    TEST_ASSERT_EQUAL_GCOLOR((GColor){.argb = 0b11010101}, graph_color_for_stops(&config, 50)); // Interpolated mid
-    TEST_ASSERT_EQUAL_GCOLOR(GColorWhite, graph_color_for_stops(&config, 100));
-    TEST_ASSERT_EQUAL_GCOLOR(GColorWhite, graph_color_for_stops(&config, 110));
+    TEST_ASSERT_EQUAL_GCOLOR(GColorBlack, graph_color_for_stops(&config, -10, 0, 0, false));
+    TEST_ASSERT_EQUAL_GCOLOR(GColorBlack, graph_color_for_stops(&config, 0, 0, 0, false));
+    TEST_ASSERT_EQUAL_GCOLOR((GColor){.argb = 0b11010101}, graph_color_for_stops(&config, 50, 0, 0, false)); // Interpolated mid
+    TEST_ASSERT_EQUAL_GCOLOR(GColorWhite, graph_color_for_stops(&config, 100, 0, 0, false));
+    TEST_ASSERT_EQUAL_GCOLOR(GColorWhite, graph_color_for_stops(&config, 110, 0, 0, false));
 }
 
 // --- Test graph_color_for_value ---
 
-void test_graph_color_for_value_with_stops(void) {
-    GraphColorStop stops[] = {{.value = 50, .color = GColorRed}};
-    GraphDrawConfig config = {
-        .default_color = GColorBlack,
-        .color_stops = stops,
-        .color_stop_count = 1,
-        .color_for_value = custom_color_fn // Should be ignored if color_stops are present
-    };
-    TEST_ASSERT_EQUAL_GCOLOR(GColorRed, graph_color_for_value(&config, 10, 0, 100));
-}
-
-void test_graph_color_for_value_with_callback(void) {
-    GraphDrawConfig config = {
-        .default_color = GColorBlack,
-        .color_stops = NULL,
-        .color_stop_count = 0,
-        .color_for_value = custom_color_fn,
-        .color_context = (void *) 1 // Dummy context
-    };
-    TEST_ASSERT_EQUAL_GCOLOR(GColorBlue, graph_color_for_value(&config, -10, -100, 100));
-    TEST_ASSERT_EQUAL_GCOLOR(GColorGreen, graph_color_for_value(&config, 10, -100, 100));
-    TEST_ASSERT_EQUAL_GCOLOR(GColorRed, graph_color_for_value(&config, 60, -100, 100));
-}
-
 void test_graph_color_for_value_default_color(void) {
-    GraphDrawConfig config = {
+    GraphSeriesConfig config = {
         .default_color = GColorBlack,
         .color_stops = NULL,
         .color_stop_count = 0,
-        .color_for_value = NULL
     };
-    TEST_ASSERT_EQUAL_GCOLOR(GColorBlack, graph_color_for_value(&config, 10, 0, 100));
+    TEST_ASSERT_EQUAL_GCOLOR(GColorBlack, graph_color_for_value(&config, 10, 0, 100, 0, 0, false));
 }
 
 // --- Test draw_square_dot ---
@@ -348,68 +310,61 @@ void test_draw_square_dot_clear_color(void) {
     TEST_ASSERT_EQUAL(0, get_graphics_fill_rect_call_count()); // Should not draw
 }
 
-// --- Test graph_draw_series ---
+// --- Test graph_instance_draw ---
 
-void test_graph_draw_series_null_inputs(void) {
+void test_graph_instance_draw_null_inputs(void) {
     GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
-    int values[] = {10, 20};
-    GraphDrawConfig config = {.default_color = GColorBlack};
 
-    graph_draw_series(NULL, bounds, values, 2, &config);
-    graph_draw_series(ctx, bounds, NULL, 2, &config);
-    graph_draw_series(ctx, bounds, values, 2, NULL);
-    graph_draw_series(ctx, bounds, values, 0, &config);
-    graph_draw_series(ctx, GRect(0, 0, 0, 0), values, 2, &config);
+    graph_instance_draw(NULL, ctx, bounds);
+
+    GraphInstance inst = {0};
+    graph_instance_draw(&inst, ctx, bounds);
 
     TEST_ASSERT_EQUAL(0, get_graphics_fill_rect_call_count());
     TEST_ASSERT_EQUAL(0, get_graphics_draw_line_call_count());
 }
 
-void test_graph_draw_series_points_basic(void) {
+void test_graph_instance_draw_points_basic(void) {
     GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     int values[] = {10, 50, 90};
-    GraphDrawConfig config = {
+    GraphDataSeries data = { .values = values, .value_count = 3 };
+
+    GraphSeriesConfig s_config = {
         .graph_type = GRAPH_TYPE_POINTS,
         .dot_size = 2,
         .default_color = GColorGreen,
         .min_interpolated_dot_distance_px = 1 // Explicitly set to match expected 67 calls
     };
 
-    graph_draw_series(ctx, bounds, values, 3, &config);
+    GraphDrawConfig d_config = {
+        .series = &s_config,
+        .series_count = 1,
+        .axis = {0}
+    };
+
+    GraphInstance instance;
+    graph_instance_init(&instance, &data, 1, &d_config);
+
+    graph_instance_draw(&instance, ctx, bounds);
 
     // Expected 67 calls based on previous run with min_interpolated_dot_distance_px = 1
     TEST_ASSERT_EQUAL(67, get_graphics_fill_rect_call_count());
     GraphicsFillRectCall *calls = get_graphics_fill_rect_calls();
 
-    // Expected y values:
-    // min=10, max=90, drawable_height=98 (100-2)
-    // value=10 -> y = 98 - ( (10-10)*98 / (90-10) ) = 98
-    // value=50 -> y = 98 - ( (50-10)*98 / (90-10) ) = 98 - 49 = 49
-    // value=90 -> y = 98 - ( (90-10)*98 / (90-10) ) = 0
-
-    // Expected x values:
-    // width=100, dot_size=2, value_count=3
-    // (width - dot_size) = 98
-    // (value_count - 1) = 2
-    // x_for_index(0) = 0 * 98 / 2 = 0
-    // x_for_index(1) = 1 * 98 / 2 = 49
-    // x_for_index(2) = 2 * 98 / 2 = 98
-
     // Verify first point (value 10)
     TEST_ASSERT_TRUE(GRect_equal(calls[0].rect, GRect(0, 98, 2, 2)));
     TEST_ASSERT_EQUAL_GCOLOR(GColorGreen, calls[0].fill_color);
-    // The actual index will be higher due to interpolation.
-    // This assertion is likely to fail if we don't know the exact order of interpolated points.
-    // For now, let's just check the count and trust the observed behavior.
 }
 
-void test_graph_draw_series_points_suppress_zero(void) {
+void test_graph_instance_draw_points_suppress_zero(void) {
     GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     int values[] = {10, 0, 20};
-    GraphDrawConfig config = {
+    GraphDataSeries data = { .values = values, .value_count = 3 };
+
+    GraphSeriesConfig s_config = {
         .graph_type = GRAPH_TYPE_POINTS,
         .dot_size = 2,
         .default_color = GColorGreen,
@@ -417,42 +372,49 @@ void test_graph_draw_series_points_suppress_zero(void) {
         .min_interpolated_dot_distance_px = 1 // Explicitly set for consistent interpolation
     };
 
-    graph_draw_series(ctx, bounds, values, 3, &config);
+    GraphDrawConfig d_config = {
+        .series = &s_config,
+        .series_count = 1,
+        .axis = {0}
+    };
+
+    GraphInstance instance;
+    graph_instance_init(&instance, &data, 1, &d_config);
+
+    graph_instance_draw(&instance, ctx, bounds);
 
     // Expected 62 calls based on previous run.
     TEST_ASSERT_EQUAL(62, get_graphics_fill_rect_call_count());
 }
 
-void test_graph_draw_series_line_basic(void) {
+void test_graph_instance_draw_line_basic(void) {
     GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     int values[] = {10, 50, 90};
-    GraphDrawConfig config = {
+    GraphDataSeries data = { .values = values, .value_count = 3 };
+
+    GraphSeriesConfig s_config = {
         .graph_type = GRAPH_TYPE_LINE,
         .dot_size = 1, // Line graph uses dot_size for line thickness
         .default_color = GColorBlue,
         .min_interpolated_dot_distance_px = 1000 // No interpolation
     };
 
-    graph_draw_series(ctx, bounds, values, 3, &config);
+    GraphDrawConfig d_config = {
+        .series = &s_config,
+        .series_count = 1,
+        .axis = {0}
+    };
 
-    TEST_ASSERT_EQUAL(0, get_graphics_fill_rect_call_count()); // Expect 0 for now, debugging fill_area_under_line
+    GraphInstance instance;
+    graph_instance_init(&instance, &data, 1, &d_config);
+
+    graph_instance_draw(&instance, ctx, bounds);
+
+    TEST_ASSERT_EQUAL(0, get_graphics_fill_rect_call_count()); // Expect 0 for now
     TEST_ASSERT_EQUAL(2, get_graphics_draw_line_call_count()); // 2 lines
 
     GraphicsDrawLineCall *line_calls = get_graphics_draw_line_calls();
-
-    // min=0, max=90, drawable_height=99 (100-1)
-    // value=10 -> y = 99 - ( (10-0)*99 / (90-0) ) = 99 - 11 = 88
-    // value=50 -> y = 99 - ( (50-0)*99 / (90-0) ) = 99 - 55 = 44
-    // value=90 -> y = 99 - ( (90-0)*99 / (90-0) ) = 0
-
-    // x values:
-    // width=100, dot_size=1, value_count=3
-    // (width - dot_size) = 99
-    // (value_count - 1) = 2
-    // x_for_index(0) = 0
-    // x_for_index(1) = 49
-    // x_for_index(2) = 99
 
     // Line 1: (0, 88 + 0) to (49, 44 + 0)
     TEST_ASSERT_TRUE(GPoint_equal(line_calls[0].p0, GPoint(0, 88)));
@@ -465,41 +427,57 @@ void test_graph_draw_series_line_basic(void) {
     TEST_ASSERT_EQUAL_GCOLOR(GColorBlue, line_calls[1].stroke_color);
 }
 
-void test_graph_draw_series_line_interpolation(void) {
+void test_graph_instance_draw_line_interpolation(void) {
     GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 10, 10); // Small bounds to force interpolation
     int values[] = {0, 100};
-    GraphDrawConfig config = {
+    GraphDataSeries data = { .values = values, .value_count = 2 };
+
+    GraphSeriesConfig s_config = {
         .graph_type = GRAPH_TYPE_LINE,
         .dot_size = 1,
         .default_color = GColorRed,
         .min_interpolated_dot_distance_px = 1 // Force interpolation
     };
 
-    graph_draw_series(ctx, bounds, values, 2, &config);
+    GraphDrawConfig d_config = {
+        .series = &s_config,
+        .series_count = 1,
+        .axis = {0}
+    };
 
-    // x0 = 0, x1 = 9 (width - dot_size)
-    // interpolation_steps_for_segment(0, 9, 1) = (9/1)-1 = 8
-    // Total steps = 8 + 1 = 9
-    // Expect 9 fill columns (for each interpolated point)
-    // Expect 9 lines (between each interpolated point)
-    // Again, fill_rect count is likely huge.
-    TEST_ASSERT_EQUAL(0, get_graphics_fill_rect_call_count()); // Expect 0 for now
+    GraphInstance instance;
+    graph_instance_init(&instance, &data, 1, &d_config);
+
+    graph_instance_draw(&instance, ctx, bounds);
+
+    TEST_ASSERT_EQUAL(0, get_graphics_fill_rect_call_count()); // Expect 0
     TEST_ASSERT_EQUAL(9, get_graphics_draw_line_call_count());
 }
 
-void test_graph_draw_series_bar_basic(void) {
+void test_graph_instance_draw_bar_basic(void) {
     GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     int values[] = {10, 50, 90};
-    GraphDrawConfig config = {
+    GraphDataSeries data = { .values = values, .value_count = 3 };
+
+    GraphSeriesConfig s_config = {
         .graph_type = GRAPH_TYPE_BAR,
         .dot_size = 5,
         .default_color = GColorYellow,
         .min_interpolated_dot_distance_px = 1000 // No interpolation
     };
 
-    graph_draw_series(ctx, bounds, values, 3, &config);
+    GraphDrawConfig d_config = {
+        .series = &s_config,
+        .series_count = 1,
+        .axis = {0}
+    };
+
+    GraphInstance instance;
+    graph_instance_init(&instance, &data, 1, &d_config);
+
+    graph_instance_draw(&instance, ctx, bounds);
 
     // Expected 27 calls (2+9+16 for values 10, 50, 90 respectively)
     TEST_ASSERT_EQUAL(27, get_graphics_fill_rect_call_count());
@@ -513,63 +491,194 @@ void test_graph_draw_series_bar_basic(void) {
     TEST_ASSERT_EQUAL_GCOLOR(GColorYellow, calls[0].fill_color);
 }
 
-void test_graph_draw_series_bar_negative_values(void) {
+void test_graph_instance_draw_bar_negative_values(void) {
     GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     int values[] = {-10, 0, 10};
-    GraphDrawConfig config = {
+    GraphDataSeries data = { .values = values, .value_count = 3 };
+
+    GraphSeriesConfig s_config = {
         .graph_type = GRAPH_TYPE_BAR,
         .dot_size = 5,
         .default_color = GColorMagenta,
         .min_interpolated_dot_distance_px = 1000 // No interpolation
     };
 
-    graph_draw_series(ctx, bounds, values, 3, &config);
+    GraphDrawConfig d_config = {
+        .series = &s_config,
+        .series_count = 1,
+        .axis = {0}
+    };
+
+    GraphInstance instance;
+    graph_instance_init(&instance, &data, 1, &d_config);
+
+    graph_instance_draw(&instance, ctx, bounds);
 
     // Expected 18 calls (8+1+9 for values -10, 0, 10 respectively)
     TEST_ASSERT_EQUAL(18, get_graphics_fill_rect_call_count());
 }
 
-void test_graph_draw_series_line_single_point(void) {
+void test_graph_instance_draw_line_single_point(void) {
     GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     int values[] = {50};
-    GraphDrawConfig config = {
+    GraphDataSeries data = { .values = values, .value_count = 1 };
+
+    GraphSeriesConfig s_config = {
         .graph_type = GRAPH_TYPE_LINE,
         .dot_size = 2,
         .default_color = GColorCyan
     };
 
-    graph_draw_series(ctx, bounds, values, 1, &config);
+    GraphDrawConfig d_config = {
+        .series = &s_config,
+        .series_count = 1,
+        .axis = {0}
+    };
+
+    GraphInstance instance;
+    graph_instance_init(&instance, &data, 1, &d_config);
+
+    graph_instance_draw(&instance, ctx, bounds);
 
     TEST_ASSERT_EQUAL(1, get_graphics_fill_rect_call_count()); // Should draw a single dot
     TEST_ASSERT_EQUAL(0, get_graphics_draw_line_call_count());
 
     GraphicsFillRectCall *call = get_graphics_fill_rect_calls();
-    // After min_value adjustment (50 -> 0), value 50 maps to y=0 (top)
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Expected GRect: x=%d, y=%d, w=%d, h=%d", 0, 0, 2, 2);
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Actual GRect: x=%d, y=%d, w=%d, h=%d", call[0].rect.origin.x, call[0].rect.origin.y, call[0].rect.size.w, call[0].rect.size.h);
     TEST_ASSERT_TRUE(GRect_equal(call[0].rect, GRect(0, 0, 2, 2)));
     TEST_ASSERT_EQUAL_GCOLOR(GColorCyan, call[0].fill_color);
 }
 
-void test_graph_draw_series_line_single_point_suppress_zero(void) {
+void test_graph_instance_draw_line_single_point_suppress_zero(void) {
     GContext *ctx = (GContext *) 1;
     GRect bounds = GRect(0, 0, 100, 100);
     int values[] = {0};
-    GraphDrawConfig config = {
+    GraphDataSeries data = { .values = values, .value_count = 1 };
+
+    GraphSeriesConfig s_config = {
         .graph_type = GRAPH_TYPE_LINE,
         .dot_size = 2,
         .default_color = GColorCyan,
         .suppress_exact_zero_value = true
     };
 
-    graph_draw_series(ctx, bounds, values, 1, &config);
+    GraphDrawConfig d_config = {
+        .series = &s_config,
+        .series_count = 1,
+        .axis = {0}
+    };
+
+    GraphInstance instance;
+    graph_instance_init(&instance, &data, 1, &d_config);
+
+    graph_instance_draw(&instance, ctx, bounds);
 
     TEST_ASSERT_EQUAL(0, get_graphics_fill_rect_call_count()); // Should draw nothing
     TEST_ASSERT_EQUAL(0, get_graphics_draw_line_call_count());
 }
 
+void test_graph_instance_y_axis_scaling(void) {
+    GContext *ctx = (GContext *) 1;
+    GRect bounds = GRect(0, 0, 100, 100);
+    int values[] = {10, 50, 90};
+    GraphDataSeries data = { .values = values, .value_count = 3 };
+
+    int scale_steps[] = {20, 50, 100, 200};
+
+    GraphYAxisScalingConfig scale_config = {
+        .has_y_axis_range = true,
+        .y_min = 0,
+        .y_max = 0,
+        .y_axis_max_scale_steps = scale_steps,
+        .y_axis_max_scale_step_count = 4
+    };
+
+    GraphSeriesConfig s_config = {
+        .graph_type = GRAPH_TYPE_LINE,
+        .dot_size = 1,
+        .default_color = GColorBlue,
+        .min_interpolated_dot_distance_px = 1000,
+        .y_axis_scaling = &scale_config
+    };
+
+    GraphDrawConfig d_config = {
+        .series = &s_config,
+        .series_count = 1,
+        .axis = {0}
+    };
+
+    GraphInstance instance;
+    graph_instance_init(&instance, &data, 1, &d_config);
+
+    graph_instance_draw(&instance, ctx, bounds);
+
+    // Because max is 90, scale should snap to 100.
+    // min is 0 (from y_min)
+    // 10 -> (10-0)/(100-0) * 99 = 9, y = 99 - 9 = 90
+    // 50 -> (50-0)/(100-0) * 99 = 49.5 (49), y = 99 - 49 = 50
+    // 90 -> (90-0)/(100-0) * 99 = 89.1 (89), y = 99 - 89 = 10
+
+    TEST_ASSERT_EQUAL(2, get_graphics_draw_line_call_count());
+
+    GraphicsDrawLineCall *line_calls = get_graphics_draw_line_calls();
+
+    TEST_ASSERT_TRUE(GPoint_equal(line_calls[0].p0, GPoint(0, 90)));
+    TEST_ASSERT_TRUE(GPoint_equal(line_calls[0].p1, GPoint(49, 50)));
+    TEST_ASSERT_EQUAL_GCOLOR(GColorBlue, line_calls[0].stroke_color);
+
+    TEST_ASSERT_TRUE(GPoint_equal(line_calls[1].p0, GPoint(49, 50)));
+    TEST_ASSERT_TRUE(GPoint_equal(line_calls[1].p1, GPoint(99, 10)));
+    TEST_ASSERT_EQUAL_GCOLOR(GColorBlue, line_calls[1].stroke_color);
+}
+
+void test_graph_instance_draw_axis_ticks(void) {
+    GContext *ctx = (GContext *) 1;
+    GRect bounds = GRect(0, 0, 100, 100);
+    int values[] = {10, 50, 90, 40, 20}; // 5 points
+    GraphDataSeries data = { .values = values, .value_count = 5 };
+
+    GraphSeriesConfig s_config = {
+        .graph_type = GRAPH_TYPE_LINE,
+        .dot_size = 2,
+        .default_color = GColorBlue,
+        .min_interpolated_dot_distance_px = 1000 // no interpolation
+    };
+
+    GraphDrawConfig d_config = {
+        .series = &s_config,
+        .series_count = 1,
+        .axis = {
+            .tick_interval_x = 2,
+            .tick_color_x = GColorRed,
+            .tick_length_y = 5
+        }
+    };
+
+    GraphInstance instance;
+    graph_instance_init(&instance, &data, 1, &d_config);
+
+    graph_instance_draw(&instance, ctx, bounds);
+
+    // value_count = 5, tick_interval = 2 -> i=0, 2, 4 (3 ticks)
+    // + 4 lines from the series
+    TEST_ASSERT_EQUAL(7, get_graphics_draw_line_call_count());
+
+    GraphicsDrawLineCall *line_calls = get_graphics_draw_line_calls();
+
+    // Ticks are drawn first
+    TEST_ASSERT_TRUE(GPoint_equal(line_calls[0].p0, GPoint(1, 100)));
+    TEST_ASSERT_TRUE(GPoint_equal(line_calls[0].p1, GPoint(1, 95)));
+    TEST_ASSERT_EQUAL_GCOLOR(GColorRed, line_calls[0].stroke_color);
+
+    TEST_ASSERT_TRUE(GPoint_equal(line_calls[1].p0, GPoint(50, 100)));
+    TEST_ASSERT_TRUE(GPoint_equal(line_calls[1].p1, GPoint(50, 95)));
+    TEST_ASSERT_EQUAL_GCOLOR(GColorRed, line_calls[1].stroke_color);
+
+    TEST_ASSERT_TRUE(GPoint_equal(line_calls[2].p0, GPoint(99, 100)));
+    TEST_ASSERT_TRUE(GPoint_equal(line_calls[2].p1, GPoint(99, 95)));
+    TEST_ASSERT_EQUAL_GCOLOR(GColorRed, line_calls[2].stroke_color);
+}
 
 int main() {
     UNITY_BEGIN();
@@ -594,8 +703,6 @@ int main() {
     RUN_TEST(test_graph_color_for_stops_multiple_stops_with_interpolation);
 
     // Test graph_color_for_value
-    RUN_TEST(test_graph_color_for_value_with_stops);
-    RUN_TEST(test_graph_color_for_value_with_callback);
     RUN_TEST(test_graph_color_for_value_default_color);
 
     // Test draw_square_dot
@@ -603,16 +710,18 @@ int main() {
     RUN_TEST(test_draw_square_dot_out_of_bounds);
     RUN_TEST(test_draw_square_dot_clear_color);
 
-    // Test graph_draw_series
-    RUN_TEST(test_graph_draw_series_null_inputs);
-    RUN_TEST(test_graph_draw_series_points_basic);
-    RUN_TEST(test_graph_draw_series_points_suppress_zero);
-    RUN_TEST(test_graph_draw_series_line_basic);
-    RUN_TEST(test_graph_draw_series_line_interpolation);
-    RUN_TEST(test_graph_draw_series_bar_basic);
-    RUN_TEST(test_graph_draw_series_bar_negative_values);
-    RUN_TEST(test_graph_draw_series_line_single_point);
-    RUN_TEST(test_graph_draw_series_line_single_point_suppress_zero);
+    // Test graph_instance_draw
+    RUN_TEST(test_graph_instance_draw_null_inputs);
+    RUN_TEST(test_graph_instance_draw_points_basic);
+    RUN_TEST(test_graph_instance_draw_points_suppress_zero);
+    RUN_TEST(test_graph_instance_draw_line_basic);
+    RUN_TEST(test_graph_instance_draw_line_interpolation);
+    RUN_TEST(test_graph_instance_draw_bar_basic);
+    RUN_TEST(test_graph_instance_draw_bar_negative_values);
+    RUN_TEST(test_graph_instance_draw_line_single_point);
+    RUN_TEST(test_graph_instance_draw_line_single_point_suppress_zero);
+    RUN_TEST(test_graph_instance_y_axis_scaling);
+    RUN_TEST(test_graph_instance_draw_axis_ticks);
 
     return UNITY_END();
 }
