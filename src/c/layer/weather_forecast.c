@@ -147,7 +147,7 @@ Layer *create_temperature_forecast_layer(LayerBuilder builder) {
         .dot_size = 1,
         .min_interpolated_dot_distance_px = 0,
         .fill_area_under_line = true,
-        .dither_colors = true,
+        .dither_fill_colors = true,
         .suppress_exact_zero_value = true,
         .interpolate_color_stops = true,
         .default_color = GColorBlue,
@@ -167,7 +167,7 @@ Layer *create_temperature_forecast_layer(LayerBuilder builder) {
         .dot_size = 1,
         .min_interpolated_dot_distance_px = 0,
         .fill_area_under_line = false,
-        .dither_colors = false,
+        .dither_fill_colors = false,
         .suppress_exact_zero_value = false,
         .interpolate_color_stops = true,
         .default_color = theme_get_theme()->WeatherTextColor,
@@ -185,7 +185,7 @@ Layer *create_temperature_forecast_layer(LayerBuilder builder) {
         .series = data->series_configs,
         .series_count = NUM_GRAPH_SERIES,
         .axis = {
-            .tick_interval_x = 4, // 1 hour (4 * 15min)
+            .tick_interval_x = FORECAST_POINTS_PER_HOUR,
             .tick_color_x = GColorDarkGray,
             .tick_length_y = 3,
         }

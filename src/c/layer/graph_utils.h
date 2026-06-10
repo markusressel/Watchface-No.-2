@@ -38,9 +38,9 @@ typedef struct GraphSeriesConfig {
     int dot_size; /**< The size of the dots for point graphs, or the thickness of the line for line graphs. */
     int min_interpolated_dot_distance_px; /**< The minimum pixel distance between interpolated points. Set to 0 to disable interpolation. */
     bool fill_area_under_line; /**< For line graphs, whether to fill the area below the line. */
-    bool dither_colors; /**< Whether to apply Bayer dithering to color gradients to reduce banding. */
+    bool dither_fill_colors; /**< Whether to apply Bayer dithering to the color gradients in the filled area to reduce banding. (Only applies to fill area) */
     bool suppress_exact_zero_value; /**< If true, values of exactly zero will not be drawn. */
-    bool interpolate_color_stops; /**< If true, colors will be smoothly interpolated between the defined color stops. */
+    bool interpolate_color_stops; /**< If true, colors will be smoothly interpolated between the defined color stops. (Applies to both line and fill) */
     GColor default_color; /**< The default color to use if no color stops are defined. */
     const GraphColorStop *color_stops; /**< An array of color stops that define the gradient. */
     int color_stop_count; /**< The number of color stops in the color_stops array. */

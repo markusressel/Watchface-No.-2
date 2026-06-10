@@ -268,7 +268,7 @@ static void draw_line_fill_column(
 
     while (y <= drawable_height) {
         const int value_at_y = graph_y_to_value(y, min_value, max_value, drawable_height);
-        const GColor color = graph_color_for_value(config, value_at_y, min_value, max_value, x, y, config->dither_colors);
+        const GColor color = graph_color_for_value(config, value_at_y, min_value, max_value, x, y, config->dither_fill_colors);
         draw_square_dot(ctx, bounds, x, y, 1, color);
         y++;
     }
@@ -300,7 +300,7 @@ static void draw_bar_at_x(
     const int y_end = y_zero > y_value ? y_zero : y_value;
 
     for (int y = y_start; y <= y_end; y += step_size) {
-        const GColor color = graph_color_for_value(config, value, min_value, max_value, x, y, config->dither_colors);
+        const GColor color = graph_color_for_value(config, value, min_value, max_value, x, y, config->dither_fill_colors);
         draw_square_dot(ctx, bounds, x, y, dot_size, color);
     }
 }
