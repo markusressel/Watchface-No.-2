@@ -127,7 +127,7 @@ ClaySettings *clay_sanitize_settings(ClaySettings *settings) {
     if (!is_row_widget_valid(settings->Row5Widget)) settings->Row5Widget = WIDGET_STEPCOUNT;
     if (!is_row_widget_valid(settings->Row6Widget)) settings->Row6Widget = WIDGET_STEPCOUNT;
 
-    settings->WeatherUseSimulation = settings->WeatherUseSimulation ? true : false;
+    settings->WeatherUseSimulation = settings->WeatherUseSimulation;
 
     if (settings->SliderWeatherForecastPreviewHoursCount < 1 || settings->SliderWeatherForecastPreviewHoursCount > 24) {
         settings->SliderWeatherForecastPreviewHoursCount = 6;
@@ -189,7 +189,11 @@ static ClaySettings *clay_reset_to_default_settings() {
     settings->Row5Widget = WIDGET_HEARTRATE;
     settings->Row6Widget = WIDGET_WEATHER_FORECAST;
 
+#ifdef PBL_EMULATOR
+    settings->WeatherUseSimulation = true;
+#else
     settings->WeatherUseSimulation = false;
+#endif
     settings->SliderWeatherForecastPreviewHoursCount = 6;
 
     return settings;
