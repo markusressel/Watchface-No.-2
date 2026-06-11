@@ -3,6 +3,7 @@
 #include <pebble.h>
 #include "layer_factory.h"
 #include "../ui/layer/widget.h"
+#include "../settings/clay_settings.h"
 
 // A single row in the layout.
 typedef struct WatchRow {
@@ -32,3 +33,9 @@ LayerBuilder watch_layout_make_builder(
     Layer *window_layer,
     int row_index
 );
+
+void build_layout_from_settings(ClaySettings *settings);
+
+void main_reload_layout(ClaySettings *settings, Window *window);
+
+WatchLayout *watch_layout_get_layout();

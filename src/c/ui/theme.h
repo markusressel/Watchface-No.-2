@@ -1,5 +1,6 @@
 #pragma once
 #include <pebble.h>
+#include "../settings/clay_settings.h"
 
 // Themes
 enum ThemeEnum {
@@ -52,3 +53,5 @@ void set_theme(enum ThemeEnum theme, bool showSeconds);
 // method to initialize custom theme with custom colors
 // @param theme        the custom theme
 void set_custom_theme(Theme *theme);
+
+void apply_theme_from_settings(ClaySettings *settings, Window *window);

@@ -1,6 +1,11 @@
 #include "../ui/watch_layout.h"
 #include "../settings/clay_settings.h"
 #include "../ui/layer/widget.h"
+#include "../ui/theme.h"
+#include "../ui/window.h"
+
+// Layout is built at runtime from settings (see build_layout_from_settings).
+static WatchLayout s_layout;
 
 // Per-widget layout constants.
 // x            - left edge of the layer (pixels from screen left)
@@ -244,4 +249,43 @@ LayerBuilder watch_layout_make_builder(
     const WidgetMetrics *m = &s_widget_metrics[layout->rows[row_index].widget];
     GRect bounds = GRect(m->x, y, screen.size.w - m->width_margin, row_heights[row_index]);
     return layer_builder_from_rect(window_layer, bounds);
+}
+
+void build_layout_from_settings(ClaySettings *settings) {
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "build_layout_from_settings");
+
+    int row_count = settings->LayoutRowCount;
+    if (row_count < WATCH_LAYOUT_MIN_ROWS) {
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "Layout row count too low, setting to minimum of %d", WATCH_LAYOUT_MIN_ROWS);
+        row_count = WATCH_LAYOUT_MIN_ROWS;
+    } else if (row_count > WATCH_LAYOUT_MAX_ROWS) {
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "Layout row count too high, setting to maximum of %d", WATCH_LAYOUT_MAX_ROWS);
+        row_count = WATCH_LAYOUT_MAX_ROWS;
+    }
+
+    s_layout = (WatchLayout){
+        .row_count = row_count,
+        .rows = {
+            [0] = {.widget = (WidgetId) settings->Row0Widget},
+            [1] = {.widget = (WidgetId) settings->Row1Widget},
+            [2] = {.widget = (WidgetId) settings->Row2Widget},
+            [3] = {.widget = (WidgetId) settings->Row3Widget},
+            [4] = {.widget = (WidgetId) settings->Row4Widget},
+            [5] = {.widget = (WidgetId) settings->Row5Widget},
+            [6] = {.widget = (WidgetId) settings->Row6Widget},
+        },
+    };
+}
+
+void main_reload_layout(ClaySettings *settings, Window *window) {
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "main_reload_layout");
+
+    window_unload(window);
+    apply_theme_from_settings(settings, window);
+    build_layout_from_settings(settings);
+    window_load(window);
+}
+
+WatchLayout *watch_layout_get_layout() {
+    return &s_layout;
 }

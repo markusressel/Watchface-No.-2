@@ -1,5 +1,6 @@
 #include <pebble.h>
 #include "theme.h"
+#include <string.h>
 
 static Theme s_theme;
 
@@ -58,4 +59,42 @@ void set_theme(enum ThemeEnum themeEnum, bool showSeconds) {
 
 void set_custom_theme(Theme *theme) {
     s_theme = *theme;
+}
+
+void apply_theme_from_settings(ClaySettings *settings, Window *window) {
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "apply_theme_from_settings");
+    enum ThemeEnum theme;
+    if (settings->ThemeValue[0] == '\0') {
+        strcpy(settings->ThemeValue, THEME_LIGHT_STR);
+    }
+    if (strcmp(settings->ThemeValue, THEME_LIGHT_STR) == 0) {
+        theme = LIGHT;
+    } else if (strcmp(settings->ThemeValue, THEME_DARK_STR) == 0) {
+        theme = DARK;
+    } else {
+        theme = CUSTOM;
+    }
+
+    if (theme == CUSTOM) {
+        Theme custom_theme;
+        custom_theme.CurrentThemeEnum = CUSTOM;
+        custom_theme.BackgroundColor = settings->BackgroundColor;
+        custom_theme.TimeTextColor = settings->TimeTextColor;
+        custom_theme.DateTextColor = settings->DateTextColor;
+        custom_theme.BatteryOutlineColor = settings->BatteryFrameColor;
+        custom_theme.BatteryFillColor = settings->BatteryFillColor;
+        custom_theme.WeatherTextColor = settings->WeatherTextColor;
+        custom_theme.StepcountTextColor = settings->StepcountTextColor;
+        custom_theme.HeartrateTextColor = settings->HeartrateTextColor;
+        theme_set_fonts(&custom_theme, settings->ShowSeconds);
+
+        set_custom_theme(&custom_theme);
+    } else {
+        set_theme(theme, settings->ShowSeconds);
+    }
+
+    // Safely update the window background if the window exists
+    if (window) {
+        window_set_background_color(window, theme_get_theme()->BackgroundColor);
+    }
 }
