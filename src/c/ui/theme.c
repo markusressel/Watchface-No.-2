@@ -12,11 +12,11 @@ Theme *theme_set_fonts(Theme *theme, bool showSeconds) {
     return theme;
 }
 
-static void set_colors(Theme *theme) {
+static void set_colors(Theme *theme, enum ThemeEnum themeEnum) {
     GColor mainTextColor;
     GColor foregroundColor;
 
-    switch (theme->CurrentThemeEnum) {
+    switch (themeEnum) {
         case LIGHT:
             mainTextColor = GColorBlack;
             foregroundColor = GColorBlack;
@@ -58,7 +58,7 @@ Theme *theme_get_theme() {
 void init_theme(enum ThemeEnum themeEnum, bool showSeconds) {
     s_theme.CurrentThemeEnum = themeEnum;
 
-    set_colors(&s_theme);
+    set_colors(&s_theme, themeEnum);
     theme_set_fonts(&s_theme, showSeconds);
 }
 
