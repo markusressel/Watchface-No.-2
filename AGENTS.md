@@ -12,10 +12,15 @@ just build
 or run in relevant emulators (preferred for instant visual feedback from the developer):
 
 ```shell
-just run emery flint
+just deploy debug emery
 ```
 
 Tasks too complex to be written directly into the Justfile should use Python 3 like [run.py](scripts/run.py).
+
+## Build Flags
+
+- A **release build** is indicated within C through `#define RELEASE 1`
+- An **emulator build** by `#define PBL_EMULATOR 1`
 
 # Test
 
