@@ -2,15 +2,18 @@
 
 #if defined(PBL_PLATFORM_APLITE)
 
-void update_temperature_forecast() {
+void update_weather_forecast() {
 }
 
-Layer *create_temperature_forecast_layer(LayerBuilder builder) {
+void weather_forecast_layer_update_settings() {
+}
+
+Layer *create_weather_forecast_layer(LayerBuilder builder) {
     (void) builder;
     return NULL;
 }
 
-void destroy_temperature_forecast_layer(Layer *layer) {
+void destroy_weather_forecast_layer(Layer *layer) {
     (void) layer;
 }
 
@@ -22,10 +25,11 @@ void destroy_temperature_forecast_layer(Layer *layer) {
 #include "../../ui/theme.h"
 #include "weather.h"
 #include "../graphics/graph_utils.h"
+#include "../../settings/clay_settings.h"
 
 #define MAX_TEMPERATURE_FORECAST_LAYERS 7
 #define FORECAST_POINTS_PER_HOUR 4
-#define MAX_FORECAST_POINTS (FORECAST_POINTS_PER_HOUR * 6)
+#define MAX_FORECAST_POINTS (FORECAST_POINTS_PER_HOUR * 24)
 #define NUM_GRAPH_SERIES 2
 
 #if defined(PBL_COLOR)
@@ -65,6 +69,9 @@ static void update_proc(Layer *layer, GContext *ctx) {
     WeatherForecastLayerData *data = layer_get_data(layer);
     const GRect bounds = layer_get_bounds(layer);
     WeatherData *weather_data = weather_get_data();
+    ClaySettings *settings = clay_get_settings();
+
+    int max_forecast_points = settings->SliderWeatherForecastPreviewHoursCount * FORECAST_POINTS_PER_HOUR;
 
     // Update rain data
     int rain_value_count = weather_data->RainForecastMmX10Count;
@@ -74,8 +81,8 @@ static void update_proc(Layer *layer, GContext *ctx) {
         rain_fallback_value[0] = weather_data->RainNextHourMmX10;
         rain_render_values = rain_fallback_value;
         rain_value_count = 1;
-    } else if (rain_value_count > MAX_FORECAST_POINTS) {
-        rain_value_count = MAX_FORECAST_POINTS;
+    } else if (rain_value_count > max_forecast_points) {
+        rain_value_count = max_forecast_points;
     }
     data->data[0].values = rain_render_values;
     data->data[0].value_count = rain_value_count;
@@ -88,8 +95,8 @@ static void update_proc(Layer *layer, GContext *ctx) {
         temp_fallback_value[0] = weather_data->CurrentTemperature;
         temp_render_values = temp_fallback_value;
         temp_value_count = 1;
-    } else if (temp_value_count > MAX_FORECAST_POINTS) {
-        temp_value_count = MAX_FORECAST_POINTS;
+    } else if (temp_value_count > max_forecast_points) {
+        temp_value_count = max_forecast_points;
     }
     data->data[1].values = temp_render_values;
     data->data[1].value_count = temp_value_count;
@@ -97,7 +104,7 @@ static void update_proc(Layer *layer, GContext *ctx) {
     graph_instance_draw(&data->forecast_graph, ctx, bounds);
 }
 
-void update_temperature_forecast() {
+void update_weather_forecast() {
     for (int i = 0; i < s_layer_count; i++) {
         if (s_layers[i] != NULL) {
             layer_mark_dirty(s_layers[i]);
@@ -105,7 +112,17 @@ void update_temperature_forecast() {
     }
 }
 
-Layer *create_temperature_forecast_layer(LayerBuilder builder) {
+void weather_forecast_layer_update_settings() {
+    for (int i = 0; i < s_layer_count; i++) {
+        if (s_layers[i] != NULL) {
+            WeatherForecastLayerData *data = layer_get_data(s_layers[i]);
+            data->series_configs[1].default_color = theme_get_theme()->WeatherTextColor;
+            layer_mark_dirty(s_layers[i]);
+        }
+    }
+}
+
+Layer *create_weather_forecast_layer(LayerBuilder builder) {
     if (s_layer_count >= MAX_TEMPERATURE_FORECAST_LAYERS) {
         APP_LOG(APP_LOG_LEVEL_ERROR, "Max temperature forecast layers exceeded!");
         return NULL;
@@ -199,7 +216,7 @@ Layer *create_temperature_forecast_layer(LayerBuilder builder) {
     return layer;
 }
 
-void destroy_temperature_forecast_layer(Layer *layer) {
+void destroy_weather_forecast_layer(Layer *layer) {
     if (layer == NULL) {
         return;
     }

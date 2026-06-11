@@ -6,6 +6,7 @@
 #include "../ui/layer/weather.h"
 #include "../settings/clay_settings.h"
 #include "../ui/watch_layout.h"
+#include "../ui/layer/weather_forecast.h"
 
 void queue_message(const uint32_t key, const int value) {
     DictionaryIterator *iter;
@@ -315,6 +316,7 @@ static void read_weather_data(DictionaryIterator *iterator) {
         );
 
         update_weather();
+        update_weather_forecast();
     }
 }
 

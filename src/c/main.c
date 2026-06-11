@@ -79,7 +79,7 @@ static void main_window_load(Window *window) {
                 break;
             case WIDGET_HEARTRATE: s_row_layers[i] = create_heartrate_layer(builder);
                 break;
-            case WIDGET_WEATHER_FORECAST: s_row_layers[i] = create_temperature_forecast_layer(builder);
+            case WIDGET_WEATHER_FORECAST: s_row_layers[i] = create_weather_forecast_layer(builder);
                 break;
             case WIDGET_BATTERY_BAR: s_row_layers[i] = create_battery_bar_layer(builder);
                 break;
@@ -120,7 +120,7 @@ static void main_window_unload(Window *window) {
                     break;
                 case WIDGET_HEARTRATE: destroy_heartrate_layer(s_row_layers[i]);
                     break;
-                case WIDGET_WEATHER_FORECAST: destroy_temperature_forecast_layer(s_row_layers[i]);
+                case WIDGET_WEATHER_FORECAST: destroy_weather_forecast_layer(s_row_layers[i]);
                     break;
                 case WIDGET_BATTERY_BAR: destroy_battery_bar_layer(s_row_layers[i]);
                     break;

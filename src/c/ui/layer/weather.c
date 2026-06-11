@@ -308,8 +308,6 @@ static void update_all_weather_layers() {
         // update text layer
         dotted_text_layer_set_text(s_weather_layers[i].dotted_text_layer, s_buffer);
     }
-
-    update_temperature_forecast();
 }
 
 // Backward compatible wrapper (called by app messaging or other code)

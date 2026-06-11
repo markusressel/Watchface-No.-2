@@ -2,8 +2,8 @@
 
 #include "../../ui/layer_factory.h"
 
-void update_temperature_forecast();
+void update_weather_forecast();
 
-Layer *create_temperature_forecast_layer(LayerBuilder builder);
+Layer *create_weather_forecast_layer(LayerBuilder builder);
 
-void destroy_temperature_forecast_layer(Layer * layer);
+void destroy_weather_forecast_layer(Layer * layer);
