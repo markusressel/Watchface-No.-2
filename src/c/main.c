@@ -160,7 +160,7 @@ static void apply_theme_from_settings(ClaySettings *settings) {
 
         set_custom_theme(&custom_theme);
     } else {
-        init_theme(theme, settings->ShowSeconds);
+        set_theme(theme, settings->ShowSeconds);
     }
 
     // Safely update the window background if the window exists
