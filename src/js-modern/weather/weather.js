@@ -223,7 +223,11 @@ function get_cached_weather_data() {
  * @returns {number|null} - The timestamp of the last fetch, or null if not found.
  */
 export function get_last_fetch_timestamp() {
-    return Persistence.getInt(StorageKeys.WEATHER_LAST_FETCH_KEY)
+    const rawValue = Persistence.getInt(StorageKeys.WEATHER_LAST_FETCH_KEY)
+    if (rawValue === null || isNaN(rawValue)) {
+        return null;
+    }
+    return rawValue;
 }
 
 /**
@@ -240,13 +244,12 @@ export function time_since_last_fetch_exceeds(durationMs) {
 }
 
 function should_fetch_weather_from_api() {
-    return true;
-    // const cached = get_cached_weather_data();
-    // if (!cached) {
-    //     return true;
-    // }
-    //
-    // return time_since_last_fetch_exceeds(WEATHER_UPDATE_INTERVAL_MS);
+    const cached = get_cached_weather_data();
+    if (!cached) {
+        return true;
+    }
+
+    return time_since_last_fetch_exceeds(WEATHER_UPDATE_INTERVAL_MS);
 }
 
 /**
