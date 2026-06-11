@@ -366,7 +366,7 @@ export default [
         "items": [
             {
                 "type": "heading",
-                "defaultValue": "API Settings"
+                "defaultValue": "Weather Settings"
             },
             {
                 "type": "text",

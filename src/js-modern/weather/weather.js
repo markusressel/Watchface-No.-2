@@ -2,7 +2,7 @@ import * as config from '../config/config';
 import * as appMessaging from '../app_messaging';
 import Persistence, {StorageKeys} from '../persistence';
 import timelineSimulation from './mock/timeline.json';
-import * as owm from './openweathermap';
+import * as openmeteo from './openmeteo/openmeteo';
 
 const WEATHER_UPDATE_INTERVAL_MS = 30.0.minutes;
 const FORECAST_POINT_COUNT = 100;
@@ -117,14 +117,14 @@ export function process_timeline_payload(json, sourceLabel) {
     console.log('Conditions are ' + conditions);
 
     // Rain forecast based on selected 15-minute entry
-    const rainMm = (current.rain && current.rain['1h']) ? current.rain['1h'] : 0;
+    const rainMm = (current.rain !== null) ? current.rain : 0;
     const popPercent = typeof current.pop === 'number' ? Math.round(current.pop * 100) : 0;
     console.log('Rain from selected entry (mm/h): ' + rainMm + ', pop (%): ' + popPercent);
 
     const temperatureForecastSeries = build_condensed_series(
         timeline,
         function (entry) {
-            return kelvin_to_celsius(entry && entry.temp);
+            return kelvin_to_celsius(entry.temp);
         },
         FORECAST_POINT_COUNT
     );
@@ -132,13 +132,16 @@ export function process_timeline_payload(json, sourceLabel) {
     const rainForecastSeries = build_condensed_series(
         timeline,
         function (entry) {
-            const rain = (entry && entry.rain && entry.rain['1h']) ? entry.rain['1h'] : 0;
-            return one_decimal_to_int(rain);
+            const rain = entry.rain;
+            return appMessaging.encode_decimal_as_int(rain, 1);
         },
         FORECAST_POINT_COUNT
     );
 
-    // Assemble dictionary using our keys
+    console.log('Temperature forecast series: ' + temperatureForecastSeries);
+    console.log('Rain forecast series: ' + rainForecastSeries);
+
+    // Assemble a dictionary using our keys
     return new WeatherData(
         temperatureCurrent,
         temperatureMin,
@@ -149,6 +152,27 @@ export function process_timeline_payload(json, sourceLabel) {
         temperatureForecastSeries,
         rainForecastSeries
     );
+}
+
+function process_openmeteo_payload(json, sourceLabel) {
+    if (!json || !json.minutely_15) {
+        console.log('No timeline data available from ' + sourceLabel + '.');
+        return;
+    }
+
+    const timeline = [];
+    const data = json.minutely_15;
+    for (let i = 0; i < data.time.length; i++) {
+        timeline.push({
+            dt: Math.floor(new Date(data.time[i]).getTime() / 1000),
+            temp: data.temperature_2m[i] + 273.15, // Convert to Kelvin
+            rain: data.rain[i],
+            pop: 0, // Not available
+            weather: [{main: ''}] // Not available
+        });
+    }
+
+    return process_timeline_payload({data: timeline, timezone_offset: json.utc_offset_seconds}, sourceLabel);
 }
 
 /**
@@ -199,7 +223,11 @@ function get_cached_weather_data() {
  * @returns {number|null} - The timestamp of the last fetch, or null if not found.
  */
 export function get_last_fetch_timestamp() {
-    return Persistence.getInt(StorageKeys.WEATHER_LAST_FETCH_KEY)
+    const rawValue = Persistence.getInt(StorageKeys.WEATHER_LAST_FETCH_KEY)
+    if (rawValue === null || isNaN(rawValue)) {
+        return null;
+    }
+    return rawValue;
 }
 
 /**
@@ -311,26 +339,48 @@ export function build_condensed_series(entries, extractor, maxCount) {
 
 
 /**
- * Fetches weather data from the OpenWeatherMap API.
+ * Fetches weather data from the selected API.
  * @param {number} latitude - The latitude coordinate for weather data.
  * @param {number} longitude - The longitude coordinate for weather data.
  * @returns {Promise<WeatherData|null>} A promise that resolves with the weather data.
  */
 async function fetch_weather_data(latitude, longitude) {
     try {
-        const json = await owm.fetch_weather_data(latitude, longitude);
-        return process_timeline_payload(json, 'api/openweathermap');
+        const json = await openmeteo.fetch_weather_data(latitude, longitude);
+        return process_openmeteo_payload(json, 'api/openmeteo');
     } catch (error) {
         console.log('Error during API weather request or processing: ' + error);
     }
     return null;
 }
 
+function clearWeatherData() {
+    // Send empty weather data to clear the display on the watchface
+    const clearDictionary = new WeatherData(
+        0,
+        0,
+        0,
+        '',
+        0,
+        0,
+        [],
+        []
+    );
+
+    cache_weather_data(clearDictionary);
+
+    send_weather_to_watch(
+        clearDictionary,
+        "Weather data cleared successfully!",
+        "Error clearing weather data!"
+    );
+}
+
 /**
  * Returns the currently most up-to-date weather data.
  * Data is either served from cache, if the data is still new enough.
- * Otherwise latest data is fetched, either from the OpenWeatherMap API, or "timeline.json" file if simulation mode is enabled.
- * If no API key is configured, any existing weather data is cleared both in the cache and on the watchface.
+ * Otherwise latest data is fetched, either from the selected API, or "timeline.json" file if simulation mode is enabled.
+ * If no API key is configured for OpenWeatherMap, any existing weather data is cleared both in the cache and on the watchface.
  * Caches the last fetched weather data for [WEATHER_UPDATE_INTERVAL_MS] milliseconds to minimize unnecessary API calls.
  * Handles geolocation retrieval and API response processing, sending the relevant weather data to the Pebble watchface.
  */
@@ -338,35 +388,6 @@ export function getWeather() {
     if (config.isWeatherSimulationEnabled()) {
         console.log('Simulation mode enabled. Using timeline.json weather data.');
         request_simulated_weather_data();
-        return;
-    }
-
-    const apiKey = config.getWeatherApiKey();
-
-    // If no API key is configured, clear any stale weather data
-    if (!apiKey || apiKey.length === 0) {
-        console.log("No OpenWeatherMap API key configured. Clearing weather data.");
-
-        // Send empty weather data to clear the display on the watchface
-        const clearDictionary = new WeatherData(
-            0,
-            0,
-            0,
-            '',
-            0,
-            0,
-            [],
-            []
-        );
-
-        cache_weather_data(clearDictionary);
-
-        send_weather_to_watch(
-            clearDictionary,
-            "Weather data cleared successfully!",
-            "Error clearing weather data!"
-        );
-
         return;
     }
 
@@ -397,7 +418,10 @@ export function getWeather() {
                         );
                     }
                 })
-                .catch(e => console.log('Error in weather fetch process: ' + e));
+                .catch(e => {
+                    console.log('Error in weather fetch process: ' + e)
+                    clearWeatherData();
+                });
         },
         function (err) {
             console.log("Error requesting location!");
@@ -415,5 +439,3 @@ export function getWeather() {
 export function one_decimal_to_int(value) {
     return appMessaging.encode_decimal_as_int(value, 1)
 }
-
-export const setSimulationModeEnabled = config.setWeatherSimulationEnabled;

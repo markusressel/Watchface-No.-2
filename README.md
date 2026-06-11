@@ -51,8 +51,9 @@ After saving your modified settings, the watchface will reload automatically.
 The "dotted font" in this watchface actually isn't a font. Each character - `0-9`, some special characters like `.` and `/` and selected letters for displaying weekdays - is
 matched with 5x5 bool matrix that specifies which pixel should be drawn. Between these pixels gaps are interpolated to create the pattern effect.
 
-If you want to take a deeper look at how I've done this check out the [dotted_text_layer.c](src/c/dotted_text_layer.c) and [dotted_text_layer.h](src/c/dotted_text_layer.h). This is
-a custom implementation of a standard Pebble Layer and internally uses the [pixel_matrix_drawer.h](src/c/pixel_matrix_drawer.h).
+If you want to take a deeper look at how I've done this check out the [dotted_text_layer.c](src/c/ui/layer/dotted_text_layer.c)
+and [dotted_text_layer.h](src/c/ui/layer/dotted_text_layer.h). This is
+a custom implementation of a standard Pebble Layer and internally uses the [pixel_matrix_drawer.h](src/c/ui/graphics/pixel_matrix_drawer.h).
 
 # Attributions
 

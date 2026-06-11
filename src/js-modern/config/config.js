@@ -36,9 +36,3 @@ export function getWeatherApiKey() {
 export function isWeatherSimulationEnabled() {
     return !!getClaySettings().WeatherUseSimulation;
 }
-
-export function setWeatherSimulationEnabled(enabled) {
-    const settings = getClaySettings();
-    settings.WeatherUseSimulation = !!enabled;
-    saveClaySettings(settings);
-}

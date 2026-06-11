@@ -3,8 +3,8 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "../../src/c/pixel_matrix_drawer.h"
-#include "../../src/c/pixel_matrix_drawer.c" // Include the C implementation file directly for testing
+#include "../../src/c/ui/graphics/pixel_matrix_drawer.h"
+#include "../../src/c/ui/graphics/pixel_matrix_drawer.c"
 #include "pebble/pebble.h" // Mock Pebble SDK
 
 // Helper to compare GRects
@@ -35,7 +35,7 @@ void test_char_width(void) {
 
 // Test pixel_matrix_drawer_draw_char for a simple character 'X' (from s_default)
 void test_draw_char_X(void) {
-    GContext *ctx = (GContext *)1; // Dummy context
+    GContext *ctx = (GContext *) 1; // Dummy context
     GPoint point_zero = {.x = 10, .y = 20};
     char character = 'X'; // This character is not defined, so it should use s_default
     int dot_width = 2;
@@ -67,7 +67,7 @@ void test_draw_char_X(void) {
 
 // Test pixel_matrix_drawer_draw_char for character '0' (digit_size 4)
 void test_draw_char_0_size_4(void) {
-    GContext *ctx = (GContext *)1;
+    GContext *ctx = (GContext *) 1;
     GPoint point_zero = {.x = 0, .y = 0};
     char character = '0';
     int dot_width = 1;
@@ -111,7 +111,7 @@ void test_draw_char_0_size_4(void) {
 
 // Test pixel_matrix_drawer_draw_char with align_right
 void test_draw_char_align_right(void) {
-    GContext *ctx = (GContext *)1;
+    GContext *ctx = (GContext *) 1;
     GPoint point_zero = {.x = 50, .y = 30}; // Right edge of drawing area
     char character = '1'; // Width 2 for digit_size 4
     int dot_width = 2;

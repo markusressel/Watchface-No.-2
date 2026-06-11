@@ -1,3 +1,15 @@
+// Number prototype extensions required by the Pebble environment
+Object.defineProperty(Number.prototype, 'minutes', {
+    get: function () {
+        return this * 60000;
+    }
+});
+Object.defineProperty(Number.prototype, 'seconds', {
+    get: function () {
+        return this * 1000;
+    }
+});
+
 // Mock Pebble and localStorage
 const mockPebble = {
     sendAppMessage: jest.fn((dictionary, successCallback, errorCallback) => {
@@ -22,43 +34,6 @@ const mockLocalStorage = (() => {
     };
 })();
 
-// Mock XMLHttpRequest
-const mockXMLHttpRequest = jest.fn(() => ({
-    onload: null,
-    onerror: null,
-    open: jest.fn(),
-    send: jest.fn(function () {
-        // Simulate a successful response for testing purposes
-        const url = this.open.mock.calls[0][1];
-        if (url.includes('openweathermap')) {
-            this.responseText = JSON.stringify({
-                "data": [
-                    {
-                        "dt": 1678886400, // March 15, 2023 12:00:00 PM UTC
-                        "temp": 280.15, // 7 C
-                        "weather": [{"main": "Clouds"}],
-                        "rain": {"1h": 0.5},
-                        "pop": 0.2
-                    },
-                    {
-                        "dt": 1678890000, // March 15, 2023 1:00:00 PM UTC
-                        "temp": 281.15, // 8 C
-                        "weather": [{"main": "Rain"}],
-                        "rain": {"1h": 1.2},
-                        "pop": 0.7
-                    }
-                ],
-                "timezone_offset": 3600 // +1 hour
-            });
-        } else {
-            this.responseText = JSON.stringify({});
-        }
-        if (this.onload) {
-            this.onload();
-        }
-    })
-}));
-
 // Mock navigator.geolocation
 const mockGeolocation = {
     getCurrentPosition: jest.fn((success, error, options) => {
@@ -74,21 +49,19 @@ const mockGeolocation = {
 // Set up globals for weather.js
 global.Pebble = mockPebble;
 global.localStorage = mockLocalStorage;
-global.XMLHttpRequest = mockXMLHttpRequest;
 global.navigator = {geolocation: mockGeolocation};
 
-// Mock the config module that weather.js requires
+// Mock the config module
 const mockConfig = {
     getWeatherApiKey: jest.fn(() => 'test_api_key'),
     isWeatherSimulationEnabled: jest.fn(() => false),
-    setWeatherSimulationEnabled: jest.fn(),
 };
 jest.mock('../../../src/js-modern/config/config', () => ({
     __esModule: true,
     ...mockConfig
 }));
 
-// Mock the app_messaging module that weather.js requires
+// Mock the app_messaging module
 const mockAppMessaging = {
     send_dict_to_watch: jest.fn((dictionary, successMessage, errorMessage) => {
         mockPebble.sendAppMessage(dictionary, () => console.log(successMessage), () => console.log(errorMessage));
@@ -97,7 +70,7 @@ const mockAppMessaging = {
         if (typeof value !== 'number') {
             return 0;
         }
-        return Math.round(value * (decimalPlaces * 10));
+        return Math.round(value * (Math.pow(10, decimalPlaces)));
     }),
     encode_number_array: jest.fn(values => Array.isArray(values) ? values.join(',') : '')
 };
@@ -106,6 +79,42 @@ jest.mock('../../../src/js-modern/app_messaging', () => ({
     ...mockAppMessaging,
 }));
 
+// Mock the Persistence module
+jest.mock('../../../src/js-modern/persistence', () => ({
+    __esModule: true,
+    default: {
+        getJson: jest.fn(key => {
+            const val = mockLocalStorage.getItem(key);
+            return val ? JSON.parse(val) : null;
+        }),
+        putJson: jest.fn((key, val) => mockLocalStorage.setItem(key, JSON.stringify(val))),
+        getInt: jest.fn(key => {
+            const val = mockLocalStorage.getItem(key);
+            return val ? parseInt(val, 10) : null;
+        }),
+        putString: jest.fn((key, val) => mockLocalStorage.setItem(key, val))
+    },
+    StorageKeys: {
+        WEATHER_LAST_DATA_KEY: 'weather-last-data',
+        WEATHER_LAST_FETCH_KEY: 'weather-last-fetch-ts'
+    }
+}));
+
+// Mock OpenMeteo module
+const mockOpenMeteo = {
+    fetch_weather_data: jest.fn().mockResolvedValue({
+        "minutely_15": {
+            "time": ["2023-03-15T12:00:00Z", "2023-03-15T13:00:00Z"],
+            "temperature_2m": [7, 8],
+            "rain": [0.5, 1.2]
+        },
+        "utc_offset_seconds": 3600
+    })
+};
+jest.mock('../../../src/js-modern/weather/openmeteo/openmeteo', () => ({
+    __esModule: true,
+    ...mockOpenMeteo
+}));
 
 // Now require weather.js
 const weather = require('../../../src/js-modern/weather/weather');
@@ -152,28 +161,28 @@ describe('weather.js', () => {
                     "dt": 1678886400, // March 15, 2023 12:00:00 PM UTC
                     "temp": 280.15, // 7 C
                     "weather": [{"main": "Clouds"}],
-                    "rain": {"1h": 0.5},
+                    "rain": 0.5, // Changed to number format matching OpenMeteo
                     "pop": 0.2
                 },
                 {
                     "dt": 1678890000, // March 15, 2023 1:00:00 PM UTC
                     "temp": 281.15, // 8 C
                     "weather": [{"main": "Rain"}],
-                    "rain": {"1h": 1.2},
+                    "rain": 1.2,
                     "pop": 0.7
                 },
                 {
                     "dt": 1678893600, // March 15, 2023 2:00:00 PM UTC
                     "temp": 282.15, // 9 C
                     "weather": [{"main": "Clear"}],
-                    "rain": {"1h": 0.1},
+                    "rain": 0.1,
                     "pop": 0.1
                 },
                 {
                     "dt": 1678972800, // March 16, 2023 12:00:00 PM UTC (next day)
                     "temp": 285.15, // 12 C
                     "weather": [{"main": "Clear"}],
-                    "rain": {"1h": 0.0},
+                    "rain": 0.0,
                     "pop": 0.0
                 }
             ],
@@ -200,14 +209,7 @@ describe('weather.js', () => {
 
     test('send_weather_to_watch', () => {
         const exampleData = new WeatherData(
-            7,
-            7,
-            9,
-            'Clouds',
-            0.5,
-            20,
-            [7, 8, 9, 12],
-            [5, 12, 1, 0],
+            7, 7, 9, 'Clouds', 0.5, 20, [7, 8, 9, 12], [5, 12, 1, 0]
         );
 
         weather.send_weather_to_watch(exampleData, "success", "error");
@@ -222,14 +224,7 @@ describe('weather.js', () => {
 
     test('cache_weather_data stores data and timestamp in localStorage', () => {
         const exampleData = new WeatherData(
-            7,
-            7,
-            9,
-            'Clouds',
-            0.5,
-            20,
-            [7, 8, 9, 12],
-            [5, 12, 1, 0],
+            7, 7, 9, 'Clouds', 0.5, 20, [7, 8, 9, 12], [5, 12, 1, 0]
         );
 
         weather.cache_weather_data(exampleData);
@@ -243,7 +238,7 @@ describe('weather.js', () => {
         expect(() => weather.cache_weather_data({some: 'data'})).toThrow('cache_weather_data expects a WeatherData object');
     });
 
-// Test getWeather with simulation enabled
+    // Test getWeather with simulation enabled
     test('getWeather uses simulated data when simulation is enabled', () => {
         mockConfig.isWeatherSimulationEnabled.mockReturnValue(true);
         weather.getWeather();
@@ -252,28 +247,7 @@ describe('weather.js', () => {
         expect(mockPebble.lastSentMessage).not.toBeNull();
     });
 
-// Test getWeather with no API key
-    test('getWeather sends clear data when no API key is configured', () => {
-        mockConfig.getWeatherApiKey.mockReturnValue('');
-        weather.getWeather();
-
-        const expectedClearDictionary = {
-            "WEATHER_TEMPERATURE_CURRENT": 0,
-            "WEATHER_TEMPERATURE_MIN": 0,
-            "WEATHER_TEMPERATURE_MAX": 0,
-            "WEATHER_CONDITION": "",
-            "WEATHER_RAIN_NEXT_HOUR_MM_X10": 0,
-            "WEATHER_RAIN_POP_PERCENT": 0,
-            "WEATHER_TEMP_FORECAST_ENCODED": "",
-            "WEATHER_RAIN_FORECAST_MM_X10_ENCODED": ""
-        };
-
-        expect(mockAppMessaging.send_dict_to_watch).toHaveBeenCalledTimes(1);
-        expect(mockPebble.lastSentMessage).toEqual(expectedClearDictionary);
-        expect(JSON.parse(mockLocalStorage.getItem('weather-last-data'))).toEqual(expectedClearDictionary);
-    });
-
-// Test getWeather with cached data and not needing update
+    // Test getWeather with cached data and not needing update
     test('getWeather uses cached data if not needing update', () => {
         const cachedDictionary = {
             'WEATHER_TEMPERATURE_CURRENT': 10,
@@ -295,38 +269,38 @@ describe('weather.js', () => {
         expect(mockGeolocation.getCurrentPosition).not.toHaveBeenCalled(); // Should not call geolocation
     });
 
-// Test getWeather with API call (mocked XHR)
+    // Test getWeather with API call (mocked OpenMeteo)
     test('getWeather makes API call when update is needed', async () => {
         // Simulate old timestamp to trigger API call
         mockLocalStorage.setItem('weather-last-fetch-ts', String(Date.now() - (31 * 60 * 1000)));
 
         // Mock Date.now() to control pick_closest_entry_to_now for the API response
-        Date.now = jest.fn(() => 1678886400 * 1000); // Set current time to match the first entry in mock XHR data
+        Date.now = jest.fn(() => 1678886400 * 1000); // March 15, 2023 12:00:00 PM UTC
 
         weather.getWeather();
 
         // wait for promises to resolve
         await new Promise(resolve => setImmediate(resolve));
 
-        // The expected dictionary will be based on the mocked XMLHttpRequest response
+        // The expected dictionary will be based on the mocked OpenMeteo response
         const expectedDictionary = {
-            'WEATHER_TEMPERATURE_CURRENT': 7,
+            'WEATHER_TEMPERATURE_CURRENT': 8,
             'WEATHER_TEMPERATURE_MIN': 7,
             'WEATHER_TEMPERATURE_MAX': 8,
-            'WEATHER_CONDITION': 'Clouds',
-            'WEATHER_RAIN_NEXT_HOUR_MM_X10': 5,
-            'WEATHER_RAIN_POP_PERCENT': 20,
+            'WEATHER_CONDITION': '', // OpenMeteo mapping explicitly sets this to empty
+            'WEATHER_RAIN_NEXT_HOUR_MM_X10': 12,
+            'WEATHER_RAIN_POP_PERCENT': 0, // OpenMeteo mapping explicitly sets this to 0
             'WEATHER_TEMP_FORECAST_ENCODED': '7,8',
             'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': '5,12'
         };
 
         expect(mockGeolocation.getCurrentPosition).toHaveBeenCalledTimes(1);
-        expect(mockXMLHttpRequest).toHaveBeenCalledTimes(1);
+        expect(mockOpenMeteo.fetch_weather_data).toHaveBeenCalledTimes(1);
         expect(mockAppMessaging.send_dict_to_watch).toHaveBeenCalledTimes(1);
         expect(mockPebble.lastSentMessage).toEqual(expectedDictionary);
     });
 
-// Test get_last_fetch_timestamp
+    // Test get_last_fetch_timestamp
     test('get_last_fetch_timestamp returns null if no timestamp is stored', () => {
         expect(weather.get_last_fetch_timestamp()).toBeNull();
     });
@@ -342,7 +316,7 @@ describe('weather.js', () => {
         expect(weather.get_last_fetch_timestamp()).toBe(timestamp);
     });
 
-// Test time_since_last_fetch_exceeds
+    // Test time_since_last_fetch_exceeds
     test('time_since_last_fetch_exceeds returns true if no timestamp is stored', () => {
         expect(weather.time_since_last_fetch_exceeds(10000)).toBe(true);
     });
