@@ -15,9 +15,9 @@ void setUp(void) {
 void tearDown(void) {
 }
 
-// Test function for init_theme with DARK theme
-void test_init_theme_dark(void) {
-    init_theme(DARK, false);
+// Test function for set_theme with DARK theme
+void test_set_theme_dark(void) {
+    set_theme(DARK, false);
     Theme *theme = theme_get_theme();
 
     TEST_ASSERT_EQUAL(DARK, theme->CurrentThemeEnum);
@@ -31,9 +31,9 @@ void test_init_theme_dark(void) {
     TEST_ASSERT_EQUAL_HEX(GColorWhite.argb, theme->HeartrateTextColor.argb);
 }
 
-// Test function for init_theme with LIGHT theme
-void test_init_theme_light(void) {
-    init_theme(LIGHT, false);
+// Test function for set_theme with LIGHT theme
+void test_set_theme_light(void) {
+    set_theme(LIGHT, false);
     Theme *theme = theme_get_theme();
 
     TEST_ASSERT_EQUAL(LIGHT, theme->CurrentThemeEnum);
@@ -76,8 +76,8 @@ void test_init_custom_theme(void) {
 }
 
 // Test font selection with showSeconds = true
-void test_init_theme_show_seconds_true(void) {
-    init_theme(DARK, true);
+void test_set_theme_show_seconds_true(void) {
+    set_theme(DARK, true);
     Theme *theme = theme_get_theme();
     // Assuming a specific font is loaded when showSeconds is true
     // This might require knowing the exact font loaded by the Pebble SDK
@@ -87,8 +87,8 @@ void test_init_theme_show_seconds_true(void) {
 }
 
 // Test font selection with showSeconds = false
-void test_init_theme_show_seconds_false(void) {
-    init_theme(DARK, false);
+void test_set_theme_show_seconds_false(void) {
+    set_theme(DARK, false);
     Theme *theme = theme_get_theme();
     // Assuming a specific font is loaded when showSeconds is false
     TEST_ASSERT_NOT_NULL(theme->TimeFont);
@@ -97,10 +97,10 @@ void test_init_theme_show_seconds_false(void) {
 
 int main() {
     UNITY_BEGIN();
-    RUN_TEST(test_init_theme_dark);
-    RUN_TEST(test_init_theme_light);
+    RUN_TEST(test_set_theme_dark);
+    RUN_TEST(test_set_theme_light);
     RUN_TEST(test_init_custom_theme);
-    RUN_TEST(test_init_theme_show_seconds_true);
-    RUN_TEST(test_init_theme_show_seconds_false);
+    RUN_TEST(test_set_theme_show_seconds_true);
+    RUN_TEST(test_set_theme_show_seconds_false);
     return UNITY_END();
 }

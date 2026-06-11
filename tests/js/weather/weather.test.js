@@ -55,10 +55,27 @@ global.navigator = {geolocation: mockGeolocation};
 const mockConfig = {
     getWeatherApiKey: jest.fn(() => 'test_api_key'),
     isWeatherSimulationEnabled: jest.fn(() => false),
+    getClaySettings: jest.fn(() => ({
+        Row0Widget: {value: 0}, // Weather
+        Row1Widget: {value: 1}, // Date
+        Row2Widget: {value: 2}, // Time
+        Row3Widget: {value: 3}, // Stepcount
+        Row4Widget: {value: 4}, // Battery
+        LayoutRowCount: 5,
+    })),
 };
 jest.mock('../../../src/js-modern/config/config', () => ({
     __esModule: true,
-    ...mockConfig
+    ...mockConfig,
+    WidgetId: {
+        Weather: 0,
+        Date: 1,
+        Time: 2,
+        Stepcount: 3,
+        Battery: 4,
+        Heartrate: 5,
+        WeatherForecast: 6,
+    }
 }));
 
 // Mock the app_messaging module
