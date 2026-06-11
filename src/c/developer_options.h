@@ -7,7 +7,7 @@ typedef struct DeveloperOptions {
     bool IsEmulator;
 } DeveloperOptions;
 
-#ifdef PBL_EMULATOR
+#ifdef WF_EMULATOR
 #define IS_EMULATOR_BUILD true
 #else
 #define IS_EMULATOR_BUILD false

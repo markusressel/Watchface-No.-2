@@ -2,7 +2,7 @@
 # This file is based on the default set of rules to compile a Pebble project.
 #
 # Edits made:
-# - Added PEBBLE_EMULATOR_BUILD environment variable check to allow building with PBL_EMULATOR defined, which is used to run custom code in Emulator environments.
+# - Added PEBBLE_EMULATOR_BUILD environment variable check to allow building with WF_EMULATOR defined, which is used to run custom code in Emulator environments.
 # - Added PEBBLE_RELEASE
 # - Added dynamic generation of generated_settings.js based on package.json messageKeys
 # - Added Babel transpilation step for modern JavaScript
@@ -117,7 +117,7 @@ def build(ctx):
 
         # Check for PEBBLE_EMULATOR_BUILD environment variable
         if os.environ.get('PEBBLE_EMULATOR_BUILD') == '1':
-            ctx.env.CFLAGS.append('-DPBL_EMULATOR')
+            ctx.env.CFLAGS.append('-DWF_EMULATOR')
 
         app_elf = '{}/pebble-app.elf'.format(ctx.env.BUILD_DIR)
         ctx.pbl_program(source=ctx.path.ant_glob('src/c/**/*.c'), target=app_elf)

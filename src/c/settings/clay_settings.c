@@ -4,7 +4,7 @@
 #include "../app_messaging/app_messaging.h"
 #include "../ui/watch_layout.h"
 
-#ifdef PBL_EMULATOR
+#ifdef WF_EMULATOR
 const char *THEME_DEFAULT = THEME_DARK_STR;
 #else
 const char *THEME_DEFAULT = THEME_LIGHT_STR;
@@ -189,7 +189,7 @@ static ClaySettings *clay_reset_to_default_settings() {
     settings->Row5Widget = WIDGET_HEARTRATE;
     settings->Row6Widget = WIDGET_WEATHER_FORECAST;
 
-#ifdef PBL_EMULATOR
+#ifdef WF_EMULATOR
     settings->WeatherUseSimulation = true;
 #else
     settings->WeatherUseSimulation = false;

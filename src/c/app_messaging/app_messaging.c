@@ -54,7 +54,7 @@ static int clamp_layout_row_count(const int row_count) {
 }
 
 static bool apply_cstring_setting(
-    DictionaryIterator *iterator,
+    const DictionaryIterator *iterator,
     const uint32_t message_key,
     char *destination,
     const size_t destination_size

@@ -20,7 +20,7 @@ Tasks too complex to be written directly into the Justfile should use Python 3 l
 ## Build Flags
 
 - A **release build** is indicated within C through `#define RELEASE 1`
-- An **emulator build** by `#define PBL_EMULATOR 1`
+- An **emulator build** by `#define WF_EMULATOR 1`
 
 # Test
 
