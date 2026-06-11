@@ -379,21 +379,23 @@ function clearWeatherData() {
     );
 }
 
-function isAnyWeatherWidgetActive() {
+export function isAnyWeatherWidgetActive() {
     const claySettings = config.getClaySettings();
+    console.log('Checking if any weather widget is active. Settings: ' + JSON.stringify(claySettings));
     const weatherWidgetTypes = [WidgetId.Weather, WidgetId.WeatherForecast]
     let activeRowTypes = [
         claySettings.Row0Widget,
         claySettings.Row1Widget,
         claySettings.Row2Widget,
         claySettings.Row3Widget,
-        claySettings.Row4Widget,
-        claySettings.LayoutRowCount > 5 && claySettings.Row5Widget,
-        claySettings.LayoutRowCount > 6 && claySettings.Row6Widget
+        claySettings.Row4Widget
     ];
-    activeRowTypes = activeRowTypes.filter(option => option !== undefined);
+    if (claySettings.LayoutRowCount > 5) activeRowTypes.push(claySettings.Row5Widget);
+    if (claySettings.LayoutRowCount > 6) activeRowTypes.push(claySettings.Row6Widget);
 
-    return activeRowTypes.some(option => weatherWidgetTypes.includes(option.value));
+    activeRowTypes = activeRowTypes.filter(option => option !== undefined && option !== null);
+
+    return activeRowTypes.some(option => weatherWidgetTypes.includes(parseInt(option, 10)));
 }
 
 /**

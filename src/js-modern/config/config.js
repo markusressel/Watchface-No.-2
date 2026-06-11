@@ -26,7 +26,7 @@ export const WidgetId = Object.freeze({
 })
 
 export function getClaySettings() {
-    return Settings(
+    return new Settings(
         loadSettingsFromPersistence()
     )
 }

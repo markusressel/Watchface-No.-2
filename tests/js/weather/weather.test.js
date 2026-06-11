@@ -56,11 +56,11 @@ const mockConfig = {
     getWeatherApiKey: jest.fn(() => 'test_api_key'),
     isWeatherSimulationEnabled: jest.fn(() => false),
     getClaySettings: jest.fn(() => ({
-        Row0Widget: {value: 0}, // Weather
-        Row1Widget: {value: 1}, // Date
-        Row2Widget: {value: 2}, // Time
-        Row3Widget: {value: 3}, // Stepcount
-        Row4Widget: {value: 4}, // Battery
+        Row0Widget: "0", // Weather
+        Row1Widget: "1", // Date
+        Row2Widget: "2", // Time
+        Row3Widget: "3", // Stepcount
+        Row4Widget: "4", // Battery
         LayoutRowCount: 5,
         SliderWeatherForecastPreviewHoursCount: 6,
     })),
@@ -353,5 +353,54 @@ describe('weather.js', () => {
         mockLocalStorage.setItem('weather-last-fetch-ts', String(fetchTime));
         Date.now = jest.fn(() => now);
         expect(weather.time_since_last_fetch_exceeds(10000)).toBe(false); // 10 seconds duration
+    });
+
+    // Test isAnyWeatherWidgetActive
+    test('isAnyWeatherWidgetActive returns true if a weather widget is active', () => {
+        mockConfig.getClaySettings.mockReturnValue({
+            Row0Widget: "0", // Weather
+            LayoutRowCount: 1,
+        });
+        expect(weather.isAnyWeatherWidgetActive()).toBe(true);
+    });
+
+    test('isAnyWeatherWidgetActive returns true if a weather forecast widget is active', () => {
+        mockConfig.getClaySettings.mockReturnValue({
+            Row0Widget: "6", // WeatherForecast
+            LayoutRowCount: 1,
+        });
+        expect(weather.isAnyWeatherWidgetActive()).toBe(true);
+    });
+
+    test('isAnyWeatherWidgetActive returns false if no weather-related widget is active', () => {
+        mockConfig.getClaySettings.mockReturnValue({
+            Row0Widget: "1", // Date
+            Row1Widget: "2", // Time
+            LayoutRowCount: 2,
+        });
+        expect(weather.isAnyWeatherWidgetActive()).toBe(false);
+    });
+
+    test('isAnyWeatherWidgetActive handles all rows', () => {
+        mockConfig.getClaySettings.mockReturnValue({
+            Row0Widget: "1",
+            Row1Widget: "2",
+            Row2Widget: "3",
+            Row3Widget: "4",
+            Row4Widget: "5",
+            Row5Widget: "6", // WeatherForecast
+            Row6Widget: "1",
+            LayoutRowCount: 7,
+        });
+        expect(weather.isAnyWeatherWidgetActive()).toBe(true);
+    });
+
+    test('isAnyWeatherWidgetActive handles undefined rows', () => {
+        mockConfig.getClaySettings.mockReturnValue({
+            Row0Widget: "1",
+            Row1Widget: "2",
+            LayoutRowCount: 2,
+        });
+        expect(weather.isAnyWeatherWidgetActive()).toBe(false);
     });
 });

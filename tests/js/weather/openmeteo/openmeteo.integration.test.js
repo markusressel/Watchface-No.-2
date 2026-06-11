@@ -39,7 +39,7 @@ describe('OpenMeteo Integration Test', () => {
     // This test makes a real API call to OpenMeteo.
     // It is intended for manual debugging to inspect the live API response.
     // It is skipped by default to avoid failing CI/CD pipelines due to network issues or API changes.
-    test('should fetch weather data from the real OpenMeteo API and log the response', async () => {
+    test.skip('should fetch weather data from the real OpenMeteo API and log the response', async () => {
         const latitude = 52.4391595;
         const longitude = 13.3490739;
 

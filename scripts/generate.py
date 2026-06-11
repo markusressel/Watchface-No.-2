@@ -44,7 +44,7 @@ def generate_settings_js():
     items = extract_config_items(config)
 
     defaults_lines = []
-    prototypes_lines = []
+    getters_setters_lines = []
 
     for item in items:
         key = item['messageKey']
@@ -72,56 +72,42 @@ def generate_settings_js():
                 js_type = "String"
                 default_str = "''"
 
-        defaults_lines.append(f"    {key}: {default_str},")
-        prototypes_lines.append(f"Object.defineProperty(Settings.prototype, '{key}', {{")
-        prototypes_lines.append(f"  get: function() {{ return this._settings.{key}; }},")
-        prototypes_lines.append(f"  set: function(val) {{ this._settings.{key} = {js_type}(val); }}")
-        prototypes_lines.append(f"}});")
+        defaults_lines.append(f"        {key}: {default_str},")
+        getters_setters_lines.append(f"    get {key}() {{ return this._settings.{key}; }}")
+        getters_setters_lines.append(f"    set {key}(val) {{ this._settings.{key} = {js_type}(val); }}")
+        getters_setters_lines.append("")
 
     js_lines = [
         AUTO_GENERATED_HEADER,
         "",
-        "function objectAssign(target, varArgs) {",
-        "  'use strict';",
-        "  if (target == null) {",
-        "    throw new TypeError('Cannot convert undefined or null to object');",
-        "  }",
-        "  let to = Object(target);",
-        "  for (let index = 1; index < arguments.length; index++) {",
-        "    let nextSource = arguments[index];",
-        "    if (nextSource != null) {",
-        "      for (let nextKey in nextSource) {",
-        "        if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {",
-        "          to[nextKey] = nextSource[nextKey];",
-        "        }",
-        "      }",
-        "    }",
-        "  }",
-        "  return to;",
-        "}",
-        "",
-        "function Settings(persistedSettings) {",
-        "  this._DEFAULTS = {",
+        "/**",
+        " * @class Settings",
+        " * @classdesc A class to manage user settings.",
+        " */",
+        "export default class Settings {",
+        "    _DEFAULTS = {",
     ]
 
     js_lines.extend(defaults_lines)
 
     js_lines.extend([
-        "  };",
-        "  this._settings = objectAssign({}, this._DEFAULTS, persistedSettings || {});",
-        "}",
+        "    };",
+        "",
+        "    _settings;",
+        "",
+        "    constructor(persistedSettings) {",
+        "        this._settings = Object.assign({}, this._DEFAULTS, persistedSettings || {});",
+        "    }",
         ""
     ])
 
-    js_lines.extend(prototypes_lines)
-    
+    js_lines.extend(getters_setters_lines)
+
     js_lines.extend([
-        "",
-        "Settings.prototype.toJSON = function() {",
-        "  return this._settings;",
-        "};",
-        "",
-        "module.exports = function(persistedSettings) { return new Settings(persistedSettings); };"
+        "    toJSON() {",
+        "        return this._settings;",
+        "    }",
+        "}"
     ])
 
     # Write the file to the src/js-modern/generated directory
