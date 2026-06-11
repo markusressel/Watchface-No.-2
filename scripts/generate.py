@@ -45,6 +45,7 @@ def generate_settings_js():
 
     defaults_lines = []
     getters_setters_lines = []
+    coerce_lines = []
 
     for item in items:
         key = item['messageKey']
@@ -76,6 +77,8 @@ def generate_settings_js():
         getters_setters_lines.append(f"    get {key}() {{ return this._settings.{key}; }}")
         getters_setters_lines.append(f"    set {key}(val) {{ this._settings.{key} = {js_type}(val); }}")
         getters_setters_lines.append("")
+        coerce_lines.append(f"        this._settings.{key} = {js_type}(this._settings.{key});")
+
 
     js_lines = [
         AUTO_GENERATED_HEADER,
@@ -97,6 +100,11 @@ def generate_settings_js():
         "",
         "    constructor(persistedSettings) {",
         "        this._settings = Object.assign({}, this._DEFAULTS, persistedSettings || {});",
+    ])
+
+    js_lines.extend(coerce_lines)
+
+    js_lines.extend([
         "    }",
         ""
     ])

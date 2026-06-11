@@ -357,7 +357,7 @@ async function fetch_weather_data(latitude, longitude) {
     return null;
 }
 
-function clearWeatherData() {
+export function clearWeatherData() {
     // Send empty weather data to clear the display on the watchface
     const clearDictionary = new WeatherData(
         0,

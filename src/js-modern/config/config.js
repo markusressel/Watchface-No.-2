@@ -1,5 +1,6 @@
 import Settings from '../generated/settings';
 import Persistence, {StorageKeys} from '../persistence';
+import {clearWeatherData} from '../weather/weather';
 
 /**
  *
@@ -45,9 +46,10 @@ function loadSettingsFromPersistence() {
     }
 }
 
-function saveClaySettings(settings) {
+export function saveClaySettings(settings) {
     try {
         Persistence.putJson(StorageKeys.CLAY_SETTINGS_KEY, settings.toJSON());
+        clearWeatherData();
     } catch (e) {
         console.log('Could not save clay settings: ' + e);
     }

@@ -20,6 +20,13 @@ Pebble.addEventListener('webviewclosed', function (e) {
 
     // Refresh weather
     if (isPebbleReady) {
+        // Clay has already saved the new settings to LocalStorage, 
+        // but we want to intercept that to apply our own logic,
+        // like clearing weather data
+        const settingsJson = JSON.parse(e.response);
+        const settings = new config.getClaySettings().constructor(settingsJson);
+        config.saveClaySettings(settings);
+
         weather.getWeather();
     }
 });
