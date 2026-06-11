@@ -26,6 +26,7 @@ void destroy_weather_forecast_layer(Layer *layer) {
 #include "weather.h"
 #include "../graphics/graph_utils.h"
 #include "../../settings/clay_settings.h"
+#include "../../ui/layer_factory.h"
 
 #define MAX_TEMPERATURE_FORECAST_LAYERS 7
 #define FORECAST_POINTS_PER_HOUR 4
@@ -128,14 +129,11 @@ Layer *create_weather_forecast_layer(LayerBuilder builder) {
         return NULL;
     }
 
-    Layer *layer = layer_create_with_data(builder.bounds, sizeof(WeatherForecastLayerData));
+    Layer *layer = layer_factory_create_custom_layer_with_data(builder, update_proc, sizeof(WeatherForecastLayerData));
     if (layer == NULL) {
         APP_LOG(APP_LOG_LEVEL_ERROR, "Failed to create temperature forecast layer");
         return NULL;
     }
-
-    layer_set_update_proc(layer, update_proc);
-    layer_add_child(builder.parent, layer);
 
     WeatherForecastLayerData *data = layer_get_data(layer);
 

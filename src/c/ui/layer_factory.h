@@ -3,29 +3,27 @@
 #include <pebble.h>
 #include "layer/dotted_text_layer.h"
 
-typedef struct TextLayerStyle {
-    GColor background_color;
-    GColor text_color;
-    GFont font;
-    GTextAlignment alignment;
-} TextLayerStyle;
-
-typedef struct LayerLayout {
+typedef struct {
     int x;
     int y;
     int width_margin;
     int height;
 } LayerLayout;
 
-typedef struct LayerBuilder {
+typedef struct {
     Layer *parent;
     GRect bounds;
 } LayerBuilder;
 
+typedef struct {
+    GColor background_color;
+    GColor text_color;
+    GFont font;
+    GTextAlignment alignment;
+} TextLayerStyle;
+
 LayerBuilder layer_builder(Layer *parent, LayerLayout layout);
 
-// Construct a LayerBuilder directly from a pre-computed GRect (e.g. from the
-// layout system which already knows the exact screen position).
 LayerBuilder layer_builder_from_rect(Layer *parent, GRect bounds);
 
 TextLayer *layer_factory_create_text_layer(
@@ -44,4 +42,10 @@ DottedTextLayer *layer_factory_create_dotted_text_layer(
 Layer *layer_factory_create_custom_layer(
     LayerBuilder builder,
     LayerUpdateProc update_proc
+);
+
+Layer *layer_factory_create_custom_layer_with_data(
+    LayerBuilder builder,
+    LayerUpdateProc update_proc,
+    size_t data_size
 );

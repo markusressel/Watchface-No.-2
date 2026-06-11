@@ -16,6 +16,7 @@
 #include "ui/layer/weather_forecast.h"
 #include "system/health_listener.h"
 #include "ui/layer/widget.h"
+#include "ui/layer/debug_layer.h"
 
 // Main Window
 static Window *s_main_window;
@@ -105,6 +106,9 @@ static void main_window_unload(Window *window) {
     unregister_tick_listener();
     unregister_battery_listener();
     unregister_health_event_listener();
+
+    // Destroy all debug borders
+    debug_layer_destroy_all_borders();
 
     // Destroy only the layers that were created for the current layout
     for (int i = 0; i < s_layout.row_count; i++) {
