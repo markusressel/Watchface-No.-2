@@ -1,5 +1,7 @@
 #include "main.h"
 
+#include "developer_options.h"
+
 #include <pebble.h>
 #include "ui/theme.h"
 #include "settings/clay_settings.h"
@@ -18,6 +20,8 @@ Window *main_get_window() {
 
 // initializes the watchface
 static void init() {
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Developer Options: ShowLayerBounds=%d, IsEmulator=%d", DEV_OPTIONS.ShowLayerBounds, DEV_OPTIONS.IsEmulator);
+
     ClaySettings *settings = clay_load_settings();
 
     // Create main Window element first

@@ -105,10 +105,15 @@ def build(ctx):
         ctx.set_env(ctx.all_envs[p])
         ctx.set_group(ctx.env.PLATFORM_NAME)
 
+        ctx.env.CFLAGS.append('-include')
+        ctx.env.CFLAGS.append('src/c/developer_options.h')
+
         if release_build:
-            ctx.env.CFLAGS.append('-DRELEASE=1')
+            ctx.env.CFLAGS.append('-DWF_RELEASE=1')
             ctx.env.CFLAGS.append('-include')
             ctx.env.CFLAGS.append('src/c/release.h')
+        else:
+            ctx.env.CFLAGS.append('-DWF_DEBUG=1')
 
         # Check for PEBBLE_EMULATOR_BUILD environment variable
         if os.environ.get('PEBBLE_EMULATOR_BUILD') == '1':

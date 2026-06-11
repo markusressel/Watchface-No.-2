@@ -6,6 +6,7 @@
 
 static bool registered = false;
 
+#if defined(PBL_HEALTH)
 static void health_handler(HealthEventType event, void *context) {
     // Which type of event occurred?
     switch (event) {
@@ -51,6 +52,7 @@ static void health_handler(HealthEventType event, void *context) {
             APP_LOG(APP_LOG_LEVEL_INFO, "Ignoring unhandled event");
     }
 }
+#endif
 
 void register_health_event_listener() {
     if (registered) {
@@ -78,6 +80,8 @@ void register_health_event_listener() {
 void unregister_health_event_listener() {
     APP_LOG(APP_LOG_LEVEL_DEBUG, "unregistering health listener");
 
+#if defined(PBL_HEALTH)
     health_service_events_unsubscribe();
+#endif
     registered = false;
 }

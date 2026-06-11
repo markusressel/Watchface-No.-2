@@ -1,21 +1,30 @@
 #pragma once
 
+#include <stdbool.h>
+
 typedef struct DeveloperOptions {
     bool ShowLayerBounds;
     bool IsEmulator;
 } DeveloperOptions;
 
-// Compile-time developer toggles.
-// Set values here manually when debugging visuals.
-static DeveloperOptions DEV_OPTIONS = {
-    .ShowLayerBounds = false,
 #ifdef PBL_EMULATOR
-    .IsEmulator = true,
+#define IS_EMULATOR_BUILD true
 #else
-    .IsEmulator = false,
+#define IS_EMULATOR_BUILD false
 #endif
+
+#if defined(WF_RELEASE)
+// FIXED definition for RELEASE builds to prevent accidentally enabling developer options in a release build
+static const DeveloperOptions DEV_OPTIONS __attribute__((unused)) = {
+    .ShowLayerBounds = false,
+    .IsEmulator = IS_EMULATOR_BUILD,
+};
+#else
+
+// DEBUG-build-only developer options
+static const DeveloperOptions DEV_OPTIONS __attribute__((unused)) = {
+    .ShowLayerBounds = true,
+    .IsEmulator = IS_EMULATOR_BUILD,
 };
 
-static void set_show_layer_bounds(const bool showLayerBounds) {
-    DEV_OPTIONS.ShowLayerBounds = showLayerBounds;
-}
+#endif
