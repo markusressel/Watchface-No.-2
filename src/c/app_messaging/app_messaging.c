@@ -189,6 +189,7 @@ static bool read_configuration_properties(
     APPLY_BOOL(MESSAGE_KEY_ShowWeekdayAbbreviation, ShowWeekdayAbbreviation);
     APPLY_BOOL(MESSAGE_KEY_WeekdayAbbreviationUppercase, WeekdayAbbreviationUppercase);
     APPLY_BOOL(MESSAGE_KEY_WeatherUseSimulation, WeatherUseSimulation);
+    APPLY_INT(MESSAGE_KEY_SliderWeatherForecastPreviewHoursCount, SliderWeatherForecastPreviewHoursCount);
 
     APPLY_INT(MESSAGE_KEY_Row0Widget, Row0Widget);
     APPLY_INT(MESSAGE_KEY_Row1Widget, Row1Widget);

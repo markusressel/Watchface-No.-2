@@ -6,7 +6,6 @@ import timelineSimulation from './mock/timeline.json';
 import * as openmeteo from './openmeteo/openmeteo';
 
 const WEATHER_UPDATE_INTERVAL_MS = 30.0.minutes;
-const FORECAST_POINT_COUNT = 100;
 
 export class WeatherData {
 
@@ -122,12 +121,15 @@ export function process_timeline_payload(json, sourceLabel) {
     const popPercent = typeof current.pop === 'number' ? Math.round(current.pop * 100) : 0;
     console.log('Rain from selected entry (mm/h): ' + rainMm + ', pop (%): ' + popPercent);
 
+    const claySettings = config.getClaySettings();
+    const forecastPointCount = claySettings.SliderWeatherForecastPreviewHoursCount * 4;
+
     const temperatureForecastSeries = build_condensed_series(
         timeline,
         function (entry) {
             return kelvin_to_celsius(entry.temp);
         },
-        FORECAST_POINT_COUNT
+        forecastPointCount
     );
 
     const rainForecastSeries = build_condensed_series(
@@ -136,7 +138,7 @@ export function process_timeline_payload(json, sourceLabel) {
             const rain = entry.rain;
             return appMessaging.encode_decimal_as_int(rain, 1);
         },
-        FORECAST_POINT_COUNT
+        forecastPointCount
     );
 
     console.log('Temperature forecast series: ' + temperatureForecastSeries);

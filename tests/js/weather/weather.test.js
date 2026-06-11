@@ -62,6 +62,7 @@ const mockConfig = {
         Row3Widget: {value: 3}, // Stepcount
         Row4Widget: {value: 4}, // Battery
         LayoutRowCount: 5,
+        SliderWeatherForecastPreviewHoursCount: 6,
     })),
 };
 jest.mock('../../../src/js-modern/config/config', () => ({

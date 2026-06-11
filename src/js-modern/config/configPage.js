@@ -372,6 +372,16 @@ export default [
                 "type": "text",
                 "defaultValue": "This watchface uses https://open-meteo.com/"
             },
+            {
+                "type": "slider",
+                "messageKey": "SliderWeatherForecastPreviewHoursCount",
+                "defaultValue": 6,
+                "label": "Weather Forecast Preview Hours",
+                "description": "Number of hours to preview in weather forecast",
+                "min": 1,
+                "max": 24,
+                "step": 1
+            }
         ]
     },
     {

@@ -53,7 +53,8 @@
             "LayoutRowCount",
             "WeatherUseSimulation",
             "ToggleDotAutoScale",
-            "SliderDotScaleFactorPercent"
+            "SliderDotScaleFactorPercent",
+            "SliderWeatherForecastPreviewHoursCount"
         ],
         "projectType": "native",
         "resources": {
