@@ -142,8 +142,7 @@ Layer *create_temperature_forecast_layer(LayerBuilder builder) {
     };
 
     // Rain series config
-    data->series_configs[0] = (GraphSeriesConfig)
-    {
+    data->series_configs[0] = (GraphSeriesConfig){
         .graph_type = GRAPH_TYPE_LINE,
         .dot_size = 1,
         .min_interpolated_dot_distance_px = 0,
