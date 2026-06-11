@@ -292,6 +292,12 @@ static bool app_timer_cancel(AppTimer *timer) {
 // Layer mocks
 typedef void Layer;
 typedef void GContext;
+typedef void Window;
+
+static inline void window_set_background_color(Window *window, GColor color) {
+    (void) window;
+    (void) color;
+}
 
 // New mocks for missing types
 typedef enum {
@@ -301,6 +307,9 @@ typedef enum {
 } GTextAlignment;
 
 typedef Layer TextLayer; // Mock TextLayer as a Layer
+
+#define text_layer_get_layer(text_layer) (Layer *)(text_layer)
+#define bitmap_layer_get_layer(bitmap_layer) (Layer *)(bitmap_layer)
 
 typedef void (*LayerUpdateProc)(Layer *layer, GContext *ctx);
 
