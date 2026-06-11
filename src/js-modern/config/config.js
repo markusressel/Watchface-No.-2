@@ -1,6 +1,30 @@
 import Settings from '../generated/settings';
 import Persistence, {StorageKeys} from '../persistence';
 
+/**
+ *
+ *                 "options": [
+ *                     {"label": "Weather", "value": 0},
+ *                     {"label": "Date", "value": 1},
+ *                     {"label": "Time", "value": 2},
+ *                     {"label": "Stepcount", "value": 3},
+ *                     {"label": "Battery", "value": 4},
+ *                     {"label": "Heartrate", "value": 5},
+ *                     {"label": "Weather Forecast", "value": 6},
+ *                 ]
+ *
+ * @enum {integer}
+ */
+export const WidgetId = Object.freeze({
+    Weather: 0,
+    Date: 1,
+    Time: 2,
+    Stepcount: 3,
+    Battery: 4,
+    Heartrate: 5,
+    WeatherForecast: 6,
+})
+
 export function getClaySettings() {
     return Settings(
         loadSettingsFromPersistence()
@@ -27,10 +51,6 @@ function saveClaySettings(settings) {
     } catch (e) {
         console.log('Could not save clay settings: ' + e);
     }
-}
-
-export function getWeatherApiKey() {
-    return getClaySettings().WeatherApiKey || '';
 }
 
 export function isWeatherSimulationEnabled() {

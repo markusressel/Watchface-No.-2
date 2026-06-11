@@ -1,4 +1,5 @@
 import * as config from '../config/config';
+import {WidgetId} from '../config/config';
 import * as appMessaging from '../app_messaging';
 import Persistence, {StorageKeys} from '../persistence';
 import timelineSimulation from './mock/timeline.json';
@@ -376,6 +377,23 @@ function clearWeatherData() {
     );
 }
 
+function isAnyWeatherWidgetActive() {
+    const claySettings = config.getClaySettings();
+    const weatherWidgetTypes = [WidgetId.Weather, WidgetId.WeatherForecast]
+    let activeRowTypes = [
+        claySettings.Row0Widget,
+        claySettings.Row1Widget,
+        claySettings.Row2Widget,
+        claySettings.Row3Widget,
+        claySettings.Row4Widget,
+        claySettings.LayoutRowCount > 5 && claySettings.Row5Widget,
+        claySettings.LayoutRowCount > 6 && claySettings.Row6Widget
+    ];
+    activeRowTypes = activeRowTypes.filter(option => option !== undefined);
+
+    return activeRowTypes.some(option => weatherWidgetTypes.includes(option.value));
+}
+
 /**
  * Returns the currently most up-to-date weather data.
  * Data is either served from cache, if the data is still new enough.
@@ -385,6 +403,12 @@ function clearWeatherData() {
  * Handles geolocation retrieval and API response processing, sending the relevant weather data to the Pebble watchface.
  */
 export function getWeather() {
+    // check if any row is set to a widget that requires weather data
+    if (!isAnyWeatherWidgetActive()) {
+        console.log('No weather widgets active, skipping weather data fetch.');
+        return;
+    }
+
     if (config.isWeatherSimulationEnabled()) {
         console.log('Simulation mode enabled. Using timeline.json weather data.');
         request_simulated_weather_data();

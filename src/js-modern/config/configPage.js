@@ -370,18 +370,8 @@ export default [
             },
             {
                 "type": "text",
-                "defaultValue": "Get your free API key from openweathermap.org"
+                "defaultValue": "This watchface uses https://open-meteo.com/"
             },
-            {
-                "type": "input",
-                "messageKey": "WeatherApiKey",
-                "defaultValue": "",
-                "label": "OpenWeatherMap API Key",
-                "attributes": {
-                    "placeholder": "Enter your API key here",
-                    "limit": 256
-                }
-            }
         ]
     },
     {

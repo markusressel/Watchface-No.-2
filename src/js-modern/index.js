@@ -18,7 +18,7 @@ Pebble.addEventListener('webviewclosed', function (e) {
         return;
     }
 
-    // Refresh weather: will clear display if API key is empty, or fetch if set.
+    // Refresh weather
     if (isPebbleReady) {
         weather.getWeather();
     }

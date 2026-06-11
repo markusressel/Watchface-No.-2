@@ -51,7 +51,6 @@
             "Row5Widget",
             "Row6Widget",
             "LayoutRowCount",
-            "WeatherApiKey",
             "WeatherUseSimulation",
             "ToggleDotAutoScale",
             "SliderDotScaleFactorPercent"
