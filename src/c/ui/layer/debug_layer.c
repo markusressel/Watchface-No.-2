@@ -1,7 +1,7 @@
 #include "debug_layer.h"
 
 #define MAX_DEBUG_BORDERS 20
-static Layer* s_debug_borders[MAX_DEBUG_BORDERS];
+static Layer *s_debug_borders[MAX_DEBUG_BORDERS];
 static int s_debug_border_count = 0;
 
 static void debug_border_update_proc(Layer *layer, GContext *ctx) {
