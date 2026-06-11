@@ -27,8 +27,8 @@ void destroy_weather_forecast_layer(Layer *layer) {
 #include "../graphics/graph_utils.h"
 #include "../../settings/clay_settings.h"
 #include "../../ui/layer_factory.h"
+#include "../ui_state.h"
 
-#define MAX_TEMPERATURE_FORECAST_LAYERS 7
 #define FORECAST_POINTS_PER_HOUR 4
 #define MAX_FORECAST_POINTS (FORECAST_POINTS_PER_HOUR * 24)
 #define NUM_GRAPH_SERIES 2
@@ -62,9 +62,6 @@ typedef struct {
     GraphYAxisScalingConfig y_axis_scaling_configs[NUM_GRAPH_SERIES];
     GraphInstance forecast_graph;
 } WeatherForecastLayerData;
-
-static Layer *s_layers[MAX_TEMPERATURE_FORECAST_LAYERS];
-static int s_layer_count = 0;
 
 static void update_proc(Layer *layer, GContext *ctx) {
     WeatherForecastLayerData *data = layer_get_data(layer);
@@ -106,29 +103,25 @@ static void update_proc(Layer *layer, GContext *ctx) {
 }
 
 void update_weather_forecast() {
-    for (int i = 0; i < s_layer_count; i++) {
-        if (s_layers[i] != NULL) {
-            layer_mark_dirty(s_layers[i]);
+    for (int i = 0; i < ui_state_get_row_count(); i++) {
+        if (ui_state_get_widget_id(i) == WIDGET_WEATHER_FORECAST) {
+            layer_mark_dirty(ui_state_get_layer(i));
         }
     }
 }
 
 void weather_forecast_layer_update_settings() {
-    for (int i = 0; i < s_layer_count; i++) {
-        if (s_layers[i] != NULL) {
-            WeatherForecastLayerData *data = layer_get_data(s_layers[i]);
+    for (int i = 0; i < ui_state_get_row_count(); i++) {
+        if (ui_state_get_widget_id(i) == WIDGET_WEATHER_FORECAST) {
+            Layer *layer = ui_state_get_layer(i);
+            WeatherForecastLayerData *data = layer_get_data(layer);
             data->series_configs[1].default_color = theme_get_theme()->WeatherTextColor;
-            layer_mark_dirty(s_layers[i]);
+            layer_mark_dirty(layer);
         }
     }
 }
 
 Layer *create_weather_forecast_layer(LayerBuilder builder) {
-    if (s_layer_count >= MAX_TEMPERATURE_FORECAST_LAYERS) {
-        APP_LOG(APP_LOG_LEVEL_ERROR, "Max temperature forecast layers exceeded!");
-        return NULL;
-    }
-
     Layer *layer = layer_factory_create_custom_layer_with_data(builder, update_proc, sizeof(WeatherForecastLayerData));
     if (layer == NULL) {
         APP_LOG(APP_LOG_LEVEL_ERROR, "Failed to create temperature forecast layer");
@@ -208,7 +201,6 @@ Layer *create_weather_forecast_layer(LayerBuilder builder) {
 
     graph_instance_init(&data->forecast_graph, data->data, NUM_GRAPH_SERIES, &draw_config);
 
-    s_layers[s_layer_count++] = layer;
     layer_mark_dirty(layer);
 
     return layer;
@@ -218,17 +210,6 @@ void destroy_weather_forecast_layer(Layer *layer) {
     if (layer == NULL) {
         return;
     }
-
-    for (int i = 0; i < s_layer_count; i++) {
-        if (s_layers[i] == layer) {
-            for (int j = i; j < s_layer_count - 1; j++) {
-                s_layers[j] = s_layers[j + 1];
-            }
-            s_layer_count--;
-            break;
-        }
-    }
-
     layer_destroy(layer);
 }
 

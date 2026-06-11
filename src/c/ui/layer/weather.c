@@ -7,8 +7,7 @@
 #include "dotted_text_layer.h"
 #include "../../ui/layer_factory.h"
 #include "weather_forecast.h"
-
-#define MAX_WEATHER_LAYERS 7
+#include "../ui_state.h"
 
 static char s_buffer[32];
 
@@ -102,13 +101,7 @@ static int s_weather_update_interval = 1000 * 60 * 30; // 30 minutes
 
 static AppTimer *s_update_timer = NULL;
 
-// Registry of all created weather layers
-typedef struct {
-    DottedTextLayer *dotted_text_layer;
-} WeatherLayerInstance;
-
-static WeatherLayerInstance s_weather_layers[MAX_WEATHER_LAYERS];
-static int s_weather_layer_count = 0;
+static int s_active_weather_layers = 0;
 
 WeatherData *weather_get_data() {
     if (clay_get_settings()->WeatherUseSimulation) {
@@ -282,50 +275,47 @@ static void on_scheduled_update_triggered(void *data) {
     schedule_next_update(s_weather_update_interval, on_scheduled_update_triggered);
 }
 
-// Update all weather layer instances
-static void update_all_weather_layers() {
+static void update_weather_for_layer(DottedTextLayer *weather_layer) {
     WeatherData *data = weather_get_data();
     if (data == NULL) {
         APP_LOG(APP_LOG_LEVEL_WARNING, "Weather data is NULL!");
         return;
     }
 
-    // persist current data for fast access when opening the watchface
-    save_current_weather_data(data);
-
-    APP_LOG(
-        APP_LOG_LEVEL_DEBUG,
-        "weather rain forecast: next_1h=%d.%dmm pop=%d%%",
-        data->RainNextHourMmX10 / 10,
-        data->RainNextHourMmX10 % 10,
-        data->RainPopPercent
-    );
-
     // Write the current temperature into a buffer
     snprintf(s_buffer, sizeof(s_buffer), "%d|%d", data->MaxTemperature, data->MinTemperature);
 
-    for (int i = 0; i < s_weather_layer_count; i++) {
-        // update text layer
-        dotted_text_layer_set_text(s_weather_layers[i].dotted_text_layer, s_buffer);
-    }
+    // update text layer
+    dotted_text_layer_set_text(weather_layer, s_buffer);
 }
 
 // Backward compatible wrapper (called by app messaging or other code)
 void update_weather() {
-    update_all_weather_layers();
+    WeatherData *data = weather_get_data();
+    if (data != NULL) {
+        // persist current data for fast access when opening the watchface
+        save_current_weather_data(data);
+
+        APP_LOG(
+            APP_LOG_LEVEL_DEBUG,
+            "weather rain forecast: next_1h=%d.%dmm pop=%d%%",
+            data->RainNextHourMmX10 / 10,
+            data->RainNextHourMmX10 % 10,
+            data->RainPopPercent
+        );
+    }
+
+    for (int i = 0; i < ui_state_get_row_count(); i++) {
+        if (ui_state_get_widget_id(i) == WIDGET_WEATHER) {
+            update_weather_for_layer((DottedTextLayer *) ui_state_get_layer(i));
+        }
+    }
 }
 
 Layer *create_weather_layer(LayerBuilder builder) {
     restore_saved_weather_data();
 
-    if (s_weather_layer_count >= MAX_WEATHER_LAYERS) {
-        APP_LOG(APP_LOG_LEVEL_ERROR, "Max weather layers exceeded!");
-        return NULL;
-    }
-
-    WeatherLayerInstance *instance = &s_weather_layers[s_weather_layer_count];
-
-    instance->dotted_text_layer = layer_factory_create_dotted_text_layer(
+    DottedTextLayer *weather_layer = layer_factory_create_dotted_text_layer(
         builder,
         theme_get_theme()->WeatherTextColor,
         HORIZONTAL_ALIGN_RIGHT,
@@ -333,44 +323,34 @@ Layer *create_weather_layer(LayerBuilder builder) {
         "---"
     );
     if (clay_get_settings()->DotAutoScale) {
-        dotted_text_layer_set_auto_scale(instance->dotted_text_layer, true);
+        dotted_text_layer_set_auto_scale(weather_layer, true);
     } else {
-        dotted_text_layer_set_scale_factor(instance->dotted_text_layer, clay_get_settings()->DotScaleFactor);
+        dotted_text_layer_set_scale_factor(weather_layer, clay_get_settings()->DotScaleFactor);
     }
 
-    s_weather_layer_count++;
+    s_active_weather_layers++;
 
-    update_all_weather_layers();
+    update_weather_for_layer(weather_layer);
 
-    s_update_timer = app_timer_register(s_weather_update_interval, on_scheduled_update_triggered, NULL);
+    if (s_update_timer == NULL) {
+        s_update_timer = app_timer_register(s_weather_update_interval, on_scheduled_update_triggered, NULL);
+    }
 
-    return instance->dotted_text_layer;
+    return (Layer *) weather_layer;
 }
 
 void destroy_weather_layer(Layer *layer) {
-    DottedTextLayer *dotted_text_layer_to_destroy = layer;
-
-    // Find and remove from registry
-    for (int i = 0; i < s_weather_layer_count; i++) {
-        if (s_weather_layers[i].dotted_text_layer == dotted_text_layer_to_destroy) {
-            // Remove from array by shifting remaining elements
-            for (int j = i; j < s_weather_layer_count - 1; j++) {
-                s_weather_layers[j] = s_weather_layers[j + 1];
-            }
-            s_weather_layer_count--;
-            break;
-        }
-    }
+    s_active_weather_layers--;
 
     if (s_update_timer) {
         // cancel weather update timer only if this is the last instance
-        if (s_weather_layer_count == 0) {
+        if (s_active_weather_layers <= 0) {
             app_timer_cancel(s_update_timer);
             s_update_timer = NULL;
         }
     }
 
-    dotted_text_layer_destroy(dotted_text_layer_to_destroy);
+    dotted_text_layer_destroy((DottedTextLayer *) layer);
 }
 
 void deinit_weather_data() {

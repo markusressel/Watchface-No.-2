@@ -5,19 +5,14 @@
 #include "../../ui/theme.h"
 #include "../../settings/clay_settings.h"
 #include "../../ui/layer_factory.h"
+#include "../ui_state.h"
 
-#define MAX_BATTERY_LAYERS 5
-
-// Registry of all created battery bar layers
 typedef struct {
-    Layer *layer;
-    int current_battery_level;
     HorizontalAlignment horizontal_alignment;
     VerticalAlignment vertical_alignment;
-} BatteryLayerInstance;
+} BatteryLayerData;
 
-static BatteryLayerInstance s_battery_layers[MAX_BATTERY_LAYERS];
-static int s_battery_layer_count = 0;
+static int s_active_battery_layers = 0;
 
 // temporary variable used for animation (global state - shared by all layers)
 static int s_current_battery_level;
@@ -32,15 +27,6 @@ static int s_battery_charging_animation_duration_ms = 2000;
 // delay between a full battery charging animation cycle
 static int s_battery_charging_animation_delay_ms = 600;
 static const int s_battery_charging_animation_repeat_count = ANIMATION_DURATION_INFINITE;
-
-static BatteryLayerInstance *find_battery_instance(Layer *layer) {
-    for (int i = 0; i < s_battery_layer_count; i++) {
-        if (s_battery_layers[i].layer == layer) {
-            return &s_battery_layers[i];
-        }
-    }
-    return NULL;
-}
 
 static int scaled_dimension(int value, float scale_factor) {
     int scaled = (int) ((float) value * scale_factor + 0.5f);
@@ -72,8 +58,10 @@ static void fit_vertical_metrics_to_bounds(int *dot_height, int *gap_vertical, i
 static void draw_battery_fill(int percent) {
     s_current_battery_level = percent;
     // Mark all battery layers as dirty
-    for (int i = 0; i < s_battery_layer_count; i++) {
-        layer_mark_dirty(s_battery_layers[i].layer);
+    for (int i = 0; i < ui_state_get_row_count(); i++) {
+        if (ui_state_get_widget_id(i) == WIDGET_BATTERY_BAR) {
+            layer_mark_dirty(ui_state_get_layer(i));
+        }
     }
 }
 
@@ -89,13 +77,10 @@ static void batteryChargingAnimUpdate(Animation *animation, const AnimationProgr
 // draw the battery layer
 static void battery_update_proc(Layer *layer, GContext *ctx) {
     const GRect bounds = layer_get_bounds(layer);
-    BatteryLayerInstance *instance = find_battery_instance(layer);
-    const HorizontalAlignment horizontal_alignment = instance
-                                                         ? instance->horizontal_alignment
-                                                         : HORIZONTAL_ALIGN_RIGHT;
-    const VerticalAlignment vertical_alignment = instance
-                                                     ? instance->vertical_alignment
-                                                     : VERTICAL_ALIGN_TOP;
+    BatteryLayerData *data = (BatteryLayerData *) layer_get_data(layer);
+
+    const HorizontalAlignment horizontal_alignment = data ? data->horizontal_alignment : HORIZONTAL_ALIGN_RIGHT;
+    const VerticalAlignment vertical_alignment = data ? data->vertical_alignment : VERTICAL_ALIGN_TOP;
 
     ClaySettings *settings = clay_get_settings();
     float scale_factor = settings->DotAutoScale
@@ -204,8 +189,6 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
     graphics_context_set_fill_color(ctx, theme_get_theme()->BatteryFillColor);
 
     int fillDotsCount = (s_current_battery_level * (width_dots_count - 5)) / 100;
-    //APP_LOG(APP_LOG_LEVEL_DEBUG, "widthDotsCount: %d, batteryLevel: %d, fillDotsCount: %d",
-    //        widthDotsCount, s_current_battery_level, fillDotsCount);
 
     const int row = 2;
     for (int column = 0; column < fillDotsCount; column++) {
@@ -225,6 +208,7 @@ static void destroy_battery_charging_animation() {
 
     // destroy animation related data
     animation_destroy(charging_animation);
+    charging_animation = NULL;
 }
 
 static void initialize_battery_charging_animation() {
@@ -236,10 +220,6 @@ static void initialize_battery_charging_animation() {
     animation_set_curve(charging_animation, AnimationCurveLinear);
     animation_set_implementation(charging_animation, &battery_charging_anim_impl);
     animation_set_play_count(charging_animation, s_battery_charging_animation_repeat_count);
-    //animation_set_handlers(animation,(AnimationHandlers){
-    //  .started = animationStartedHandler,
-    //  .stopped = animationStoppedHandler
-    //}, (void*)(uint32_t)i);
 
     animation_schedule(charging_animation);
 }
@@ -264,8 +244,10 @@ void update_battery_bar() {
     s_current_battery_level = s_battery_level;
 
     // Update all battery layers (and redraw)
-    for (int i = 0; i < s_battery_layer_count; i++) {
-        layer_mark_dirty(s_battery_layers[i].layer);
+    for (int i = 0; i < ui_state_get_row_count(); i++) {
+        if (ui_state_get_widget_id(i) == WIDGET_BATTERY_BAR) {
+            layer_mark_dirty(ui_state_get_layer(i));
+        }
     }
 }
 
@@ -274,24 +256,18 @@ void update_battery_bar_layer(Layer *layer) {
 }
 
 Layer *create_battery_bar_layer(LayerBuilder builder) {
-    if (s_battery_layer_count >= MAX_BATTERY_LAYERS) {
-        APP_LOG(APP_LOG_LEVEL_ERROR, "Max battery layers exceeded!");
-        return NULL;
-    }
+    Layer *layer = layer_factory_create_custom_layer_with_data(builder, battery_update_proc, sizeof(BatteryLayerData));
+    BatteryLayerData *data = (BatteryLayerData *) layer_get_data(layer);
 
-    BatteryLayerInstance *instance = &s_battery_layers[s_battery_layer_count];
+    data->horizontal_alignment = HORIZONTAL_ALIGN_RIGHT;
+    data->vertical_alignment = VERTICAL_ALIGN_TOP;
 
-    instance->layer = layer_factory_create_custom_layer(builder, battery_update_proc);
-    instance->current_battery_level = 0;
-    instance->horizontal_alignment = HORIZONTAL_ALIGN_RIGHT;
-    instance->vertical_alignment = VERTICAL_ALIGN_TOP;
-
-    s_battery_layer_count++;
+    s_active_battery_layers++;
 
     // update on create
-    update_battery_bar_layer(instance->layer);
+    update_battery_bar_layer(layer);
 
-    return instance->layer;
+    return layer;
 }
 
 void battery_bar_layer_set_horizontal_alignment(Layer *layer, HorizontalAlignment alignment) {
@@ -306,13 +282,13 @@ void battery_bar_layer_set_horizontal_alignment(Layer *layer, HorizontalAlignmen
         return;
     }
 
-    BatteryLayerInstance *instance = find_battery_instance(layer);
-    if (!instance) {
-        APP_LOG(APP_LOG_LEVEL_ERROR, "Battery bar layer instance not found!");
+    BatteryLayerData *data = (BatteryLayerData *) layer_get_data(layer);
+    if (!data) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Battery bar layer data not found!");
         return;
     }
 
-    instance->horizontal_alignment = alignment;
+    data->horizontal_alignment = alignment;
     layer_mark_dirty(layer);
 }
 
@@ -328,31 +304,21 @@ void battery_bar_layer_set_vertical_alignment(Layer *layer, VerticalAlignment al
         return;
     }
 
-    BatteryLayerInstance *instance = find_battery_instance(layer);
-    if (!instance) {
-        APP_LOG(APP_LOG_LEVEL_ERROR, "Battery bar layer instance not found!");
+    BatteryLayerData *data = (BatteryLayerData *) layer_get_data(layer);
+    if (!data) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Battery bar layer data not found!");
         return;
     }
 
-    instance->vertical_alignment = alignment;
+    data->vertical_alignment = alignment;
     layer_mark_dirty(layer);
 }
 
 void destroy_battery_bar_layer(Layer *layer) {
-    // Find and remove from registry
-    for (int i = 0; i < s_battery_layer_count; i++) {
-        if (s_battery_layers[i].layer == layer) {
-            // Remove from array by shifting remaining elements
-            for (int j = i; j < s_battery_layer_count - 1; j++) {
-                s_battery_layers[j] = s_battery_layers[j + 1];
-            }
-            s_battery_layer_count--;
-            break;
-        }
-    }
+    s_active_battery_layers--;
 
     // Only destroy animation if this is the last battery layer
-    if (s_battery_layer_count == 0) {
+    if (s_active_battery_layers <= 0) {
         if (charging_animation) {
             destroy_battery_charging_animation();
         }

@@ -4,35 +4,18 @@
 #include "ui/theme.h"
 #include "settings/clay_settings.h"
 #include "ui/watch_layout.h"
-#include "ui/layer/time.h"
 #include "system/tick_listener.h"
-#include "ui/layer/date.h"
-#include "ui/layer/battery_bar.h"
 #include "system/battery_listener.h"
-#include "ui/layer/weather.h"
 #include "app_messaging/app_messaging.h"
-#include "ui/layer/stepcount.h"
-#include "ui/layer/heartrate.h"
-#include "ui/layer/weather_forecast.h"
 #include "system/health_listener.h"
-#include "ui/layer/widget.h"
-#include "ui/layer/debug_layer.h"
+#include "ui/ui_state.h"
+#include "ui/layer/weather.h"
 
 // Main Window
 static Window *s_main_window;
 
 // Layout is built at runtime from settings (see build_layout_from_settings).
 static WatchLayout s_layout;
-
-// Store created layer instances indexed by row for proper cleanup
-static Layer *s_row_layers[WATCH_LAYOUT_MAX_ROWS];
-
-static void init_row_layers() {
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "init_row_layers");
-    for (int i = 0; i < WATCH_LAYOUT_MAX_ROWS; i++) {
-        s_row_layers[i] = NULL;
-    }
-}
 
 static void build_layout_from_settings(ClaySettings *settings) {
     APP_LOG(APP_LOG_LEVEL_DEBUG, "build_layout_from_settings");
@@ -64,29 +47,7 @@ static void build_layout_from_settings(ClaySettings *settings) {
 static void main_window_load(Window *window) {
     APP_LOG(APP_LOG_LEVEL_DEBUG, "main_window_load");
 
-    Layer *window_layer = window_get_root_layer(window);
-
-    // Create each layer in row order.  To reorder, edit s_layout.rows above.
-    for (int i = 0; i < s_layout.row_count; i++) {
-        LayerBuilder builder = watch_layout_make_builder(&s_layout, window_layer, i);
-        switch (s_layout.rows[i].widget) {
-            case WIDGET_TIME: s_row_layers[i] = create_time_layer(builder);
-                break;
-            case WIDGET_DATE: s_row_layers[i] = create_date_layer(builder);
-                break;
-            case WIDGET_WEATHER: s_row_layers[i] = create_weather_layer(builder);
-                break;
-            case WIDGET_STEPCOUNT: s_row_layers[i] = create_stepcount_layer(builder);
-                break;
-            case WIDGET_HEARTRATE: s_row_layers[i] = create_heartrate_layer(builder);
-                break;
-            case WIDGET_WEATHER_FORECAST: s_row_layers[i] = create_weather_forecast_layer(builder);
-                break;
-            case WIDGET_BATTERY_BAR: s_row_layers[i] = create_battery_bar_layer(builder);
-                break;
-            default: break;
-        }
-    }
+    ui_state_create_layers(&s_layout);
 
     // Register for tick events (time)
     register_tick_listener();
@@ -107,32 +68,7 @@ static void main_window_unload(Window *window) {
     unregister_battery_listener();
     unregister_health_event_listener();
 
-    // Destroy all debug borders
-    debug_layer_destroy_all_borders();
-
-    // Destroy only the layers that were created for the current layout
-    for (int i = 0; i < s_layout.row_count; i++) {
-        if (s_row_layers[i] != NULL) {
-            switch (s_layout.rows[i].widget) {
-                case WIDGET_TIME: destroy_time_layer(s_row_layers[i]);
-                    break;
-                case WIDGET_DATE: destroy_date_layer(s_row_layers[i]);
-                    break;
-                case WIDGET_WEATHER: destroy_weather_layer(s_row_layers[i]);
-                    break;
-                case WIDGET_STEPCOUNT: destroy_stepcount_layer(s_row_layers[i]);
-                    break;
-                case WIDGET_HEARTRATE: destroy_heartrate_layer(s_row_layers[i]);
-                    break;
-                case WIDGET_WEATHER_FORECAST: destroy_weather_forecast_layer(s_row_layers[i]);
-                    break;
-                case WIDGET_BATTERY_BAR: destroy_battery_bar_layer(s_row_layers[i]);
-                    break;
-                default: break;
-            }
-            s_row_layers[i] = NULL;
-        }
-    }
+    ui_state_destroy_layers();
 }
 
 static void apply_theme_from_settings(ClaySettings *settings) {
@@ -178,7 +114,6 @@ static void apply_theme_from_settings(ClaySettings *settings) {
 void main_reload_layout(ClaySettings *settings) {
     APP_LOG(APP_LOG_LEVEL_DEBUG, "main_reload_layout");
     main_window_unload(s_main_window);
-    init_row_layers();
     apply_theme_from_settings(settings);
     build_layout_from_settings(settings);
     main_window_load(s_main_window);
@@ -188,11 +123,11 @@ void main_reload_layout(ClaySettings *settings) {
 static void init() {
     ClaySettings *settings = clay_load_settings();
 
-    // Initialize row layers array
-    init_row_layers();
-
     // Create main Window element first
     s_main_window = window_create();
+
+    // Initialize the UI state module
+    ui_state_init(s_main_window);
 
     // Apply the theme and build the layout
     apply_theme_from_settings(settings);
@@ -214,6 +149,8 @@ static void init() {
 // deinitializes the watchface
 static void deinit() {
     deinit_weather_data();
+
+    ui_state_deinit();
 
     // Destroy Window
     window_destroy(s_main_window);

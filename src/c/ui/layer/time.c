@@ -4,52 +4,33 @@
 #include "../../ui/theme.h"
 #include "../../settings/clay_settings.h"
 #include "../../ui/layer_factory.h"
+#include "../ui_state.h"
 
-#define MAX_TIME_LAYERS 5
-
-typedef struct {
-    DottedTextLayer *dotted_text_layer;
-    char time_format[16];
-} TimeLayerInstance;
-
-static TimeLayerInstance s_time_layers[MAX_TIME_LAYERS];
-static int s_time_layer_count = 0;
-
-static void update_all_time_layers(void) {
+static void update_time_for_layer(DottedTextLayer *time_layer) {
     time_t temp = time(NULL);
     struct tm *tick_time = localtime(&temp);
 
-    for (int i = 0; i < s_time_layer_count; i++) {
-        static char s_buffer[16];
-        strftime(
-            s_buffer,
-            sizeof(s_buffer),
-            s_time_layers[i].time_format,
-            tick_time
-        );
-
-        dotted_text_layer_set_text(s_time_layers[i].dotted_text_layer, s_buffer);
+    static char s_buffer[16];
+    char time_format[16];
+    strcpy(time_format, clock_is_24h_style() ? "%H:%M" : "%I:%M");
+    if (clay_get_settings()->ShowSeconds) {
+        strcat(time_format, ":%S");
     }
+
+    strftime(s_buffer, sizeof(s_buffer), time_format, tick_time);
+    dotted_text_layer_set_text(time_layer, s_buffer);
 }
 
 void update_time_layer() {
-    update_all_time_layers();
+    for (int i = 0; i < ui_state_get_row_count(); i++) {
+        if (ui_state_get_widget_id(i) == WIDGET_TIME) {
+            update_time_for_layer((DottedTextLayer *) ui_state_get_layer(i));
+        }
+    }
 }
 
 Layer *create_time_layer(LayerBuilder builder) {
-    if (s_time_layer_count >= MAX_TIME_LAYERS) {
-        APP_LOG(APP_LOG_LEVEL_ERROR, "Max time layers exceeded!");
-        return NULL;
-    }
-
-    TimeLayerInstance *instance = &s_time_layers[s_time_layer_count];
-
-    strcpy(instance->time_format, clock_is_24h_style() ? "%H:%M" : "%I:%M");
-    if (clay_get_settings()->ShowSeconds) {
-        strcat(instance->time_format, ":%S");
-    }
-
-    instance->dotted_text_layer = layer_factory_create_dotted_text_layer(
+    DottedTextLayer* time_layer = layer_factory_create_dotted_text_layer(
         builder,
         theme_get_theme()->TimeTextColor,
         HORIZONTAL_ALIGN_RIGHT,
@@ -60,42 +41,29 @@ Layer *create_time_layer(LayerBuilder builder) {
     const int base_dot = 10;
     const int base_gap = 0;
     dotted_text_layer_set_custom_metrics(
-        instance->dotted_text_layer,
+        time_layer,
         base_dot,
         base_dot,
         base_gap,
         base_gap
     );
     dotted_text_layer_set_character_offset(
-        instance->dotted_text_layer,
+        time_layer,
         8, DOTTED_TEXT_OFFSET_PIXELS
     );
-    dotted_text_layer_set_digit_width(instance->dotted_text_layer, 3);
+    dotted_text_layer_set_digit_width(time_layer, 3);
 
     if (clay_get_settings()->DotAutoScale) {
-        dotted_text_layer_set_auto_scale(instance->dotted_text_layer, true);
+        dotted_text_layer_set_auto_scale(time_layer, true);
     } else {
-        dotted_text_layer_set_scale_factor(instance->dotted_text_layer, clay_get_settings()->DotScaleFactor);
+        dotted_text_layer_set_scale_factor(time_layer, clay_get_settings()->DotScaleFactor);
     }
 
-    s_time_layer_count++;
-    update_all_time_layers();
+    update_time_for_layer(time_layer);
 
-    return instance->dotted_text_layer;
+    return (Layer *) time_layer;
 }
 
 void destroy_time_layer(Layer *layer) {
-    DottedTextLayer *dotted_text_layer_to_destroy = layer;
-
-    for (int i = 0; i < s_time_layer_count; i++) {
-        if (s_time_layers[i].dotted_text_layer == dotted_text_layer_to_destroy) {
-            for (int j = i; j < s_time_layer_count - 1; j++) {
-                s_time_layers[j] = s_time_layers[j + 1];
-            }
-            s_time_layer_count--;
-            break;
-        }
-    }
-
-    dotted_text_layer_destroy(dotted_text_layer_to_destroy);
+    dotted_text_layer_destroy((DottedTextLayer *) layer);
 }
