@@ -527,6 +527,8 @@ void graph_instance_draw(const GraphInstance *instance, GContext *ctx, const GRe
         }
     }
 
+    GRect series_bounds = bounds;
+
     // Draw x-axis ticks behind the series
     if (max_points > 0 && instance->config.axis.tick_interval_x > 0 && !gcolor_equal(instance->config.axis.tick_color_x, GColorClear)) {
         // Find a representative dot size. We can just take the largest dot size from the series.
@@ -547,6 +549,9 @@ void graph_instance_draw(const GraphInstance *instance, GContext *ctx, const GRe
                 graphics_draw_line(ctx, GPoint(x, y_bottom), GPoint(x, y_top));
             }
         }
+
+        // The axis is drawn, so we inset the series bounds
+        series_bounds.size.h -= instance->config.axis.tick_length_y;
     }
 
     // Draw all series
@@ -605,6 +610,6 @@ void graph_instance_draw(const GraphInstance *instance, GContext *ctx, const GRe
             }
         }
 
-        draw_single_series(ctx, bounds, values, value_count, series_cfg, min_value, max_value);
+        draw_single_series(ctx, series_bounds, values, value_count, series_cfg, min_value, max_value);
     }
 }
