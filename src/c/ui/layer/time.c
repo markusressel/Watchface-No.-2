@@ -30,7 +30,7 @@ void update_time_layer() {
 }
 
 Layer *create_time_layer(LayerBuilder builder) {
-    DottedTextLayer* time_layer = layer_factory_create_dotted_text_layer(
+    DottedTextLayer *time_layer = layer_factory_create_dotted_text_layer(
         builder,
         theme_get_theme()->TimeTextColor,
         HORIZONTAL_ALIGN_RIGHT,
