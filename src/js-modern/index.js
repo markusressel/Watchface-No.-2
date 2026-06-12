@@ -33,7 +33,7 @@ Pebble.addEventListener('webviewclosed', function (e) {
             weather.clearWeatherData();
         }
 
-        weather.getWeather();
+        weather.getWeather(true);
     }
 });
 
@@ -83,12 +83,12 @@ Pebble.addEventListener('appmessage',
 function onAppReady() {
     console.log("Watchface is ready! Sending pending data.");
     isPebbleReady = true;
-    weather.getWeather();
+    weather.getWeather(true);
 }
 
 function onRequestWeatherData() {
     if (isPebbleReady) {
-        weather.getWeather();
+        weather.getWeather(true);
     }
 }
 

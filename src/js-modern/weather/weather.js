@@ -5,7 +5,7 @@ import Persistence, {StorageKeys} from '../persistence';
 import timelineSimulation from './mock/timeline.json';
 import * as openmeteo from './openmeteo/openmeteo';
 
-const WEATHER_UPDATE_INTERVAL_MS = 30.0.minutes;
+const WEATHER_UPDATE_INTERVAL_MS = 5.0.minutes;
 
 export class WeatherData {
 
@@ -438,8 +438,10 @@ export function isAnyWeatherWidgetActive() {
  * If no API key is configured for OpenWeatherMap, any existing weather data is cleared both in the cache and on the watchface.
  * Caches the last fetched weather data for [WEATHER_UPDATE_INTERVAL_MS] milliseconds to minimize unnecessary API calls.
  * Handles geolocation retrieval and API response processing, sending the relevant weather data to the Pebble watchface.
+ *
+ * @param {boolean} force - If true, forces a weather data fetch regardless of cache age.
  */
-export function getWeather() {
+export function getWeather(force = false) {
     // check if any row is set to a widget that requires weather data
     if (!isAnyWeatherWidgetActive()) {
         console.log('No weather widgets active, skipping weather data fetch.');
@@ -452,7 +454,7 @@ export function getWeather() {
         return;
     }
 
-    if (!should_fetch_weather_from_api()) {
+    if (!force && !should_fetch_weather_from_api()) {
         const cachedDictionary = get_cached_weather_data();
         if (cachedDictionary) {
             console.log('Using cached weather data, skipping API call.');
