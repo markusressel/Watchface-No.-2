@@ -213,7 +213,7 @@ describe('weather.js', () => {
             'WEATHER_TEMPERATURE_CURRENT': 7,
             'WEATHER_TEMPERATURE_MIN': 7, // Min for the day (15th March)
             'WEATHER_TEMPERATURE_MAX': 9, // Max for the day (15th March)
-            'WEATHER_CONDITION': 'Clouds',
+            'WEATHER_CONDITION': '',
             'WEATHER_RAIN_NEXT_HOUR_MM_X10': 5, // 0.5 * 10
             'WEATHER_RAIN_POP_PERCENT': 20, // 0.2 * 100
             'WEATHER_TEMP_FORECAST_ENCODED': '7,8,9,12',
