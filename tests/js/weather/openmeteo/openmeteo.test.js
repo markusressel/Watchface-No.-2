@@ -27,9 +27,10 @@ describe('openmeteo.js', () => {
     test('fetch_weather_data makes a GET request to the correct URL', async () => {
         const latitude = 12.34;
         const longitude = 56.78;
-        const expectedUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&minutely_15=precipitation,temperature_2m,apparent_temperature,rain&forecast_days=1&timezone=auto`;
+        const forecast_hours = 6;
+        const expectedUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m,rain,precipitation,precipitation_probability,apparent_temperature&minutely_15=temperature_2m,apparent_temperature,precipitation,rain&forecast_days=1&forecast_minutely_15=24&timezone=auto`;
 
-        await openmeteo.fetch_weather_data(latitude, longitude);
+        await openmeteo.fetch_weather_data(latitude, longitude, forecast_hours);
 
         expect(mockXMLHttpRequest).toHaveBeenCalledTimes(1);
         expect(mockOpen).toHaveBeenCalledWith('GET', expectedUrl);

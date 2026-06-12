@@ -158,22 +158,49 @@ export function process_timeline_payload(json, sourceLabel) {
 }
 
 function process_openmeteo_payload(json, sourceLabel) {
-    if (!json || !json.minutely_15) {
+    if (!json || (!json.minutely_15 && !json.hourly)) {
         console.log('No timeline data available from ' + sourceLabel + '.');
         return;
     }
 
-    const timeline = [];
-    const data = json.minutely_15;
-    for (let i = 0; i < data.time.length; i++) {
-        timeline.push({
-            dt: Math.floor(new Date(data.time[i]).getTime() / 1000),
-            temp: data.temperature_2m[i] + 273.15, // Convert to Kelvin
-            rain: data.rain[i],
-            pop: 0, // Not available
-            weather: [{main: ''}] // Not available
-        });
+    const timelineMap = {};
+
+    if (json.hourly) {
+        const data = json.hourly;
+        for (let i = 0; i < data.time.length; i++) {
+            const dt = Math.floor(new Date(data.time[i]).getTime() / 1000);
+            timelineMap[dt] = {
+                dt: dt,
+                temp: data.temperature_2m[i] + 273.15, // Convert to Kelvin
+                rain: data.rain[i],
+                pop: (data.precipitation_probability ? data.precipitation_probability[i] / 100 : 0),
+                weather: [{main: ''}] // Not available
+            };
+        }
     }
+
+    if (json.minutely_15) {
+        const data = json.minutely_15;
+        for (let i = 0; i < data.time.length; i++) {
+            const dt = Math.floor(new Date(data.time[i]).getTime() / 1000);
+            // Prioritize minutely_15 for temperature and rain, keep pop from hourly if it overlaps
+            timelineMap[dt] = {
+                dt: dt,
+                temp: data.temperature_2m[i] + 273.15, // Convert to Kelvin
+                rain: data.rain[i],
+                pop: timelineMap[dt] ? timelineMap[dt].pop : 0,
+                weather: [{main: ''}] // Not available
+            };
+        }
+    }
+
+    const timeline = Object.keys(timelineMap)
+        .map(function (key) {
+            return timelineMap[key];
+        })
+        .sort(function (a, b) {
+            return a.dt - b.dt;
+        });
 
     return process_timeline_payload({data: timeline, timezone_offset: json.utc_offset_seconds}, sourceLabel);
 }
@@ -349,7 +376,9 @@ export function build_condensed_series(entries, extractor, maxCount) {
  */
 async function fetch_weather_data(latitude, longitude) {
     try {
-        const json = await openmeteo.fetch_weather_data(latitude, longitude);
+        const claySettings = config.getClaySettings();
+        const forecast_hours = claySettings.SliderWeatherForecastPreviewHoursCount
+        const json = await openmeteo.fetch_weather_data(latitude, longitude, forecast_hours);
         return process_openmeteo_payload(json, 'api/openmeteo');
     } catch (error) {
         console.log('Error during API weather request or processing: ' + error);

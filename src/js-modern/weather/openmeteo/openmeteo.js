@@ -2,15 +2,18 @@
  * Fetches weather data from the OpenMeteo API.
  * @param {number} latitude - The latitude coordinate for weather data.
  * @param {number} longitude - The longitude coordinate for weather data.
+ * @param {number} forecast_hours - The number of hours to forecast.
  * @returns {Promise<JSON>} A promise that resolves with the weather data.
  */
-export async function fetch_weather_data(latitude, longitude) {
+export async function fetch_weather_data(latitude, longitude, forecast_hours) {
     const baseUrl = "https://api.open-meteo.com/v1/forecast";
     const queryParams = {
         latitude: latitude,
         longitude: longitude,
-        minutely_15: "precipitation,temperature_2m,apparent_temperature,rain",
+        hourly: "temperature_2m,rain,precipitation,precipitation_probability,apparent_temperature",
+        minutely_15: "temperature_2m,apparent_temperature,precipitation,rain",
         forecast_days: 1,
+        forecast_minutely_15: 4 * forecast_hours,
         timezone: "auto"
     };
     const url = createUrl(baseUrl, queryParams);

@@ -53,7 +53,6 @@ global.navigator = {geolocation: mockGeolocation};
 
 // Mock the config module
 const mockConfig = {
-    getWeatherApiKey: jest.fn(() => 'test_api_key'),
     isWeatherSimulationEnabled: jest.fn(() => false),
     getClaySettings: jest.fn(() => ({
         Row0Widget: "0", // Weather
@@ -146,7 +145,6 @@ describe('weather.js', () => {
         jest.clearAllMocks();
         mockLocalStorage.clear();
         mockPebble.lastSentMessage = null;
-        mockConfig.getWeatherApiKey.mockReturnValue('test_api_key');
         mockConfig.isWeatherSimulationEnabled.mockReturnValue(false);
         Date.now = originalDateNow; // Restore Date.now
     });

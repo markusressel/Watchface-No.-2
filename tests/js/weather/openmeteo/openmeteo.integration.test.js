@@ -39,12 +39,13 @@ describe('OpenMeteo Integration Test', () => {
     // This test makes a real API call to OpenMeteo.
     // It is intended for manual debugging to inspect the live API response.
     // It is skipped by default to avoid failing CI/CD pipelines due to network issues or API changes.
-    test.skip('should fetch weather data from the real OpenMeteo API and log the response', async () => {
+    test('should fetch weather data from the real OpenMeteo API and log the response', async () => {
         const latitude = 52.4391595;
         const longitude = 13.3490739;
+        const forcast_hours = 6;
 
         try {
-            const weatherData = await openmeteo.fetch_weather_data(latitude, longitude);
+            const weatherData = await openmeteo.fetch_weather_data(latitude, longitude, forcast_hours);
             console.log('OpenMeteo API Response:', JSON.stringify(weatherData, null, 2));
             expect(weatherData).toBeDefined();
             expect(weatherData.latitude).toBeCloseTo(latitude, 1);
