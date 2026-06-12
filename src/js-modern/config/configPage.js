@@ -201,39 +201,6 @@ export default [
         "items": [
             {
                 "type": "heading",
-                "defaultValue": "More Settings"
-            },
-            {
-                "type": "toggle",
-                "messageKey": "ShowYear",
-                "label": "Show Year",
-                "defaultValue": false
-            },
-            {
-                "type": "toggle",
-                "messageKey": "ShowSeconds",
-                "label": "Enable Seconds",
-                "defaultValue": false
-            },
-            {
-                "type": "toggle",
-                "messageKey": "ShowWeekdayAbbreviation",
-                "label": "Enable Weekday",
-                "defaultValue": false
-            },
-            {
-                "type": "toggle",
-                "messageKey": "WeekdayAbbreviationUppercase",
-                "label": "Weekday in uppercase",
-                "defaultValue": false
-            }
-        ]
-    },
-    {
-        "type": "section",
-        "items": [
-            {
-                "type": "heading",
                 "defaultValue": "Row Layout"
             },
             {
@@ -366,7 +333,48 @@ export default [
         "items": [
             {
                 "type": "heading",
-                "defaultValue": "Weather Settings"
+                "defaultValue": "Widgets"
+            },
+            {
+                "type": "text",
+                "defaultValue": "Configure widget-specific behavior."
+            },
+            {
+                "type": "heading",
+                "defaultValue": "Time"
+            },
+            {
+                "type": "toggle",
+                "messageKey": "ShowSeconds",
+                "label": "Enable Seconds",
+                "description": "(Discouraged: will cause battery drain)",
+                "defaultValue": false
+            },
+            {
+                "type": "heading",
+                "defaultValue": "Date"
+            },
+            {
+                "type": "toggle",
+                "messageKey": "ShowYear",
+                "label": "Show Year",
+                "defaultValue": false
+            },
+            {
+                "type": "toggle",
+                "messageKey": "ShowWeekdayAbbreviation",
+                "label": "Enable Weekday",
+                "defaultValue": false
+            },
+            {
+                "type": "toggle",
+                "messageKey": "WeekdayAbbreviationUppercase",
+                "label": "Weekday in CAPS (MO, TU, WE, etc.)",
+                "defaultValue": false
+            },
+            {
+                "type": "heading",
+                "defaultValue": "Weather"
             },
             {
                 "type": "text",
