@@ -60,7 +60,10 @@ static void draw_battery_fill(int percent) {
     // Mark all battery layers as dirty
     for (int i = 0; i < ui_state_get_row_count(); i++) {
         if (ui_state_get_widget_id(i) == WIDGET_BATTERY_BAR) {
-            layer_mark_dirty(ui_state_get_layer(i));
+            Layer *layer = ui_state_get_layer(i);
+            if (layer) {
+                layer_mark_dirty(layer);
+            }
         }
     }
 }
@@ -246,23 +249,34 @@ void update_battery_bar() {
     // Update all battery layers (and redraw)
     for (int i = 0; i < ui_state_get_row_count(); i++) {
         if (ui_state_get_widget_id(i) == WIDGET_BATTERY_BAR) {
-            layer_mark_dirty(ui_state_get_layer(i));
+            Layer *layer = ui_state_get_layer(i);
+            if (layer) {
+                layer_mark_dirty(layer);
+            }
         }
     }
 }
 
 void update_battery_bar_layer(Layer *layer) {
-    update_battery_bar();
+    if (layer) {
+        layer_mark_dirty(layer);
+    }
 }
 
 Layer *create_battery_bar_layer(LayerBuilder builder) {
     Layer *layer = layer_factory_create_custom_layer_with_data(builder, battery_update_proc, sizeof(BatteryLayerData));
+    if (!layer) {
+        return NULL;
+    }
     BatteryLayerData *data = (BatteryLayerData *) layer_get_data(layer);
 
     data->horizontal_alignment = HORIZONTAL_ALIGN_RIGHT;
     data->vertical_alignment = VERTICAL_ALIGN_TOP;
 
     s_active_battery_layers++;
+
+    // ensure animation state is correct
+    ensure_battery_animation_state();
 
     // update on create
     update_battery_bar_layer(layer);

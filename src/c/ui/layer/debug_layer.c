@@ -8,6 +8,10 @@ static void debug_border_update_proc(Layer *layer, GContext *ctx) {
 void debug_layer_add_border(Layer *layer) {
     // A border layer that draws exactly over the target layer's bounds
     Layer *border = layer_create(layer_get_bounds(layer));
+    if (!border) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Failed to create debug border layer!");
+        return;
+    }
     layer_set_update_proc(border, debug_border_update_proc);
 
     // Add the border as a child of the target layer so it draws on top

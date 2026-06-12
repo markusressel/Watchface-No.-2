@@ -231,9 +231,20 @@ void dotted_text_layer_set_text(DottedTextLayer *dotted_text_layer, char *text) 
     // free any existing old text
     if (data->text) {
         free(data->text);
+        data->text = NULL;
     }
+
+    if (!text) {
+        layer_mark_dirty(dotted_text_layer);
+        return;
+    }
+
     // allocate memory for text
     data->text = malloc(sizeof(char) * strlen(text) + 1);
+    if (!data->text) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Failed to allocate memory for text!");
+        return;
+    }
     // copy passed in text to struct
     strcpy(data->text, text);
 
@@ -405,6 +416,12 @@ void dotted_text_layer_destroy(DottedTextLayer *dotted_text_layer) {
     if (!dotted_text_layer) {
         APP_LOG(APP_LOG_LEVEL_ERROR, "DottedTextLayer is NULL!");
         return;
+    }
+
+    DottedTextLayerData *data = get_layer_data(dotted_text_layer);
+    if (data->text) {
+        free(data->text);
+        data->text = NULL;
     }
 
     layer_destroy(dotted_text_layer);

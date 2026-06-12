@@ -105,7 +105,10 @@ static void update_proc(Layer *layer, GContext *ctx) {
 void update_weather_forecast() {
     for (int i = 0; i < ui_state_get_row_count(); i++) {
         if (ui_state_get_widget_id(i) == WIDGET_WEATHER_FORECAST) {
-            layer_mark_dirty(ui_state_get_layer(i));
+            Layer *layer = ui_state_get_layer(i);
+            if (layer) {
+                layer_mark_dirty(layer);
+            }
         }
     }
 }
@@ -114,9 +117,11 @@ void weather_forecast_layer_update_settings() {
     for (int i = 0; i < ui_state_get_row_count(); i++) {
         if (ui_state_get_widget_id(i) == WIDGET_WEATHER_FORECAST) {
             Layer *layer = ui_state_get_layer(i);
-            WeatherForecastLayerData *data = layer_get_data(layer);
-            data->series_configs[1].default_color = theme_get_theme()->WeatherTextColor;
-            layer_mark_dirty(layer);
+            if (layer) {
+                WeatherForecastLayerData *data = layer_get_data(layer);
+                data->series_configs[1].default_color = theme_get_theme()->WeatherTextColor;
+                layer_mark_dirty(layer);
+            }
         }
     }
 }

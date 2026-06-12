@@ -278,6 +278,11 @@ void build_layout_from_settings(ClaySettings *settings) {
 }
 
 void main_reload_layout(ClaySettings *settings, Window *window) {
+    if (!window) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "main_reload_layout: window is NULL!");
+        return;
+    }
+
     APP_LOG(APP_LOG_LEVEL_DEBUG, "main_reload_layout");
 
     window_unload(window);
