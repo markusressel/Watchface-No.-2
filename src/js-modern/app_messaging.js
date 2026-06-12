@@ -4,7 +4,7 @@
  * @param successMessage {string}
  * @param errorMessage {string}
  */
-export function send_dict_to_watch(dictionary, successMessage, errorMessage) {
+export function sendDictToWatch(dictionary, successMessage, errorMessage) {
     Pebble.sendAppMessage(
         dictionary,
         function (e) {
@@ -21,7 +21,7 @@ export function send_dict_to_watch(dictionary, successMessage, errorMessage) {
  * @param {number[]} values - The array of numbers to encode.
  * @returns {string} The encoded string.
  */
-export function encode_number_array(values) {
+export function encodeNumberArray(values) {
     return values.join(',');
 }
 
@@ -32,7 +32,7 @@ export function encode_number_array(values) {
  * @param {number} decimalPlaces - The number of decimal places to encode.
  * @returns {number} The converted integer value.
  */
-export function encode_decimal_as_int(value, decimalPlaces) {
+export function encodeDecimalAsInt(value, decimalPlaces) {
     if (typeof value !== 'number') {
         return 0;
     }

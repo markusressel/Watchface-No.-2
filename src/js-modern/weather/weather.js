@@ -26,10 +26,10 @@ export class WeatherData {
         this.WEATHER_TEMPERATURE_MIN = temperatureMin;
         this.WEATHER_TEMPERATURE_MAX = temperatureMax;
         this.WEATHER_CONDITION = conditions;
-        this.WEATHER_RAIN_NEXT_HOUR_MM_X10 = one_decimal_to_int(rainMm);
+        this.WEATHER_RAIN_NEXT_HOUR_MM_X10 = oneDecimalToInt(rainMm);
         this.WEATHER_RAIN_POP_PERCENT = popPercent;
-        this.WEATHER_TEMP_FORECAST_ENCODED = appMessaging.encode_number_array(temperatureForecastSeries);
-        this.WEATHER_RAIN_FORECAST_MM_X10_ENCODED = appMessaging.encode_number_array(rainForecastSeries);
+        this.WEATHER_TEMP_FORECAST_ENCODED = appMessaging.encodeNumberArray(temperatureForecastSeries);
+        this.WEATHER_RAIN_FORECAST_MM_X10_ENCODED = appMessaging.encodeNumberArray(rainForecastSeries);
     }
 
     static fromDict(dict) {
@@ -53,10 +53,10 @@ export class WeatherData {
     }
 }
 
-export function request_simulated_weather_data() {
-    const weatherData = process_timeline_payload(timelineSimulation, 'simulation/timeline.json');
-    cache_weather_data(weatherData);
-    send_weather_to_watch(
+export function requestSimulatedWeatherData() {
+    const weatherData = processTimelinePayload(timelineSimulation, 'simulation/timeline.json');
+    cacheWeatherData(weatherData);
+    sendWeatherToWatch(
         weatherData,
         'Weather data sent to Pebble successfully!',
         'Error sending weather data to Pebble!'
@@ -67,9 +67,9 @@ export function request_simulated_weather_data() {
  *
  * @param weatherData {WeatherData}
  */
-export function cache_weather_data(weatherData) {
+export function cacheWeatherData(weatherData) {
     if (!(weatherData instanceof WeatherData)) {
-        throw new Error('cache_weather_data expects a WeatherData object');
+        throw new Error('cacheWeatherData expects a WeatherData object');
     }
     try {
         Persistence.putJson(StorageKeys.WEATHER_LAST_DATA_KEY, weatherData.toDict());
@@ -84,7 +84,7 @@ export function cache_weather_data(weatherData) {
  * @param json {object}
  * @param sourceLabel {string}
  */
-export function process_timeline_payload(json, sourceLabel) {
+export function processTimelinePayload(json, sourceLabel) {
     if (!json || !json.data || json.data.length === 0) {
         console.log('No timeline data available from ' + sourceLabel + '.');
         return;
@@ -94,17 +94,17 @@ export function process_timeline_payload(json, sourceLabel) {
     console.log('JSON response is: ' + JSON.stringify(json));
 
     const timeline = json.data || [];
-    const current = pick_closest_entry_to_now(timeline) || timeline[0] || {};
-    const minMax = day_min_max_from_timeline(timeline, current, json.timezone_offset || 0);
+    const current = pickClosestEntryToNow(timeline) || timeline[0] || {};
+    const minMax = dayMinMaxFromTimeline(timeline, current, json.timezone_offset || 0);
     const minKelvin = minMax.minKelvin;
     const maxKelvin = minMax.maxKelvin;
 
     // Temperature in Kelvin requires adjustment
-    const temperatureCurrent = kelvin_to_celsius(current.temp);
+    const temperatureCurrent = kelvinToCelsius(current.temp);
     console.log('Current Temperature is ' + temperatureCurrent);
-    const temperatureMin = kelvin_to_celsius(minKelvin);
+    const temperatureMin = kelvinToCelsius(minKelvin);
     console.log('Min Temperature is ' + temperatureMin);
-    const temperatureMax = kelvin_to_celsius(maxKelvin);
+    const temperatureMax = kelvinToCelsius(maxKelvin);
     console.log('Max Temperature is ' + temperatureMax);
 
     // Conditions
@@ -119,19 +119,19 @@ export function process_timeline_payload(json, sourceLabel) {
     const claySettings = config.getClaySettings();
     const forecastPointCount = claySettings.SliderWeatherForecastPreviewHoursCount * 4;
 
-    const temperatureForecastSeries = build_condensed_series(
+    const temperatureForecastSeries = buildCondensedSeries(
         timeline,
         function (entry) {
-            return kelvin_to_celsius(entry.temp);
+            return kelvinToCelsius(entry.temp);
         },
         forecastPointCount
     );
 
-    const rainForecastSeries = build_condensed_series(
+    const rainForecastSeries = buildCondensedSeries(
         timeline,
         function (entry) {
             const rain = entry.rain;
-            return appMessaging.encode_decimal_as_int(rain, 1);
+            return appMessaging.encodeDecimalAsInt(rain, 1);
         },
         forecastPointCount
     );
@@ -152,7 +152,7 @@ export function process_timeline_payload(json, sourceLabel) {
     );
 }
 
-function process_openmeteo_payload(json, sourceLabel) {
+function processOpenMeteoPayload(json, sourceLabel) {
     if (!json || (!json.minutely_15 && !json.hourly)) {
         console.log('No timeline data available from ' + sourceLabel + '.');
         return;
@@ -183,14 +183,14 @@ function process_openmeteo_payload(json, sourceLabel) {
             return a.dt - b.dt;
         });
 
-    return process_timeline_payload({data: timeline, timezone_offset: json.utc_offset_seconds}, sourceLabel);
+    return processTimelinePayload({data: timeline, timezone_offset: json.utc_offset_seconds}, sourceLabel);
 }
 
 /**
  * @param entries {object[]|null}
  * @return {*|null}
  */
-export function pick_closest_entry_to_now(entries) {
+export function pickClosestEntryToNow(entries) {
     if (!entries || entries.length === 0) {
         return null;
     }
@@ -216,7 +216,7 @@ export function pick_closest_entry_to_now(entries) {
  * @param kelvin {number}
  * @return {number}
  */
-export function kelvin_to_celsius(kelvin) {
+export function kelvinToCelsius(kelvin) {
     if (typeof kelvin !== 'number') {
         return 0;
     }
@@ -224,7 +224,7 @@ export function kelvin_to_celsius(kelvin) {
     return Math.round(kelvin - 273.15);
 }
 
-function get_cached_weather_data() {
+function getCachedWeatherData() {
     const dict = Persistence.getJson(StorageKeys.WEATHER_LAST_DATA_KEY);
     return WeatherData.fromDict(dict);
 }
@@ -233,7 +233,7 @@ function get_cached_weather_data() {
  * Retrieves the timestamp of the last weather fetch from local storage.
  * @returns {number|null} - The timestamp of the last fetch, or null if not found.
  */
-export function get_last_fetch_timestamp() {
+export function getLastFetchTimestamp() {
     const rawValue = Persistence.getInt(StorageKeys.WEATHER_LAST_FETCH_KEY)
     if (rawValue === null || isNaN(rawValue)) {
         return null;
@@ -246,8 +246,8 @@ export function get_last_fetch_timestamp() {
  * The cycle boundaries are at 0, 15, 30, and 45 minutes past the hour, plus a 30-second buffer.
  * @returns {boolean} - True if the cache has expired or no fetch has occurred yet, false otherwise.
  */
-export function is_weather_cache_expired() {
-    const lastFetchTimestamp = get_last_fetch_timestamp();
+export function isWeatherCacheExpired() {
+    const lastFetchTimestamp = getLastFetchTimestamp();
     if (!lastFetchTimestamp) {
         return true;
     }
@@ -273,13 +273,13 @@ export function is_weather_cache_expired() {
     return lastFetchTimestamp < boundaryDate.getTime();
 }
 
-function should_fetch_weather_from_api() {
-    const cached = get_cached_weather_data();
+function shouldFetchWeatherFromApi() {
+    const cached = getCachedWeatherData();
     if (!cached) {
         return true;
     }
 
-    return is_weather_cache_expired();
+    return isWeatherCacheExpired();
 }
 
 /**
@@ -288,24 +288,24 @@ function should_fetch_weather_from_api() {
  * @param successMessage {string}
  * @param errorMessage {string}
  */
-export function send_weather_to_watch(weatherData, successMessage, errorMessage) {
+export function sendWeatherToWatch(weatherData, successMessage, errorMessage) {
     if (!(weatherData instanceof WeatherData)) {
-        throw new Error('send_weather_to_watch expects a WeatherData object');
+        throw new Error('sendWeatherToWatch expects a WeatherData object');
     }
-    appMessaging.send_dict_to_watch(weatherData.toDict(), successMessage, errorMessage);
+    appMessaging.sendDictToWatch(weatherData.toDict(), successMessage, errorMessage);
 }
 
-function local_day_index(utcTimestamp, timezoneOffsetSeconds) {
+function localDayIndex(utcTimestamp, timezoneOffsetSeconds) {
     return Math.floor((utcTimestamp + timezoneOffsetSeconds) / 86400);
 }
 
-export function day_min_max_from_timeline(entries, referenceEntry, timezoneOffsetSeconds) {
+export function dayMinMaxFromTimeline(entries, referenceEntry, timezoneOffsetSeconds) {
     if (!entries || entries.length === 0) {
         return {minKelvin: undefined, maxKelvin: undefined};
     }
 
     const reference = referenceEntry || entries[0];
-    const referenceDay = local_day_index(reference.dt || 0, timezoneOffsetSeconds || 0);
+    const referenceDay = localDayIndex(reference.dt || 0, timezoneOffsetSeconds || 0);
     let minKelvin = reference.temp;
     let maxKelvin = reference.temp;
 
@@ -316,7 +316,7 @@ export function day_min_max_from_timeline(entries, referenceEntry, timezoneOffse
             continue;
         }
 
-        if (local_day_index(entry.dt || 0, timezoneOffsetSeconds || 0) !== referenceDay) {
+        if (localDayIndex(entry.dt || 0, timezoneOffsetSeconds || 0) !== referenceDay) {
             continue;
         }
 
@@ -346,7 +346,7 @@ export function day_min_max_from_timeline(entries, referenceEntry, timezoneOffse
     return {minKelvin: minKelvin, maxKelvin: maxKelvin};
 }
 
-export function build_condensed_series(entries, extractor, maxCount) {
+export function buildCondensedSeries(entries, extractor, maxCount) {
     const samples = [];
     if (!entries || entries.length === 0) {
         return samples;
@@ -374,12 +374,12 @@ export function build_condensed_series(entries, extractor, maxCount) {
  * @param {number} longitude - The longitude coordinate for weather data.
  * @returns {Promise<WeatherData|null>} A promise that resolves with the weather data.
  */
-async function fetch_weather_data(latitude, longitude) {
+async function fetchWeatherData(latitude, longitude) {
     try {
         const claySettings = config.getClaySettings();
         const forecast_hours = claySettings.SliderWeatherForecastPreviewHoursCount
-        const json = await openmeteo.fetch_weather_data(latitude, longitude, forecast_hours);
-        return process_openmeteo_payload(json, 'api/openmeteo');
+        const json = await openmeteo.fetchWeatherData(latitude, longitude, forecast_hours);
+        return processOpenMeteoPayload(json, 'api/openmeteo');
     } catch (error) {
         console.log('Error during API weather request or processing: ' + error);
     }
@@ -387,7 +387,7 @@ async function fetch_weather_data(latitude, longitude) {
 }
 
 export function clearWeatherData() {
-    clear_cache();
+    clearCache();
 
     // Send empty weather data to clear the display on the watchface
     const clearDictionary = new WeatherData(
@@ -400,14 +400,14 @@ export function clearWeatherData() {
         [],
         []
     );
-    send_weather_to_watch(
+    sendWeatherToWatch(
         clearDictionary,
         "Weather data cleared successfully!",
         "Error clearing weather data!"
     );
 }
 
-export function clear_cache() {
+export function clearCache() {
     Persistence.remove(StorageKeys.WEATHER_LAST_DATA_KEY);
     Persistence.remove(StorageKeys.WEATHER_LAST_FETCH_KEY);
 }
@@ -450,15 +450,15 @@ export function getWeather(force = false) {
 
     if (config.isWeatherSimulationEnabled()) {
         console.log('Simulation mode enabled. Using timeline.json weather data.');
-        request_simulated_weather_data();
+        requestSimulatedWeatherData();
         return;
     }
 
-    if (!force && !should_fetch_weather_from_api()) {
-        const cachedDictionary = get_cached_weather_data();
+    if (!force && !shouldFetchWeatherFromApi()) {
+        const cachedDictionary = getCachedWeatherData();
         if (cachedDictionary) {
             console.log('Using cached weather data, skipping API call.');
-            send_weather_to_watch(
+            sendWeatherToWatch(
                 cachedDictionary,
                 'Cached weather data sent to Pebble successfully!',
                 'Error sending cached weather data to Pebble!'
@@ -469,12 +469,12 @@ export function getWeather(force = false) {
 
     navigator.geolocation.getCurrentPosition(
         function (pos) {
-            fetch_weather_data(pos.coords.latitude, pos.coords.longitude)
+            fetchWeatherData(pos.coords.latitude, pos.coords.longitude)
                 .then(weatherData => {
                     console.log('Weather fetch process completed.');
                     if (weatherData) {
-                        cache_weather_data(weatherData);
-                        send_weather_to_watch(
+                        cacheWeatherData(weatherData);
+                        sendWeatherToWatch(
                             weatherData,
                             'Weather data sent to Pebble successfully!',
                             'Error sending weather data to Pebble!'
@@ -499,6 +499,6 @@ export function getWeather(force = false) {
  * @param {number|null} value - The number to convert.
  * @returns {number} The converted integer value.
  */
-export function one_decimal_to_int(value) {
-    return appMessaging.encode_decimal_as_int(value, 1)
+export function oneDecimalToInt(value) {
+    return appMessaging.encodeDecimalAsInt(value, 1)
 }

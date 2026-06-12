@@ -80,16 +80,16 @@ jest.mock('../../../src/js-modern/config/config', () => ({
 
 // Mock the app_messaging module
 const mockAppMessaging = {
-    send_dict_to_watch: jest.fn((dictionary, successMessage, errorMessage) => {
+    sendDictToWatch: jest.fn((dictionary, successMessage, errorMessage) => {
         mockPebble.sendAppMessage(dictionary, () => console.log(successMessage), () => console.log(errorMessage));
     }),
-    encode_decimal_as_int: jest.fn((value, decimalPlaces) => {
+    encodeDecimalAsInt: jest.fn((value, decimalPlaces) => {
         if (typeof value !== 'number') {
             return 0;
         }
         return Math.round(value * (Math.pow(10, decimalPlaces)));
     }),
-    encode_number_array: jest.fn(values => Array.isArray(values) ? values.join(',') : '')
+    encodeNumberArray: jest.fn(values => Array.isArray(values) ? values.join(',') : '')
 };
 jest.mock('../../../src/js-modern/app_messaging', () => ({
     __esModule: true,
@@ -119,7 +119,7 @@ jest.mock('../../../src/js-modern/persistence', () => ({
 
 // Mock OpenMeteo module
 const mockOpenMeteo = {
-    fetch_weather_data: jest.fn().mockResolvedValue({
+    fetchWeatherData: jest.fn().mockResolvedValue({
         "minutely_15": {
             "time": ["2023-03-15T12:00:00Z", "2023-03-15T13:00:00Z"],
             "temperature_2m": [7, 8],
@@ -149,28 +149,28 @@ describe('weather.js', () => {
         Date.now = originalDateNow; // Restore Date.now
     });
 
-    // Test kelvin_to_celsius
-    test('kelvin_to_celsius converts Kelvin to Celsius correctly', () => {
-        expect(weather.kelvin_to_celsius(273.15)).toBe(0);
-        expect(weather.kelvin_to_celsius(280.15)).toBe(7);
-        expect(weather.kelvin_to_celsius(263.15)).toBe(-10);
-        expect(weather.kelvin_to_celsius(null)).toBe(0);
-        expect(weather.kelvin_to_celsius(undefined)).toBe(0);
-        expect(weather.kelvin_to_celsius('abc')).toBe(0);
+    // Test kelvinToCelsius
+    test('kelvinToCelsius converts Kelvin to Celsius correctly', () => {
+        expect(weather.kelvinToCelsius(273.15)).toBe(0);
+        expect(weather.kelvinToCelsius(280.15)).toBe(7);
+        expect(weather.kelvinToCelsius(263.15)).toBe(-10);
+        expect(weather.kelvinToCelsius(null)).toBe(0);
+        expect(weather.kelvinToCelsius(undefined)).toBe(0);
+        expect(weather.kelvinToCelsius('abc')).toBe(0);
     });
 
-    // Test one_decimal_to_int
-    test('one_decimal_to_int converts one decimal to integer correctly', () => {
-        expect(weather.one_decimal_to_int(0.5)).toBe(5);
-        expect(weather.one_decimal_to_int(1.2)).toBe(12);
-        expect(weather.one_decimal_to_int(0)).toBe(0);
-        expect(weather.one_decimal_to_int(null)).toBe(0);
-        expect(weather.one_decimal_to_int(undefined)).toBe(0);
-        expect(weather.one_decimal_to_int('abc')).toBe(0);
+    // Test oneDecimalToInt
+    test('oneDecimalToInt converts one decimal to integer correctly', () => {
+        expect(weather.oneDecimalToInt(0.5)).toBe(5);
+        expect(weather.oneDecimalToInt(1.2)).toBe(12);
+        expect(weather.oneDecimalToInt(0)).toBe(0);
+        expect(weather.oneDecimalToInt(null)).toBe(0);
+        expect(weather.oneDecimalToInt(undefined)).toBe(0);
+        expect(weather.oneDecimalToInt('abc')).toBe(0);
     });
 
-    // Test process_timeline_payload
-    test('process_timeline_payload creates the correct dictionary data', () => {
+    // Test processTimelinePayload
+    test('processTimelinePayload creates the correct dictionary data', () => {
         const mockTimelineData = {
             "data": [
                 {
@@ -207,7 +207,7 @@ describe('weather.js', () => {
 
         Date.now = jest.fn(() => 1678886400 * 1000); // Set current time to 12:00:00 PM UTC
 
-        const result = weather.process_timeline_payload(mockTimelineData, 'test_source');
+        const result = weather.processTimelinePayload(mockTimelineData, 'test_source');
 
         const expectedDictionary = {
             'WEATHER_TEMPERATURE_CURRENT': 7,
@@ -223,35 +223,35 @@ describe('weather.js', () => {
         expect(result.toDict()).toEqual(expectedDictionary);
     });
 
-    test('send_weather_to_watch', () => {
+    test('sendWeatherToWatch', () => {
         const exampleData = new WeatherData(
             7, 7, 9, 'Clouds', 0.5, 20, [7, 8, 9, 12], [5, 12, 1, 0]
         );
 
-        weather.send_weather_to_watch(exampleData, "success", "error");
+        weather.sendWeatherToWatch(exampleData, "success", "error");
 
-        expect(mockAppMessaging.send_dict_to_watch).toHaveBeenCalledTimes(1);
-        expect(mockAppMessaging.send_dict_to_watch).toHaveBeenCalledWith(exampleData.toDict(), "success", "error");
+        expect(mockAppMessaging.sendDictToWatch).toHaveBeenCalledTimes(1);
+        expect(mockAppMessaging.sendDictToWatch).toHaveBeenCalledWith(exampleData.toDict(), "success", "error");
     });
 
-    test('send_weather_to_watch throws error if not passed a WeatherData instance', () => {
-        expect(() => weather.send_weather_to_watch({some: 'data'}, 'success', 'error')).toThrow('send_weather_to_watch expects a WeatherData object');
+    test('sendWeatherToWatch throws error if not passed a WeatherData instance', () => {
+        expect(() => weather.sendWeatherToWatch({some: 'data'}, 'success', 'error')).toThrow('sendWeatherToWatch expects a WeatherData object');
     });
 
-    test('cache_weather_data stores data and timestamp in localStorage', () => {
+    test('cacheWeatherData stores data and timestamp in localStorage', () => {
         const exampleData = new WeatherData(
             7, 7, 9, 'Clouds', 0.5, 20, [7, 8, 9, 12], [5, 12, 1, 0]
         );
 
-        weather.cache_weather_data(exampleData);
+        weather.cacheWeatherData(exampleData);
 
         const cachedData = JSON.parse(mockLocalStorage.getItem('weather-last-data'));
         expect(cachedData).toEqual(exampleData.toDict());
         expect(mockLocalStorage.getItem('weather-last-fetch-ts')).not.toBeNull();
     });
 
-    test('cache_weather_data throws error if not passed a WeatherData instance', () => {
-        expect(() => weather.cache_weather_data({some: 'data'})).toThrow('cache_weather_data expects a WeatherData object');
+    test('cacheWeatherData throws error if not passed a WeatherData instance', () => {
+        expect(() => weather.cacheWeatherData({some: 'data'})).toThrow('cacheWeatherData expects a WeatherData object');
     });
 
     // Test getWeather with simulation enabled
@@ -259,7 +259,7 @@ describe('weather.js', () => {
         mockConfig.isWeatherSimulationEnabled.mockReturnValue(true);
         weather.getWeather();
 
-        expect(mockAppMessaging.send_dict_to_watch).toHaveBeenCalledTimes(1);
+        expect(mockAppMessaging.sendDictToWatch).toHaveBeenCalledTimes(1);
         expect(mockPebble.lastSentMessage).not.toBeNull();
     });
 
@@ -280,7 +280,7 @@ describe('weather.js', () => {
 
         weather.getWeather();
 
-        expect(mockAppMessaging.send_dict_to_watch).toHaveBeenCalledTimes(1);
+        expect(mockAppMessaging.sendDictToWatch).toHaveBeenCalledTimes(1);
         expect(mockPebble.lastSentMessage).toEqual(cachedDictionary);
         expect(mockGeolocation.getCurrentPosition).not.toHaveBeenCalled(); // Should not call geolocation
     });
@@ -290,7 +290,7 @@ describe('weather.js', () => {
         // Simulate old timestamp to trigger API call
         mockLocalStorage.setItem('weather-last-fetch-ts', String(Date.now() - (31 * 60 * 1000)));
 
-        // Mock Date.now() to control pick_closest_entry_to_now for the API response
+        // Mock Date.now() to control pickClosestEntryToNow for the API response
         Date.now = jest.fn(() => 1678886400 * 1000); // March 15, 2023 12:00:00 PM UTC
 
         weather.getWeather();
@@ -311,33 +311,33 @@ describe('weather.js', () => {
         };
 
         expect(mockGeolocation.getCurrentPosition).toHaveBeenCalledTimes(1);
-        expect(mockOpenMeteo.fetch_weather_data).toHaveBeenCalledTimes(1);
-        expect(mockAppMessaging.send_dict_to_watch).toHaveBeenCalledTimes(1);
+        expect(mockOpenMeteo.fetchWeatherData).toHaveBeenCalledTimes(1);
+        expect(mockAppMessaging.sendDictToWatch).toHaveBeenCalledTimes(1);
         expect(mockPebble.lastSentMessage).toEqual(expectedDictionary);
     });
 
-    // Test get_last_fetch_timestamp
-    test('get_last_fetch_timestamp returns null if no timestamp is stored', () => {
-        expect(weather.get_last_fetch_timestamp()).toBeNull();
+    // Test getLastFetchTimestamp
+    test('getLastFetchTimestamp returns null if no timestamp is stored', () => {
+        expect(weather.getLastFetchTimestamp()).toBeNull();
     });
 
-    test('get_last_fetch_timestamp returns null for invalid stored value', () => {
+    test('getLastFetchTimestamp returns null for invalid stored value', () => {
         mockLocalStorage.setItem('weather-last-fetch-ts', 'not-a-number');
-        expect(weather.get_last_fetch_timestamp()).toBeNull();
+        expect(weather.getLastFetchTimestamp()).toBeNull();
     });
 
-    test('get_last_fetch_timestamp returns the stored timestamp as a number', () => {
+    test('getLastFetchTimestamp returns the stored timestamp as a number', () => {
         const timestamp = Date.now();
         mockLocalStorage.setItem('weather-last-fetch-ts', String(timestamp));
-        expect(weather.get_last_fetch_timestamp()).toBe(timestamp);
+        expect(weather.getLastFetchTimestamp()).toBe(timestamp);
     });
 
-    // Test is_weather_cache_expired
-    test('is_weather_cache_expired returns true if no timestamp is stored', () => {
-        expect(weather.is_weather_cache_expired()).toBe(true);
+    // Test isWeatherCacheExpired
+    test('isWeatherCacheExpired returns true if no timestamp is stored', () => {
+        expect(weather.isWeatherCacheExpired()).toBe(true);
     });
 
-    test('is_weather_cache_expired returns false if fetched recently within same block', () => {
+    test('isWeatherCacheExpired returns false if fetched recently within same block', () => {
         // Set current time to 10:05:00
         const now = new Date(2023, 2, 15, 10, 5, 0).getTime();
         Date.now = jest.fn(() => now);
@@ -346,10 +346,10 @@ describe('weather.js', () => {
         const fetchTime = new Date(2023, 2, 15, 10, 1, 0).getTime();
         mockLocalStorage.setItem('weather-last-fetch-ts', String(fetchTime));
 
-        expect(weather.is_weather_cache_expired()).toBe(false);
+        expect(weather.isWeatherCacheExpired()).toBe(false);
     });
 
-    test('is_weather_cache_expired returns true if boundary crossed', () => {
+    test('isWeatherCacheExpired returns true if boundary crossed', () => {
         // Set current time to 10:16:00
         const now = new Date(2023, 2, 15, 10, 16, 0).getTime();
         Date.now = jest.fn(() => now);
@@ -358,10 +358,10 @@ describe('weather.js', () => {
         const fetchTime = new Date(2023, 2, 15, 10, 14, 0).getTime();
         mockLocalStorage.setItem('weather-last-fetch-ts', String(fetchTime));
 
-        expect(weather.is_weather_cache_expired()).toBe(true);
+        expect(weather.isWeatherCacheExpired()).toBe(true);
     });
 
-    test('is_weather_cache_expired handles 30s buffer', () => {
+    test('isWeatherCacheExpired handles 30s buffer', () => {
         // Set current time to 10:15:29 (just before boundary)
         const now = new Date(2023, 2, 15, 10, 15, 29).getTime();
         Date.now = jest.fn(() => now);
@@ -371,12 +371,12 @@ describe('weather.js', () => {
         mockLocalStorage.setItem('weather-last-fetch-ts', String(fetchTime));
 
         // Boundary is 10:00:30, so it's not expired
-        expect(weather.is_weather_cache_expired()).toBe(false);
+        expect(weather.isWeatherCacheExpired()).toBe(false);
 
         // Advance to 10:15:31 (just after boundary)
         Date.now = jest.fn(() => new Date(2023, 2, 15, 10, 15, 31).getTime());
         // Now it's expired because last fetch (10:01) is before 10:15:30
-        expect(weather.is_weather_cache_expired()).toBe(true);
+        expect(weather.isWeatherCacheExpired()).toBe(true);
     });
 
     // Test isAnyWeatherWidgetActive

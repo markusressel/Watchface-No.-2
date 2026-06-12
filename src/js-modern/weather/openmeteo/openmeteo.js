@@ -5,7 +5,7 @@
  * @param {number} forecast_hours - The number of hours to forecast.
  * @returns {Promise<JSON>} A promise that resolves with the weather data.
  */
-export async function fetch_weather_data(latitude, longitude, forecast_hours) {
+export async function fetchWeatherData(latitude, longitude, forecast_hours) {
     const baseUrl = "https://api.open-meteo.com/v1/forecast";
     const queryParams = {
         latitude: latitude,
