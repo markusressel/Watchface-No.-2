@@ -381,6 +381,19 @@ export default [
                 "min": 1,
                 "max": 24,
                 "step": 1
+            },
+            {
+                "type": "button",
+                "id": "clear_weather_cache_button",
+                "defaultValue": "Clear Weather Cache",
+                "primary": false
+            },
+            {
+                "type": "toggle",
+                "messageKey": "ClearWeatherCache",
+                "label": "Clear Weather Cache on Save",
+                "defaultValue": false,
+                "id": "hidden_clear_cache"
             }
         ]
     },

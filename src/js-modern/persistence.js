@@ -60,6 +60,9 @@ class Persistence {
         return parsed;
     }
 
+    remove(key) {
+        localStorage.removeItem(key);
+    }
 }
 
 export default new Persistence();

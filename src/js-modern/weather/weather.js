@@ -387,6 +387,8 @@ async function fetch_weather_data(latitude, longitude) {
 }
 
 export function clearWeatherData() {
+    clear_cache();
+
     // Send empty weather data to clear the display on the watchface
     const clearDictionary = new WeatherData(
         0,
@@ -398,14 +400,16 @@ export function clearWeatherData() {
         [],
         []
     );
-
-    cache_weather_data(clearDictionary);
-
     send_weather_to_watch(
         clearDictionary,
         "Weather data cleared successfully!",
         "Error clearing weather data!"
     );
+}
+
+export function clear_cache() {
+    Persistence.remove(StorageKeys.WEATHER_LAST_DATA_KEY);
+    Persistence.remove(StorageKeys.WEATHER_LAST_FETCH_KEY);
 }
 
 export function isAnyWeatherWidgetActive() {

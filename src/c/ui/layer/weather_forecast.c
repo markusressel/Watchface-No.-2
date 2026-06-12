@@ -53,7 +53,7 @@ static const GraphColorStop s_rain_color_stops[] = {
     {.value = 100, .color = GColorDukeBlue},
 };
 
-static const int s_rain_scale_steps[] = {100, 250, 500, 1000};
+static const int s_rain_scale_steps[] = {25, 50, 100, 250, 500, 1000};
 #endif
 
 typedef struct {

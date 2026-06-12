@@ -1,9 +1,10 @@
 import Clay from '@rebble/clay';
 import clayConfig from './config/configPage';
+import customClay from './config/custom-clay';
 import * as config from './config/config';
 import * as weather from './weather/weather';
 
-const clay = new Clay(clayConfig);
+const clay = new Clay(clayConfig, customClay);
 
 /**
  * Indicated whether the Watch app is ready to receive data, aka. we have received an "AppReady" message from it.
@@ -26,6 +27,11 @@ Pebble.addEventListener('webviewclosed', function (e) {
         const settingsJson = JSON.parse(e.response);
         const settings = new config.getClaySettings().constructor(settingsJson);
         config.saveClaySettings(settings);
+
+        if (settingsJson.ClearWeatherCache) {
+            console.log("ClearWeatherCache flag detected, clearing weather data.");
+            weather.clearWeatherData();
+        }
 
         weather.getWeather();
     }
