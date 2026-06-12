@@ -83,7 +83,7 @@ Pebble.addEventListener('appmessage',
 function onAppReady() {
     console.log("Watchface is ready! Sending pending data.");
     isPebbleReady = true;
-    weather.getWeather(true);
+    weather.getWeather(false);
 }
 
 function onRequestWeatherData() {

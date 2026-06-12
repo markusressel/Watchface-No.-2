@@ -1,12 +1,10 @@
-#include "weather.h"
-#include <string.h>
 #include <stdlib.h>
-#include "../../developer_options.h"
+#include <string.h>
+#include "weather.h"
 #include "../../ui/theme.h"
 #include "../../settings/clay_settings.h"
 #include "dotted_text_layer.h"
 #include "../../ui/layer_factory.h"
-#include "weather_forecast.h"
 #include "../ui_state.h"
 
 static char s_buffer[32];
@@ -92,15 +90,7 @@ static void sanitize_weather_data() {
     s_weather_data.CurrentConditions[sizeof(s_weather_data.CurrentConditions) - 1] = '\0';
 }
 
-// Timer to update weather after the given amount of time
-#ifdef WF_EMULATOR
-static int s_weather_update_interval = 1000 * 60 * 1; // 1 minute
-#else
-static int s_weather_update_interval = 1000 * 60 * 30; // 30 minutes
-#endif
-
 static AppTimer *s_update_timer = NULL;
-
 static int s_active_weather_layers = 0;
 
 WeatherData *weather_get_data() {
@@ -262,6 +252,37 @@ static void schedule_next_update(const int interval, AppTimerCallback callback) 
     s_update_timer = app_timer_register(interval, callback, NULL);
 }
 
+/**
+ * The API updates every +/15 minutes, so we schedule a weather update request for
+ * 1 minute past the next 15-minute interval (to make sure we request new data 100% after the previous request).
+ * @return
+ */
+static int compute_next_weather_update_request_ms() {
+    const time_t now = time(NULL);
+    const struct tm *time_now = localtime(&now);
+
+    const int current_minute = time_now->tm_min;
+    const int current_second = time_now->tm_sec;
+
+    int next_minute;
+    if (current_minute < 1) {
+        next_minute = 1;
+    } else if (current_minute < 16) {
+        next_minute = 16;
+    } else if (current_minute < 31) {
+        next_minute = 31;
+    } else if (current_minute < 46) {
+        next_minute = 46;
+    } else {
+        next_minute = 61; // 1 minute past the next hour
+    }
+
+    const int minutes_to_wait = next_minute - current_minute;
+    const int seconds_to_wait = (minutes_to_wait * 60) - current_second;
+
+    return seconds_to_wait * 1000;
+}
+
 static void on_scheduled_update_triggered(void *data) {
     APP_LOG(APP_LOG_LEVEL_DEBUG, "scheduled weather update triggered!");
 
@@ -272,7 +293,8 @@ static void on_scheduled_update_triggered(void *data) {
     request_weather_update();
 
     //Register next execution
-    schedule_next_update(s_weather_update_interval, on_scheduled_update_triggered);
+    const int next_request_ms = compute_next_weather_update_request_ms();
+    schedule_next_update(next_request_ms, on_scheduled_update_triggered);
 }
 
 static void update_weather_for_layer(DottedTextLayer *weather_layer) {
@@ -333,7 +355,8 @@ Layer *create_weather_layer(LayerBuilder builder) {
     update_weather_for_layer(weather_layer);
 
     if (s_update_timer == NULL) {
-        s_update_timer = app_timer_register(s_weather_update_interval, on_scheduled_update_triggered, NULL);
+        const int next_request_ms = compute_next_weather_update_request_ms();
+        s_update_timer = app_timer_register(next_request_ms, on_scheduled_update_triggered, NULL);
     }
 
     return (Layer *) weather_layer;

@@ -1,4 +1,5 @@
 #pragma once
+
 #include <pebble.h>
 #include "../../ui/layer_factory.h"
 #include "../../settings/persist_keys.h"
