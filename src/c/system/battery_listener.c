@@ -15,14 +15,15 @@ static void battery_callback(BatteryChargeState state) {
     s_battery_cable_connected = state.is_plugged;
 
     if (s_current_battery_level == s_battery_level) {
-        APP_LOG(APP_LOG_LEVEL_DEBUG, "Ignoring already set battery value: %d", (int) s_battery_level);
-    } else {
-        APP_LOG(APP_LOG_LEVEL_DEBUG, "Battery changed: old: %d, new: %d", s_current_battery_level, (int) s_battery_level);
-        s_current_battery_level = s_battery_level;
-
-        // informing listeners about change
-        update_battery_bar();
+        // APP_LOG(APP_LOG_LEVEL_DEBUG, "Ignoring already set battery value: %d", (int) s_battery_level);
+        return;
     }
+
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Battery changed: old: %d, new: %d", s_current_battery_level, (int) s_battery_level);
+    s_current_battery_level = s_battery_level;
+
+    // informing listeners about change
+    update_battery_bar();
 }
 
 void register_battery_listener() {

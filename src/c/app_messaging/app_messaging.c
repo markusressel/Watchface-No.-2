@@ -221,6 +221,7 @@ static void read_weather_data(DictionaryIterator *iterator) {
     Tuple *rain_pop_percent_tuple = dict_find(iterator, MESSAGE_KEY_WEATHER_RAIN_POP_PERCENT);
     Tuple *temp_forecast_encoded_tuple = dict_find(iterator, MESSAGE_KEY_WEATHER_TEMP_FORECAST_ENCODED);
     Tuple *rain_forecast_encoded_tuple = dict_find(iterator, MESSAGE_KEY_WEATHER_RAIN_FORECAST_MM_X10_ENCODED);
+    Tuple *forecast_start_ts_tuple = dict_find(iterator, MESSAGE_KEY_WEATHER_FORECAST_START_TS);
 
     // If all data is available, use it
     // Move scratch buffer to static, to prevent Stack Overflow (800+ bytes is too much for Pebble stack)
@@ -234,6 +235,9 @@ static void read_weather_data(DictionaryIterator *iterator) {
         weatherData->CurrentTemperature = temp_cur_tuple->value->int32;
         weatherData->MinTemperature = temp_min_tuple->value->int32;
         weatherData->MaxTemperature = temp_max_tuple->value->int32;
+        if (forecast_start_ts_tuple) {
+            weatherData->ForecastStartTimestamp = forecast_start_ts_tuple->value->int32;
+        }
 
         if (condition_tuple->type == TUPLE_CSTRING) {
             strncpy(

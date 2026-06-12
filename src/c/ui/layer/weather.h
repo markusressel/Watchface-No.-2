@@ -14,6 +14,7 @@ typedef struct WeatherData {
     int MinTemperature;
     int RainNextHourMmX10; // millimeters * 10
     int RainPopPercent; // 0..100
+    time_t ForecastStartTimestamp;
     int TemperatureForecastCount;
     int *TemperatureForecast;
     int RainForecastMmX10Count;

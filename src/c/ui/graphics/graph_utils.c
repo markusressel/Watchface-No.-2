@@ -57,7 +57,7 @@ static GColor interpolate_color(const GColor from, const GColor to, const int t_
     const int out_b = from_b + ((to_b - from_b) * t) / 1000;
 
     GColor out = GColorBlack;
-    out.argb = (uint8_t) (
+    out.argb = (uint8_t)(
         (channel8_to_2(out_a + dither_offset) << 6) |
         (channel8_to_2(out_r + dither_offset) << 4) |
         (channel8_to_2(out_g + dither_offset) << 2) |
@@ -611,5 +611,27 @@ void graph_instance_draw(const GraphInstance *instance, GContext *ctx, const GRe
         }
 
         draw_single_series(ctx, series_bounds, values, value_count, series_cfg, min_value, max_value);
+    }
+
+    // Draw indicator line on top of everything
+    if (instance->config.axis.show_indicator_line && max_points > 1) {
+        int max_dot_size = 1;
+        for (int s = 0; s < instance->config.series_count; s++) {
+            if (instance->config.series[s].dot_size > max_dot_size) {
+                max_dot_size = instance->config.series[s].dot_size;
+            }
+        }
+
+        const float x_idx = instance->config.axis.indicator_line_x_index;
+        if (x_idx >= 0 && x_idx < (float) max_points) {
+            float final_x_idx = x_idx;
+            if (!instance->config.axis.interpolate_indicator_line) {
+                final_x_idx = (float) ((int) (x_idx + 0.5f));
+            }
+
+            const int x = (int) ((final_x_idx * (float) (bounds.size.w - max_dot_size)) / (float) (max_points - 1)) + (max_dot_size / 2);
+            graphics_context_set_stroke_color(ctx, instance->config.axis.indicator_line_color);
+            graphics_draw_line(ctx, GPoint(x, 0), GPoint(x, bounds.size.h));
+        }
     }
 }

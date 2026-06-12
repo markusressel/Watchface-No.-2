@@ -217,7 +217,8 @@ describe('weather.js', () => {
             'WEATHER_RAIN_NEXT_HOUR_MM_X10': 5, // 0.5 * 10
             'WEATHER_RAIN_POP_PERCENT': 20, // 0.2 * 100
             'WEATHER_TEMP_FORECAST_ENCODED': '7,8,9,12',
-            'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': '5,12,1,0'
+            'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': '5,12,1,0',
+            'WEATHER_FORECAST_START_TS': 1678886400
         };
 
         expect(result.toDict()).toEqual(expectedDictionary);
@@ -225,7 +226,7 @@ describe('weather.js', () => {
 
     test('sendWeatherToWatch', () => {
         const exampleData = new WeatherData(
-            7, 7, 9, 'Clouds', 0.5, 20, [7, 8, 9, 12], [5, 12, 1, 0]
+            7, 7, 9, 'Clouds', 0.5, 20, [7, 8, 9, 12], [5, 12, 1, 0], 1678886400
         );
 
         weather.sendWeatherToWatch(exampleData, "success", "error");
@@ -240,7 +241,7 @@ describe('weather.js', () => {
 
     test('cacheWeatherData stores data and timestamp in localStorage', () => {
         const exampleData = new WeatherData(
-            7, 7, 9, 'Clouds', 0.5, 20, [7, 8, 9, 12], [5, 12, 1, 0]
+            7, 7, 9, 'Clouds', 0.5, 20, [7, 8, 9, 12], [5, 12, 1, 0], 1678886400
         );
 
         weather.cacheWeatherData(exampleData);
@@ -307,7 +308,8 @@ describe('weather.js', () => {
             'WEATHER_RAIN_NEXT_HOUR_MM_X10': 12,
             'WEATHER_RAIN_POP_PERCENT': 0, // OpenMeteo mapping explicitly sets this to 0
             'WEATHER_TEMP_FORECAST_ENCODED': '7,8',
-            'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': '5,12'
+            'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': '5,12',
+            'WEATHER_FORECAST_START_TS': 1678881600
         };
 
         expect(mockGeolocation.getCurrentPosition).toHaveBeenCalledTimes(1);

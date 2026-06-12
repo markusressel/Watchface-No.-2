@@ -14,7 +14,7 @@ static WeatherData s_mock_weather_data;
 static int s_runtime_temp_forecast[WEATHER_FORECAST_MAX_POINTS];
 static int s_runtime_rain_forecast[WEATHER_FORECAST_MAX_POINTS];
 
-static const uint16_t WEATHER_DATA_PERSIST_VERSION = 1;
+static const uint16_t WEATHER_DATA_PERSIST_VERSION = 2;
 
 typedef struct PersistedWeatherData {
     uint16_t Version;
@@ -23,6 +23,7 @@ typedef struct PersistedWeatherData {
     int MinTemperature;
     int RainNextHourMmX10;
     int RainPopPercent;
+    time_t ForecastStartTimestamp;
     int TemperatureForecastCount;
     int TemperatureForecast[WEATHER_FORECAST_MAX_POINTS];
     int RainForecastMmX10Count;
@@ -54,6 +55,7 @@ static const WeatherData s_mock_weather_data_template = {
     .TemperatureForecast = s_mock_temp_forecast,
     .RainForecastMmX10Count = sizeof(s_mock_rain_forecast) / sizeof(s_mock_rain_forecast[0]),
     .RainForecastMmX10 = s_mock_rain_forecast,
+    .ForecastStartTimestamp = 0,
     .CurrentConditions = "Mock",
 };
 
@@ -96,6 +98,14 @@ static int s_active_weather_layers = 0;
 WeatherData *weather_get_data() {
     if (clay_get_settings()->WeatherUseSimulation) {
         memcpy(&s_mock_weather_data, &s_mock_weather_data_template, sizeof(WeatherData));
+        // set timestamp to a fixed point in the past (e.g. start of current hour) for testing
+        // this prevents the "treadmill" effect where the indicator never moves relative to now.
+        const time_t now = time(NULL);
+        const struct tm *t = localtime(&now);
+        struct tm start_of_hour = *t;
+        start_of_hour.tm_min = 0;
+        start_of_hour.tm_sec = 0;
+        s_mock_weather_data.ForecastStartTimestamp = mktime(&start_of_hour);
         return &s_mock_weather_data;
     }
 
@@ -124,6 +134,7 @@ static void restore_saved_weather_data() {
     s_weather_data.MinTemperature = persisted.MinTemperature;
     s_weather_data.RainNextHourMmX10 = persisted.RainNextHourMmX10;
     s_weather_data.RainPopPercent = persisted.RainPopPercent;
+    s_weather_data.ForecastStartTimestamp = persisted.ForecastStartTimestamp;
 
     s_weather_data.TemperatureForecastCount = clamp_forecast_count(persisted.TemperatureForecastCount);
     s_weather_data.RainForecastMmX10Count = clamp_forecast_count(persisted.RainForecastMmX10Count);
@@ -183,6 +194,7 @@ static void save_current_weather_data(WeatherData *weather_data) {
     persisted->MinTemperature = weather_data->MinTemperature;
     persisted->RainNextHourMmX10 = weather_data->RainNextHourMmX10;
     persisted->RainPopPercent = weather_data->RainPopPercent;
+    persisted->ForecastStartTimestamp = weather_data->ForecastStartTimestamp;
     persisted->TemperatureForecastCount = clamp_forecast_count(weather_data->TemperatureForecastCount);
     persisted->RainForecastMmX10Count = clamp_forecast_count(weather_data->RainForecastMmX10Count);
 

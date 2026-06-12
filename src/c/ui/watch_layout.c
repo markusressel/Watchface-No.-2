@@ -248,6 +248,7 @@ LayerBuilder watch_layout_make_builder(
 
     const WidgetMetrics *m = &s_widget_metrics[layout->rows[row_index].widget];
     GRect bounds = GRect(m->x, y, screen.size.w - m->width_margin, row_heights[row_index]);
+    // APP_LOG(APP_LOG_LEVEL_DEBUG, "watch_layout: building row %d, widget %d, bounds=(%d,%d,%d,%d)", row_index, layout->rows[row_index].widget, bounds.origin.x, bounds.origin.y, bounds.size.w, bounds.size.h);
     return layer_builder_from_rect(window_layer, bounds);
 }
 
