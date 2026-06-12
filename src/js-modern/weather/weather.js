@@ -110,11 +110,8 @@ export function process_timeline_payload(json, sourceLabel) {
     console.log('Max Temperature is ' + temperatureMax);
 
     // Conditions
-    let conditions = '';
-    if (current.weather && current.weather.length > 0 && current.weather[0].main) {
-        conditions = current.weather[0].main;
-    }
-    console.log('Conditions are ' + conditions);
+    // Ignore for now
+    const conditions = ''
 
     // Rain forecast based on selected 15-minute entry
     const rainMm = (current.rain !== null) ? current.rain : 0;
@@ -164,20 +161,6 @@ function process_openmeteo_payload(json, sourceLabel) {
     }
 
     const timelineMap = {};
-
-    if (json.hourly) {
-        const data = json.hourly;
-        for (let i = 0; i < data.time.length; i++) {
-            const dt = Math.floor(new Date(data.time[i]).getTime() / 1000);
-            timelineMap[dt] = {
-                dt: dt,
-                temp: data.temperature_2m[i] + 273.15, // Convert to Kelvin
-                rain: data.rain[i],
-                pop: (data.precipitation_probability ? data.precipitation_probability[i] / 100 : 0),
-                weather: [{main: ''}] // Not available
-            };
-        }
-    }
 
     if (json.minutely_15) {
         const data = json.minutely_15;
