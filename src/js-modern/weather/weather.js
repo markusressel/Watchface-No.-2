@@ -5,8 +5,6 @@ import Persistence, {StorageKeys} from '../persistence';
 import timelineSimulation from './mock/timeline.json';
 import * as openmeteo from './openmeteo/openmeteo';
 
-const WEATHER_UPDATE_INTERVAL_MS = 5.0.minutes;
-
 export class WeatherData {
 
     /**
@@ -244,16 +242,35 @@ export function get_last_fetch_timestamp() {
 }
 
 /**
- * Calculates whether the time since the last weather fetch in milliseconds exceeds the given duration.
- * @param durationMs {number} - The duration in milliseconds to compare against.
- * @returns {boolean} - True if the time since the last fetch exceeds the duration, or no fetch has occurred yet. False otherwise.
+ * Checks if the weather cache has expired based on the 15-minute update cycle.
+ * The cycle boundaries are at 0, 15, 30, and 45 minutes past the hour, plus a 30-second buffer.
+ * @returns {boolean} - True if the cache has expired or no fetch has occurred yet, false otherwise.
  */
-export function time_since_last_fetch_exceeds(durationMs) {
-    const lastFetchTimestamp = get_last_fetch_timestamp()
+export function is_weather_cache_expired() {
+    const lastFetchTimestamp = get_last_fetch_timestamp();
     if (!lastFetchTimestamp) {
         return true;
     }
-    return Date.now() - lastFetchTimestamp >= durationMs;
+
+    const now = Date.now();
+    const date = new Date(now);
+
+    // Find the most recent boundary (0, 15, 30, 45)
+    const minutes = date.getMinutes();
+    const boundaryMinutes = Math.floor(minutes / 15) * 15;
+
+    const boundaryDate = new Date(now);
+    boundaryDate.setMinutes(boundaryMinutes);
+    boundaryDate.setSeconds(30);
+    boundaryDate.setMilliseconds(0);
+
+    // If current time is before the 30s mark of the current 15min block, 
+    // the previous boundary was 15 minutes ago.
+    if (now < boundaryDate.getTime()) {
+        boundaryDate.setTime(boundaryDate.getTime() - 15 * 60 * 1000);
+    }
+
+    return lastFetchTimestamp < boundaryDate.getTime();
 }
 
 function should_fetch_weather_from_api() {
@@ -262,7 +279,7 @@ function should_fetch_weather_from_api() {
         return true;
     }
 
-    return time_since_last_fetch_exceeds(WEATHER_UPDATE_INTERVAL_MS);
+    return is_weather_cache_expired();
 }
 
 /**

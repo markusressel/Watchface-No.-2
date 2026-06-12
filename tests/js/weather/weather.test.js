@@ -332,25 +332,51 @@ describe('weather.js', () => {
         expect(weather.get_last_fetch_timestamp()).toBe(timestamp);
     });
 
-    // Test time_since_last_fetch_exceeds
-    test('time_since_last_fetch_exceeds returns true if no timestamp is stored', () => {
-        expect(weather.time_since_last_fetch_exceeds(10000)).toBe(true);
+    // Test is_weather_cache_expired
+    test('is_weather_cache_expired returns true if no timestamp is stored', () => {
+        expect(weather.is_weather_cache_expired()).toBe(true);
     });
 
-    test('time_since_last_fetch_exceeds returns true if time has exceeded the duration', () => {
-        const now = Date.now();
-        const fetchTime = now - 20000; // 20 seconds ago
-        mockLocalStorage.setItem('weather-last-fetch-ts', String(fetchTime));
+    test('is_weather_cache_expired returns false if fetched recently within same block', () => {
+        // Set current time to 10:05:00
+        const now = new Date(2023, 2, 15, 10, 5, 0).getTime();
         Date.now = jest.fn(() => now);
-        expect(weather.time_since_last_fetch_exceeds(10000)).toBe(true); // 10 seconds duration
+
+        // Fetch happened at 10:01:00 (after 10:00:30 boundary)
+        const fetchTime = new Date(2023, 2, 15, 10, 1, 0).getTime();
+        mockLocalStorage.setItem('weather-last-fetch-ts', String(fetchTime));
+
+        expect(weather.is_weather_cache_expired()).toBe(false);
     });
 
-    test('time_since_last_fetch_exceeds returns false if time has not exceeded the duration', () => {
-        const now = Date.now();
-        const fetchTime = now - 5000; // 5 seconds ago
-        mockLocalStorage.setItem('weather-last-fetch-ts', String(fetchTime));
+    test('is_weather_cache_expired returns true if boundary crossed', () => {
+        // Set current time to 10:16:00
+        const now = new Date(2023, 2, 15, 10, 16, 0).getTime();
         Date.now = jest.fn(() => now);
-        expect(weather.time_since_last_fetch_exceeds(10000)).toBe(false); // 10 seconds duration
+
+        // Fetch happened at 10:14:00 (before 10:15:30 boundary)
+        const fetchTime = new Date(2023, 2, 15, 10, 14, 0).getTime();
+        mockLocalStorage.setItem('weather-last-fetch-ts', String(fetchTime));
+
+        expect(weather.is_weather_cache_expired()).toBe(true);
+    });
+
+    test('is_weather_cache_expired handles 30s buffer', () => {
+        // Set current time to 10:15:29 (just before boundary)
+        const now = new Date(2023, 2, 15, 10, 15, 29).getTime();
+        Date.now = jest.fn(() => now);
+
+        // Fetch happened at 10:01:00
+        const fetchTime = new Date(2023, 2, 15, 10, 1, 0).getTime();
+        mockLocalStorage.setItem('weather-last-fetch-ts', String(fetchTime));
+
+        // Boundary is 10:00:30, so it's not expired
+        expect(weather.is_weather_cache_expired()).toBe(false);
+
+        // Advance to 10:15:31 (just after boundary)
+        Date.now = jest.fn(() => new Date(2023, 2, 15, 10, 15, 31).getTime());
+        // Now it's expired because last fetch (10:01) is before 10:15:30
+        expect(weather.is_weather_cache_expired()).toBe(true);
     });
 
     // Test isAnyWeatherWidgetActive
