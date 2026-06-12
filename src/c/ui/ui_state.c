@@ -37,16 +37,6 @@ void ui_state_deinit() {
 }
 
 void ui_state_create_layers(WatchLayout *layout) {
-    if (!s_ui_state.window) {
-        APP_LOG(APP_LOG_LEVEL_ERROR, "ui_state_create_layers: window is NULL!");
-        return;
-    }
-
-    if (s_ui_state.row_count > 0) {
-        APP_LOG(APP_LOG_LEVEL_WARNING, "Destroying existing layers before creating new ones");
-        ui_state_destroy_layers();
-    }
-
     s_ui_state.row_count = layout->row_count;
     Layer *window_layer = window_get_root_layer(s_ui_state.window);
 

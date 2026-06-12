@@ -9,10 +9,6 @@
 
 // loads components into the main window
 void window_load(Window *window) {
-    if (!window) {
-        APP_LOG(APP_LOG_LEVEL_ERROR, "window_load: window is NULL!");
-        return;
-    }
     APP_LOG(APP_LOG_LEVEL_DEBUG, "main_window_load");
 
     ui_state_create_layers(watch_layout_get_layout());
@@ -30,10 +26,6 @@ void window_load(Window *window) {
 
 // destroys all components of the main window
 void window_unload(Window *window) {
-    if (!window) {
-        APP_LOG(APP_LOG_LEVEL_ERROR, "window_unload: window is NULL!");
-        return;
-    }
     APP_LOG(APP_LOG_LEVEL_DEBUG, "main_window_unload");
     // unregister listeners
     unregister_tick_listener();
