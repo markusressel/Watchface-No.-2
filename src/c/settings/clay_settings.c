@@ -70,10 +70,11 @@ void clay_log_settings_debug(const char *context_label, ClaySettings *settings) 
 
     APP_LOG(
         APP_LOG_LEVEL_DEBUG,
-        "%s weather_simulation=%d forecast_preview_hours=%d",
+        "%s weather_simulation=%d forecast_preview_hours=%d update_interval_mins=%d",
         label,
         settings->WeatherUseSimulation,
-        settings->SliderWeatherForecastPreviewHoursCount
+        settings->SliderWeatherForecastPreviewHoursCount,
+        settings->WeatherUpdateIntervalMinutes
     );
 }
 
@@ -131,6 +132,10 @@ ClaySettings *clay_sanitize_settings(ClaySettings *settings) {
 
     if (settings->SliderWeatherForecastPreviewHoursCount < 1 || settings->SliderWeatherForecastPreviewHoursCount > 24) {
         settings->SliderWeatherForecastPreviewHoursCount = 6;
+    }
+
+    if (settings->WeatherUpdateIntervalMinutes < 15 || settings->WeatherUpdateIntervalMinutes > 180) {
+        settings->WeatherUpdateIntervalMinutes = 15;
     }
 
     return settings;
@@ -195,6 +200,7 @@ static ClaySettings *clay_reset_to_default_settings() {
     settings->WeatherUseSimulation = false;
 #endif
     settings->SliderWeatherForecastPreviewHoursCount = 6;
+    settings->WeatherUpdateIntervalMinutes = 15;
 
     return settings;
 }

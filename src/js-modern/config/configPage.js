@@ -383,6 +383,16 @@ export default [
                 "step": 1
             },
             {
+                "type": "slider",
+                "messageKey": "WeatherUpdateIntervalMinutes",
+                "defaultValue": 15,
+                "label": "Weather Update Interval",
+                "description": "How often the weather should update (minutes)",
+                "min": 15,
+                "max": 180,
+                "step": 15
+            },
+            {
                 "type": "button",
                 "id": "clear_weather_cache_button",
                 "defaultValue": "Clear Weather Cache",

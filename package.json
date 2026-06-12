@@ -55,7 +55,8 @@
             "ToggleDotAutoScale",
             "SliderDotScaleFactorPercent",
             "SliderWeatherForecastPreviewHoursCount",
-            "ClearWeatherCache"
+            "ClearWeatherCache",
+            "WeatherUpdateIntervalMinutes"
         ],
         "projectType": "native",
         "resources": {

@@ -258,27 +258,30 @@ static void schedule_next_update(const int interval, AppTimerCallback callback) 
  * @return
  */
 static int compute_next_weather_update_request_ms() {
+    const int interval_mins = clay_get_settings()->WeatherUpdateIntervalMinutes;
     const time_t now = time(NULL);
-    struct tm *time_now = localtime(&now);
+    const struct tm *time_now = localtime(&now);
 
-    const int current_minute = time_now->tm_min;
-    const int current_second = time_now->tm_sec;
+    // Create a tm struct for the start of the current day
+    struct tm day_start_tm = *time_now;
+    day_start_tm.tm_hour = 0;
+    day_start_tm.tm_min = 0;
+    day_start_tm.tm_sec = 0;
 
-    int next_minute;
-    if (current_minute < 1) {
-        next_minute = 1;
-    } else if (current_minute < 16) {
-        next_minute = 16;
-    } else if (current_minute < 31) {
-        next_minute = 31;
-    } else if (current_minute < 46) {
-        next_minute = 46;
-    } else {
-        next_minute = 61; // 1 minute past the next hour
+    const time_t day_start = mktime(&day_start_tm);
+    const int seconds_since_day_start = now - day_start;
+    const int interval_secs = interval_mins * 60;
+
+    // We want the next update at (k * interval_secs + 60) seconds since day start
+    int next_boundary_secs = ((seconds_since_day_start / interval_secs) + 1) * interval_secs + 60;
+
+    // Check if we are still before the 1-minute mark of the current interval
+    const int current_interval_boundary_secs = (seconds_since_day_start / interval_secs) * interval_secs + 60;
+    if (seconds_since_day_start < current_interval_boundary_secs) {
+        next_boundary_secs = current_interval_boundary_secs;
     }
 
-    const int minutes_to_wait = next_minute - current_minute;
-    const int seconds_to_wait = (minutes_to_wait * 60) - current_second;
+    const int seconds_to_wait = next_boundary_secs - seconds_since_day_start;
 
     return seconds_to_wait * 1000;
 }
