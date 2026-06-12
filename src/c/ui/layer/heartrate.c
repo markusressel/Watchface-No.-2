@@ -24,7 +24,7 @@ static void update_heartrate_for_layer(DottedTextLayer *heartrate_layer) {
 void update_heartrate() {
     for (int i = 0; i < ui_state_get_row_count(); i++) {
         if (ui_state_get_widget_id(i) == WIDGET_HEARTRATE) {
-            update_heartrate_for_layer((DottedTextLayer *) ui_state_get_layer(i));
+            update_heartrate_for_layer(ui_state_get_layer(i));
         }
     }
 }
@@ -47,9 +47,9 @@ Layer *create_heartrate_layer(LayerBuilder builder) {
     s_heartrate_bpm = health_service_peek_current_value(HealthMetricHeartRateBPM);
     update_heartrate_for_layer(heartrate_layer);
 
-    return (Layer *) heartrate_layer;
+    return heartrate_layer;
 }
 
 void destroy_heartrate_layer(Layer *layer) {
-    dotted_text_layer_destroy((DottedTextLayer *) layer);
+    dotted_text_layer_destroy(layer);
 }

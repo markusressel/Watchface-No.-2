@@ -1,10 +1,10 @@
-#include <stdlib.h>
-#include <string.h>
+#include <pebble.h>
 #include "weather.h"
+#include "../../developer_options.h"
 #include "../../ui/theme.h"
 #include "../../settings/clay_settings.h"
 #include "dotted_text_layer.h"
-#include "../../ui/layer_factory.h"
+#include "weather_forecast.h"
 #include "../ui_state.h"
 
 static char s_buffer[32];
@@ -259,7 +259,7 @@ static void schedule_next_update(const int interval, AppTimerCallback callback) 
  */
 static int compute_next_weather_update_request_ms() {
     const time_t now = time(NULL);
-    const struct tm *time_now = localtime(&now);
+    struct tm *time_now = localtime(&now);
 
     const int current_minute = time_now->tm_min;
     const int current_second = time_now->tm_sec;

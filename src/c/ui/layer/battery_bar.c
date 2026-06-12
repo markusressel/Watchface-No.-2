@@ -80,7 +80,7 @@ static void batteryChargingAnimUpdate(Animation *animation, const AnimationProgr
 // draw the battery layer
 static void battery_update_proc(Layer *layer, GContext *ctx) {
     const GRect bounds = layer_get_bounds(layer);
-    BatteryLayerData *data = (BatteryLayerData *) layer_get_data(layer);
+    BatteryLayerData *data = layer_get_data(layer);
 
     const HorizontalAlignment horizontal_alignment = data ? data->horizontal_alignment : HORIZONTAL_ALIGN_RIGHT;
     const VerticalAlignment vertical_alignment = data ? data->vertical_alignment : VERTICAL_ALIGN_TOP;
@@ -268,7 +268,7 @@ Layer *create_battery_bar_layer(LayerBuilder builder) {
     if (!layer) {
         return NULL;
     }
-    BatteryLayerData *data = (BatteryLayerData *) layer_get_data(layer);
+    BatteryLayerData *data = layer_get_data(layer);
 
     data->horizontal_alignment = HORIZONTAL_ALIGN_RIGHT;
     data->vertical_alignment = VERTICAL_ALIGN_TOP;
@@ -296,7 +296,7 @@ void battery_bar_layer_set_horizontal_alignment(Layer *layer, HorizontalAlignmen
         return;
     }
 
-    BatteryLayerData *data = (BatteryLayerData *) layer_get_data(layer);
+    BatteryLayerData *data = layer_get_data(layer);
     if (!data) {
         APP_LOG(APP_LOG_LEVEL_ERROR, "Battery bar layer data not found!");
         return;
@@ -318,7 +318,7 @@ void battery_bar_layer_set_vertical_alignment(Layer *layer, VerticalAlignment al
         return;
     }
 
-    BatteryLayerData *data = (BatteryLayerData *) layer_get_data(layer);
+    BatteryLayerData *data = layer_get_data(layer);
     if (!data) {
         APP_LOG(APP_LOG_LEVEL_ERROR, "Battery bar layer data not found!");
         return;

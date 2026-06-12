@@ -58,7 +58,7 @@ static void update_date_for_layer(DottedTextLayer *date_layer) {
 void update_date() {
     for (int i = 0; i < ui_state_get_row_count(); i++) {
         if (ui_state_get_widget_id(i) == WIDGET_DATE) {
-            update_date_for_layer((DottedTextLayer *) ui_state_get_layer(i));
+            update_date_for_layer(ui_state_get_layer(i));
         }
     }
 }
@@ -85,5 +85,5 @@ Layer *create_date_layer(LayerBuilder builder) {
 
 // destroys the date layer
 void destroy_date_layer(Layer *layer) {
-    dotted_text_layer_destroy((DottedTextLayer *) layer);
+    dotted_text_layer_destroy(layer);
 }

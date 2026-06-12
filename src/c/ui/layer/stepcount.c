@@ -22,7 +22,7 @@ static void update_stepcount_for_layer(DottedTextLayer *stepcount_layer) {
 void update_stepcount() {
     for (int i = 0; i < ui_state_get_row_count(); i++) {
         if (ui_state_get_widget_id(i) == WIDGET_STEPCOUNT) {
-            update_stepcount_for_layer((DottedTextLayer *) ui_state_get_layer(i));
+            update_stepcount_for_layer(ui_state_get_layer(i));
         }
     }
 }
@@ -45,10 +45,10 @@ Layer *create_stepcount_layer(LayerBuilder builder) {
     s_step_count = health_service_sum_today(HealthMetricStepCount);
     update_stepcount_for_layer(stepcount_layer);
 
-    return (Layer *) stepcount_layer;
+    return stepcount_layer;
 }
 
 // destroys the stepcount layer
 void destroy_stepcount_layer(Layer *layer) {
-    dotted_text_layer_destroy((DottedTextLayer *) layer);
+    dotted_text_layer_destroy(layer);
 }

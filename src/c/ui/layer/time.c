@@ -7,7 +7,7 @@
 #include "../ui_state.h"
 
 static void update_time_for_layer(DottedTextLayer *time_layer) {
-    time_t temp = time(NULL);
+    const time_t temp = time(NULL);
     struct tm *tick_time = localtime(&temp);
 
     static char s_buffer[16];
@@ -24,7 +24,7 @@ static void update_time_for_layer(DottedTextLayer *time_layer) {
 void update_time_layer() {
     for (int i = 0; i < ui_state_get_row_count(); i++) {
         if (ui_state_get_widget_id(i) == WIDGET_TIME) {
-            update_time_for_layer((DottedTextLayer *) ui_state_get_layer(i));
+            update_time_for_layer(ui_state_get_layer(i));
         }
     }
 }
@@ -61,9 +61,9 @@ Layer *create_time_layer(LayerBuilder builder) {
 
     update_time_for_layer(time_layer);
 
-    return (Layer *) time_layer;
+    return time_layer;
 }
 
 void destroy_time_layer(Layer *layer) {
-    dotted_text_layer_destroy((DottedTextLayer *) layer);
+    dotted_text_layer_destroy(layer);
 }
