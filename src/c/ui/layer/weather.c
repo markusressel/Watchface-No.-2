@@ -320,7 +320,7 @@ static void update_weather_for_layer(DottedTextLayer *weather_layer) {
     }
 
     // Write the current temperature into a buffer
-    snprintf(s_buffer, sizeof(s_buffer), "%d|%d", data->MaxTemperature, data->MinTemperature);
+    snprintf(s_buffer, sizeof(s_buffer), "%d|%d|%d", data->MaxTemperature, data->CurrentTemperature, data->MinTemperature);
 
     // update text layer
     dotted_text_layer_set_text(weather_layer, s_buffer);
