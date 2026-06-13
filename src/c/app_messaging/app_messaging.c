@@ -243,6 +243,14 @@ static bool read_configuration_properties(
     APPLY_INT(MESSAGE_KEY_Row6Widget, Row6Widget);
     APPLY_INT_CLAMPED(MESSAGE_KEY_LayoutRowCount, LayoutRowCount, clamp_layout_row_count);
 
+    {
+        int time_ratio_percent = 0;
+        if (apply_int_setting(iterator, MESSAGE_KEY_SliderTimeRowRatioPercent, &time_ratio_percent)) {
+            settings->TimeRowRatio = (float) time_ratio_percent / 100.0f;
+            has_settings_update = true;
+        }
+    }
+
 #undef APPLY_STRING
 #undef APPLY_COLOR
 #undef APPLY_INT

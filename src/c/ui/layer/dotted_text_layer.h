@@ -37,13 +37,13 @@ typedef struct DottedTextLayerData {
     int8_t custom_gap_horizontal;
     int8_t custom_gap_vertical;
     int8_t custom_digit_width;
-    uint8_t horizontal_alignment: HORIZONTAL_ALIGN_RIGHT;
-    uint8_t vertical_alignment: VERTICAL_ALIGN_BOTTOM;
-    uint8_t rendering_mode: DOTTED_TEXT_RENDERING_MODE_SUBPIXEL;
-    uint8_t character_offset_unit: DOTTED_TEXT_OFFSET_UNIT_BLOCKS;
-    bool character_offset_overridden: true;
-    bool auto_scale: true;
-    bool use_custom_metrics: true;
+    uint8_t horizontal_alignment: 2;
+    uint8_t vertical_alignment: 2;
+    uint8_t rendering_mode: 1;
+    uint8_t character_offset_unit: 1;
+    bool character_offset_overridden: 1;
+    bool auto_scale: 1;
+    bool use_custom_metrics: 1;
 } __attribute__((__packed__)) DottedTextLayerData;
 
 
@@ -98,8 +98,8 @@ void dotted_text_layer_set_scale_factor(DottedTextLayer *dotted_text_layer, floa
 
 // Override spacing between adjacent characters.
 // unit:
-// - DOTTED_TEXT_OFFSET_PIXELS: value is interpreted as pixels before scaling
-// - DOTTED_TEXT_OFFSET_BLOCKS: value is interpreted as block-count * dot-width
+// - DOTTED_TEXT_OFFSET_UNIT_PIXELS: value is interpreted as pixels before scaling
+// - DOTTED_TEXT_OFFSET_UNIT_BLOCKS: value is interpreted as block-count * dot-width
 void dotted_text_layer_set_character_offset(
     DottedTextLayer *dotted_text_layer,
     int value,

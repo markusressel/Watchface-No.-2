@@ -90,6 +90,13 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
     float gap_size_horizontal = (float) base_gap_horizontal * scale_factor;
     float gap_size_vertical = (float) base_gap_vertical * scale_factor;
 
+    if (data->rendering_mode == DOTTED_TEXT_RENDERING_MODE_PIXEL_PERFECT) {
+        dot_width = (float) ((int) (dot_width + 0.5f));
+        dot_height = (float) ((int) (dot_height + 0.5f));
+        gap_size_horizontal = (float) ((int) (gap_size_horizontal + 0.5f));
+        gap_size_vertical = (float) ((int) (gap_size_vertical + 0.5f));
+    }
+
     const int digit_width = data->custom_digit_width > 0
                                 ? data->custom_digit_width
                                 : clay_get_settings()->DigitWidth;
@@ -101,6 +108,9 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
         character_offset = (float) data->character_offset_value * dot_width;
     } else {
         character_offset = (float) data->character_offset_value * scale_factor;
+        if (data->rendering_mode == DOTTED_TEXT_RENDERING_MODE_PIXEL_PERFECT) {
+            character_offset = (float) ((int) (character_offset + 0.5f));
+        }
     }
 
     const float text_height = (5.0f * dot_height) + (4.0f * gap_size_vertical);
@@ -144,7 +154,7 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
 
         int pixelated_char_width = pixel_matrix_drawer_draw_char(
             ctx,
-            GPoint((int) (current_start_x + 0.5f), (int) (start_y + 0.5f)),
+            current_start_x, start_y,
             current_character,
             data->text_color,
             dot_width, dot_height,
@@ -420,7 +430,17 @@ int dotted_text_layer_get_content_width(DottedTextLayer *dotted_text_layer) {
     }
 
     float dot_width = (float) base_dot_width * scale_factor;
+    float dot_height = (float) base_dot_height * scale_factor;
     float gap_size_horizontal = (float) base_gap_horizontal * scale_factor;
+    float gap_size_vertical = (float) base_gap_vertical * scale_factor;
+
+    if (data->rendering_mode == DOTTED_TEXT_RENDERING_MODE_PIXEL_PERFECT) {
+        dot_width = (float) ((int) (dot_width + 0.5f));
+        dot_height = (float) ((int) (dot_height + 0.5f));
+        gap_size_horizontal = (float) ((int) (gap_size_horizontal + 0.5f));
+        gap_size_vertical = (float) ((int) (gap_size_vertical + 0.5f));
+    }
+
     const int digit_width = data->custom_digit_width > 0
                                 ? data->custom_digit_width
                                 : clay_get_settings()->DigitWidth;
@@ -432,7 +452,11 @@ int dotted_text_layer_get_content_width(DottedTextLayer *dotted_text_layer) {
         character_offset = (float) data->character_offset_value * dot_width;
     } else {
         character_offset = (float) data->character_offset_value * scale_factor;
+        if (data->rendering_mode == DOTTED_TEXT_RENDERING_MODE_PIXEL_PERFECT) {
+            character_offset = (float) ((int) (character_offset + 0.5f));
+        }
     }
+
 
     float width = 0;
     const unsigned int length = strlen(data->text);

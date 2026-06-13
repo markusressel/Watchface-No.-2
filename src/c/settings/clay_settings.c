@@ -80,16 +80,17 @@ void clay_log_settings_debug(const char *context_label, ClaySettings *settings) 
 
     APP_LOG(
         APP_LOG_LEVEL_DEBUG,
-        "%s weather_simulation=%d forecast_preview_hours=%d update_interval_mins=%d",
+        "%s weather_simulation=%d forecast_preview_hours=%d update_interval_mins=%d time_ratio=%.2f",
         label,
         settings->WeatherUseSimulation,
         settings->SliderWeatherForecastPreviewHoursCount,
-        settings->WeatherUpdateIntervalMinutes
+        settings->WeatherUpdateIntervalMinutes,
+        (double) settings->TimeRowRatio
     );
 }
 
-static bool is_row_widget_valid(const int widget) {
-    return widget >= 0 && widget < WIDGET_COUNT;
+static bool is_row_widget_valid(const uint8_t widget) {
+    return widget < WIDGET_COUNT;
 }
 
 static int layout_row_count_max_for_platform() {
@@ -148,9 +149,13 @@ ClaySettings *clay_sanitize_settings(ClaySettings *settings) {
         settings->WeatherUpdateIntervalMinutes = 15;
     }
 
-    if (settings->WeatherSlot1 < 0 || settings->WeatherSlot1 > 3) settings->WeatherSlot1 = 2;
-    if (settings->WeatherSlot2 < 0 || settings->WeatherSlot2 > 3) settings->WeatherSlot2 = 1;
-    if (settings->WeatherSlot3 < 0 || settings->WeatherSlot3 > 3) settings->WeatherSlot3 = 3;
+    if (settings->WeatherSlot1 > 3) settings->WeatherSlot1 = 2;
+    if (settings->WeatherSlot2 > 3) settings->WeatherSlot2 = 1;
+    if (settings->WeatherSlot3 > 3) settings->WeatherSlot3 = 3;
+
+    if (settings->TimeRowRatio < 0.5f || settings->TimeRowRatio > 3.0f) {
+        settings->TimeRowRatio = 1.2f;
+    }
 
     return settings;
 }
@@ -225,6 +230,7 @@ static ClaySettings *clay_reset_to_default_settings() {
     settings->WeatherUpdateIntervalMinutes = 15;
 
     settings->InitialSyncDone = false;
+    settings->TimeRowRatio = 1.2f;
 
     return settings;
 }

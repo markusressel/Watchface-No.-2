@@ -19,7 +19,7 @@
 // @return  width of the drawn matrix (for width in pixel this has to be multiplied by scale_factor)
 int pixel_matrix_drawer_draw_char(
     GContext *ctx,
-    GPoint point_zero,
+    float start_x, float start_y,
     char character,
     GColor color,
     float dot_width, float dot_height,

@@ -625,7 +625,7 @@ int pixel_matrix_drawer_char_width(const char character, const int digit_size) {
 }
 
 int pixel_matrix_drawer_draw_char(
-    GContext *ctx, const GPoint point_zero, const char character, const GColor color,
+    GContext *ctx, const float start_x, const float start_y, const char character, const GColor color,
     float dot_width, float dot_height,
     float gap_size_horizontal, float gap_size_vertical,
     const bool align_right, const int digit_size,
@@ -648,7 +648,7 @@ int pixel_matrix_drawer_draw_char(
     const float step_v = dot_height + gap_size_vertical;
 
     for (int row = 0; row < 5; row++) {
-        const float y_f = (float) point_zero.y + (float) row * step_v;
+        const float y_f = start_y + (float) row * step_v;
         const int y = (int) (y_f + 0.5f);
         const int h = (mode == DOTTED_TEXT_RENDERING_MODE_SUBPIXEL)
                           ? (int) (y_f + dot_height + 0.5f) - y
@@ -667,7 +667,7 @@ int pixel_matrix_drawer_draw_char(
                 x_offset -= (glyph.width * dot_width + (glyph.width - 1) * gap_size_horizontal);
             }
 
-            const float x_f = (float) point_zero.x + x_offset;
+            const float x_f = start_x + x_offset;
             const int x = (int) (x_f + 0.5f);
             const int w = (mode == DOTTED_TEXT_RENDERING_MODE_SUBPIXEL)
                               ? (int) (x_f + dot_width + 0.5f) - x

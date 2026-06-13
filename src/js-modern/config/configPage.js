@@ -211,6 +211,16 @@ export default [
                 "min": 50,
                 "max": 300,
                 "step": 5
+            },
+            {
+                "type": "slider",
+                "messageKey": "SliderTimeRowRatioPercent",
+                "defaultValue": 120,
+                "label": "Time Row Size Ratio (%)",
+                "description": "How much larger the time row should be compared to other rows (Auto-Scale only)",
+                "min": 100,
+                "max": 300,
+                "step": 10
             }
         ]
     },
