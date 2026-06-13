@@ -8,6 +8,9 @@ void update_weather_forecast() {
 void weather_forecast_layer_update_settings() {
 }
 
+void weather_forecast_tick_update() {
+}
+
 Layer *create_weather_forecast_layer(LayerBuilder builder) {
     (void) builder;
     return NULL;
@@ -61,6 +64,7 @@ typedef struct {
     GraphSeriesConfig series_configs[NUM_GRAPH_SERIES];
     GraphYAxisScalingConfig y_axis_scaling_configs[NUM_GRAPH_SERIES];
     GraphInstance forecast_graph;
+    int last_rendered_indicator_x;
 } WeatherForecastLayerData;
 
 static void update_proc(Layer *layer, GContext *ctx) {
@@ -99,6 +103,32 @@ static void update_proc(Layer *layer, GContext *ctx) {
     data->data[1].values = temp_render_values;
     data->data[1].value_count = temp_value_count;
 
+    // Update current time indicator
+    if (weather_data->ForecastStartTimestamp > 0) {
+        const time_t now = time(NULL);
+        const int diff_seconds = (int) (now - weather_data->ForecastStartTimestamp);
+        // Each point is exactly 15 minutes (900 seconds)
+        const float x_index = (float) diff_seconds / 900.0f;
+
+        data->forecast_graph.config.axis.show_indicator_line = true;
+        data->forecast_graph.config.axis.interpolate_indicator_line = true;
+        data->forecast_graph.config.axis.indicator_line_x_index = x_index;
+        data->forecast_graph.config.axis.indicator_line_color = theme_get_theme()->WeatherTextColor;
+
+        // Update the tracked pixel position to stay in sync
+        int max_dot_size = 1;
+        for (int s = 0; s < NUM_GRAPH_SERIES; s++) {
+            if (data->series_configs[s].dot_size > max_dot_size) {
+                max_dot_size = data->series_configs[s].dot_size;
+            }
+        }
+
+        const float pixels_per_index = (float) (bounds.size.w - max_dot_size) / (float) (max_forecast_points - 1);
+        data->last_rendered_indicator_x = (int) (x_index * pixels_per_index);
+    } else {
+        data->forecast_graph.config.axis.show_indicator_line = false;
+    }
+
     graph_instance_draw(&data->forecast_graph, ctx, bounds);
 }
 
@@ -108,6 +138,44 @@ void update_weather_forecast() {
             Layer *layer = ui_state_get_layer(i);
             if (layer) {
                 layer_mark_dirty(layer);
+            }
+        }
+    }
+}
+
+void weather_forecast_tick_update() {
+    WeatherData *weather_data = weather_get_data();
+    if (weather_data->ForecastStartTimestamp <= 0) {
+        return;
+    }
+
+    ClaySettings *settings = clay_get_settings();
+    const int max_forecast_points = settings->SliderWeatherForecastPreviewHoursCount * FORECAST_POINTS_PER_HOUR;
+    const time_t now = time(NULL);
+    const int diff_seconds = (int) (now - weather_data->ForecastStartTimestamp);
+    const float x_index = (float) diff_seconds / 900.0f;
+
+    for (int i = 0; i < ui_state_get_row_count(); i++) {
+        if (ui_state_get_widget_id(i) == WIDGET_WEATHER_FORECAST) {
+            Layer *layer = ui_state_get_layer(i);
+            if (layer) {
+                WeatherForecastLayerData *data = layer_get_data(layer);
+                const GRect bounds = layer_get_bounds(layer);
+
+                int max_dot_size = 1;
+                for (int s = 0; s < NUM_GRAPH_SERIES; s++) {
+                    if (data->series_configs[s].dot_size > max_dot_size) {
+                        max_dot_size = data->series_configs[s].dot_size;
+                    }
+                }
+
+                const float pixels_per_index = (float) (bounds.size.w - max_dot_size) / (float) (max_forecast_points - 1);
+                const int current_x = (int) (x_index * pixels_per_index);
+
+                if (current_x != data->last_rendered_indicator_x) {
+                    // Pixel position changed, trigger redraw
+                    layer_mark_dirty(layer);
+                }
             }
         }
     }
@@ -134,6 +202,7 @@ Layer *create_weather_forecast_layer(LayerBuilder builder) {
     }
 
     WeatherForecastLayerData *data = layer_get_data(layer);
+    data->last_rendered_indicator_x = -1;
 
     // Rain Y-axis scaling
     data->y_axis_scaling_configs[0] = (GraphYAxisScalingConfig){

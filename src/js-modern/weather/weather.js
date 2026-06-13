@@ -16,11 +16,13 @@ export class WeatherData {
      * @param popPercent {number}
      * @param temperatureForecastSeries {number[]}
      * @param rainForecastSeries {number[]}
+     * @param forecastStartTimestamp {number}
      */
     constructor(
         temperatureCurrent, temperatureMin, temperatureMax, conditions,
         rainMm, popPercent,
-        temperatureForecastSeries, rainForecastSeries
+        temperatureForecastSeries, rainForecastSeries,
+        forecastStartTimestamp
     ) {
         this.WEATHER_TEMPERATURE_CURRENT = temperatureCurrent;
         this.WEATHER_TEMPERATURE_MIN = temperatureMin;
@@ -30,6 +32,7 @@ export class WeatherData {
         this.WEATHER_RAIN_POP_PERCENT = popPercent;
         this.WEATHER_TEMP_FORECAST_ENCODED = appMessaging.encodeNumberArray(temperatureForecastSeries);
         this.WEATHER_RAIN_FORECAST_MM_X10_ENCODED = appMessaging.encodeNumberArray(rainForecastSeries);
+        this.WEATHER_FORECAST_START_TS = forecastStartTimestamp || 0;
     }
 
     static fromDict(dict) {
@@ -48,7 +51,8 @@ export class WeatherData {
             'WEATHER_RAIN_NEXT_HOUR_MM_X10': this.WEATHER_RAIN_NEXT_HOUR_MM_X10,
             'WEATHER_RAIN_POP_PERCENT': this.WEATHER_RAIN_POP_PERCENT,
             'WEATHER_TEMP_FORECAST_ENCODED': this.WEATHER_TEMP_FORECAST_ENCODED,
-            'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': this.WEATHER_RAIN_FORECAST_MM_X10_ENCODED
+            'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': this.WEATHER_RAIN_FORECAST_MM_X10_ENCODED,
+            'WEATHER_FORECAST_START_TS': this.WEATHER_FORECAST_START_TS
         };
     }
 }
@@ -119,8 +123,11 @@ export function processTimelinePayload(json, sourceLabel) {
     const claySettings = config.getClaySettings();
     const forecastPointCount = claySettings.SliderWeatherForecastPreviewHoursCount * 4;
 
+    const timelineSized = timeline.slice(0, forecastPointCount);
+    const forecastStartTimestamp = timelineSized.length > 0 ? (timelineSized[0].dt || 0) : 0;
+
     const temperatureForecastSeries = buildCondensedSeries(
-        timeline,
+        timelineSized,
         function (entry) {
             return kelvinToCelsius(entry.temp);
         },
@@ -128,7 +135,7 @@ export function processTimelinePayload(json, sourceLabel) {
     );
 
     const rainForecastSeries = buildCondensedSeries(
-        timeline,
+        timelineSized,
         function (entry) {
             const rain = entry.rain;
             return appMessaging.encodeDecimalAsInt(rain, 1);
@@ -148,7 +155,8 @@ export function processTimelinePayload(json, sourceLabel) {
         rainMm,
         popPercent,
         temperatureForecastSeries,
-        rainForecastSeries
+        rainForecastSeries,
+        forecastStartTimestamp
     );
 }
 
@@ -352,16 +360,9 @@ export function buildCondensedSeries(entries, extractor, maxCount) {
         return samples;
     }
 
-    if (entries.length <= maxCount) {
-        for (let i = 0; i < entries.length; i++) {
-            samples.push(extractor(entries[i]));
-        }
-        return samples;
-    }
-
-    for (let n = 0; n < maxCount; n++) {
-        const idx = Math.round((n * (entries.length - 1)) / (maxCount - 1));
-        samples.push(extractor(entries[idx]));
+    // Now we just map the entries directly, assuming they are already sized.
+    for (let i = 0; i < entries.length; i++) {
+        samples.push(extractor(entries[i]));
     }
 
     return samples;
@@ -398,7 +399,8 @@ export function clearWeatherData() {
         0,
         0,
         [],
-        []
+        [],
+        0
     );
     sendWeatherToWatch(
         clearDictionary,
