@@ -29,7 +29,7 @@ static const WidgetMetrics s_widget_metrics[WIDGET_COUNT] = {
 };
 
 #define EDGE_MARGIN 5
-#define ROW_GAP 4
+#define ROW_GAP 8
 
 static int scaled_dimension(int value, float scale_factor) {
     int scaled = (int) (value * scale_factor + 0.5f);
@@ -73,10 +73,6 @@ static int layout_row_gap_count(const WatchLayout *layout) {
     return layout->row_count > 1 ? layout->row_count - 1 : 0;
 }
 
-static float row_ratio(WidgetId widget) {
-    return widget == WIDGET_TIME ? TIME_ROW_RATIO : DEFAULT_ROW_RATIO;
-}
-
 static void compute_auto_row_heights(
     const WatchLayout *layout,
     int center_idx,
@@ -89,69 +85,62 @@ static void compute_auto_row_heights(
         available = layout->row_count;
     }
 
-    float ratio_sum = 0.0f;
-    float raw_heights[WATCH_LAYOUT_MAX_ROWS] = {0.0f};
-    int used = 0;
+    ClaySettings *settings = clay_get_settings();
+    const int base_h = settings->DotHeight;
+    const int base_g = settings->DotVerticalGap;
+    const int base_std_total_h = (5 * base_h) + (4 * base_g);
+
+    int time_row_idx = -1;
     for (int i = 0; i < layout->row_count; i++) {
-        ratio_sum += row_ratio(layout->rows[i].widget);
-    }
-    if (ratio_sum <= 0.0f) {
-        ratio_sum = 1.0f;
-    }
-
-    for (int i = 0; i < layout->row_count; i++) {
-        raw_heights[i] = ((float) available * row_ratio(layout->rows[i].widget)) / ratio_sum;
-        row_heights[i] = (int) raw_heights[i];
-        if (row_heights[i] < 1) {
-            row_heights[i] = 1;
-        }
-        used += row_heights[i];
-    }
-
-    int remaining = available - used;
-    while (remaining > 0) {
-        int best_idx = -1;
-        float best_frac = -2.0f;
-        int best_dist_to_center = 1000000;
-        for (int i = 0; i < layout->row_count; i++) {
-            const int base_height = (int) raw_heights[i];
-            const int assigned_extra = row_heights[i] - base_height;
-            const float frac = raw_heights[i] - (float) base_height - (float) assigned_extra;
-            int dist_to_center = center_idx >= 0 ? i - center_idx : 0;
-            if (dist_to_center < 0) {
-                dist_to_center = -dist_to_center;
-            }
-
-            if (
-                frac > best_frac ||
-                (frac == best_frac && dist_to_center < best_dist_to_center)
-            ) {
-                best_frac = frac;
-                best_idx = i;
-                best_dist_to_center = dist_to_center;
-            }
-        }
-        if (best_idx < 0) {
+        if (layout->rows[i].widget == WIDGET_TIME) {
+            time_row_idx = i;
             break;
         }
-        row_heights[best_idx]++;
-        remaining--;
     }
 
-    while (remaining < 0) {
-        int best_idx = -1;
-        int best_height = 0;
-        for (int i = 0; i < layout->row_count; i++) {
-            if (row_heights[i] > best_height && row_heights[i] > 1) {
-                best_height = row_heights[i];
-                best_idx = i;
+    int standard_row_count = layout->row_count;
+    if (time_row_idx >= 0) {
+        standard_row_count--;
+    }
+
+    float divisor = (time_row_idx >= 0) ? ((float) standard_row_count + TIME_ROW_RATIO) : (float) standard_row_count;
+    float max_std_budget = (float) available / divisor;
+
+    // Find the largest pixel-perfect height that fits in the budget
+    float scale = max_std_budget / (float) base_std_total_h;
+    int h_std = 0;
+    if (scale > 0.0f) {
+        int scaled_h = (int) ((float) base_h * scale + 0.5f);
+        int scaled_g = (int) ((float) base_g * scale + 0.5f);
+        int total_h = 5 * scaled_h + 4 * scaled_g;
+
+        if (total_h > (int) max_std_budget && max_std_budget > 4.5f) {
+            scale = (max_std_budget - 4.5f) / (float) base_std_total_h;
+            if (scale <= 0.0f) {
+                scale = 0.1f;
             }
+            scaled_h = (int) ((float) base_h * scale + 0.5f);
+            scaled_g = (int) ((float) base_g * scale + 0.5f);
+            total_h = 5 * scaled_h + 4 * scaled_g;
         }
-        if (best_idx < 0) {
-            break;
+        h_std = total_h;
+    }
+    if (h_std < 1) {
+        h_std = 1;
+    }
+
+    int total_std_h = standard_row_count * h_std;
+    int h_time = available - total_std_h;
+    if (h_time < 1) {
+        h_time = 1;
+    }
+
+    for (int i = 0; i < layout->row_count; i++) {
+        if (i == time_row_idx) {
+            row_heights[i] = h_time;
+        } else {
+            row_heights[i] = h_std;
         }
-        row_heights[best_idx]--;
-        remaining++;
     }
 }
 
