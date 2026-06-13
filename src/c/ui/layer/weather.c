@@ -113,19 +113,24 @@ WeatherData *weather_get_data() {
     return &s_weather_data;
 }
 
+static bool s_weather_data_initialized = false;
+
 static void restore_saved_weather_data() {
-    memset(&s_weather_data, 0, sizeof(s_weather_data));
+    if (s_weather_data_initialized) {
+        return;
+    }
+
     ensure_runtime_forecast_storage();
 
     if (!persist_exists(WEATHER_DATA_KEY)) {
+        s_weather_data_initialized = true;
         return;
     }
 
     PersistedWeatherData persisted = {0};
     const int bytes = persist_read_data(WEATHER_DATA_KEY, &persisted, sizeof(persisted));
     if (bytes != sizeof(persisted) || persisted.Version != WEATHER_DATA_PERSIST_VERSION) {
-        memset(&s_weather_data, 0, sizeof(s_weather_data));
-        ensure_runtime_forecast_storage();
+        s_weather_data_initialized = true;
         return;
     }
 
@@ -139,20 +144,29 @@ static void restore_saved_weather_data() {
     s_weather_data.TemperatureForecastCount = clamp_forecast_count(persisted.TemperatureForecastCount);
     s_weather_data.RainForecastMmX10Count = clamp_forecast_count(persisted.RainForecastMmX10Count);
 
-    memcpy(
-        s_weather_data.TemperatureForecast,
-        persisted.TemperatureForecast,
-        sizeof(int) * s_weather_data.TemperatureForecastCount
-    );
-    memcpy(
-        s_weather_data.RainForecastMmX10,
-        persisted.RainForecastMmX10,
-        sizeof(int) * s_weather_data.RainForecastMmX10Count
-    );
+    if (s_weather_data.TemperatureForecastCount > 0) {
+        memcpy(
+            s_weather_data.TemperatureForecast,
+            persisted.TemperatureForecast,
+            sizeof(int) * s_weather_data.TemperatureForecastCount
+        );
+    }
+    if (s_weather_data.RainForecastMmX10Count > 0) {
+        memcpy(
+            s_weather_data.RainForecastMmX10,
+            persisted.RainForecastMmX10,
+            sizeof(int) * s_weather_data.RainForecastMmX10Count
+        );
+    }
 
     strncpy(s_weather_data.CurrentConditions, persisted.CurrentConditions, sizeof(s_weather_data.CurrentConditions) - 1);
     s_weather_data.CurrentConditions[sizeof(s_weather_data.CurrentConditions) - 1] = '\0';
     sanitize_weather_data();
+    s_weather_data_initialized = true;
+}
+
+void weather_init_data() {
+    restore_saved_weather_data();
 }
 
 void weather_delete_persisted_data() {
@@ -457,8 +471,6 @@ void update_weather() {
 }
 
 Layer *create_weather_layer(LayerBuilder builder) {
-    restore_saved_weather_data();
-
     Layer *container = layer_factory_create_custom_layer_with_data(
         builder,
         weather_layer_update_proc,

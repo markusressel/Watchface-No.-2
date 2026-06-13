@@ -36,15 +36,23 @@ static int scaled_dimension(int value, float scale_factor) {
     return scaled < 1 ? 1 : scaled;
 }
 
-static int pixel_row_height_for_scale(float scale_factor) {
+static int pixel_row_height_for_scale(WidgetId widget, float scale_factor) {
     ClaySettings *settings = clay_get_settings();
-    int dot_height = scaled_dimension(settings->DotHeight, scale_factor);
-    int gap_size_vertical = scaled_dimension(settings->DotVerticalGap, scale_factor);
+    int base_dot_height = settings->DotHeight;
+    int base_gap_vertical = settings->DotVerticalGap;
+
+    if (widget == WIDGET_TIME) {
+        base_dot_height = 10;
+        base_gap_vertical = 0;
+    }
+
+    int dot_height = scaled_dimension(base_dot_height, scale_factor);
+    int gap_size_vertical = scaled_dimension(base_gap_vertical, scale_factor);
     return (5 * dot_height) + (4 * gap_size_vertical);
 }
 
 static int widget_height(WidgetId widget, float pixel_scale) {
-    return pixel_row_height_for_scale(pixel_scale);
+    return pixel_row_height_for_scale(widget, pixel_scale);
 }
 
 static bool widget_is_center_row(WidgetId widget) {
@@ -264,9 +272,12 @@ void build_layout_from_settings(ClaySettings *settings) {
         row_count = WATCH_LAYOUT_MAX_ROWS;
     }
 
-    s_layout = (WatchLayout){
-        .row_count = row_count,
-        .rows = {
+    s_layout = (WatchLayout)
+    {
+        .
+        row_count = row_count,
+        .
+        rows = {
             [0] = {.widget = (WidgetId) settings->Row0Widget},
             [1] = {.widget = (WidgetId) settings->Row1Widget},
             [2] = {.widget = (WidgetId) settings->Row2Widget},

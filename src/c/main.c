@@ -24,6 +24,8 @@ static void init() {
 
     ClaySettings *settings = clay_load_settings();
 
+    weather_init_data();
+
     // Create main Window element first
     s_main_window = window_create();
 
@@ -37,11 +39,15 @@ static void init() {
     // Set handler to manage the elements inside the Window
     window_set_window_handlers(
         s_main_window,
-        (WindowHandlers){
-            .load = window_load,
-            .unload = window_unload
-        }
-    );
+        (WindowHandlers)
+    {
+        .
+        load = window_load,
+        .
+        unload = window_unload
+    }
+    )
+    ;
 
     // Show the Window on the watch, with animated=true
     window_stack_push(s_main_window, true);

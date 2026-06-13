@@ -26,6 +26,8 @@ typedef struct WeatherData {
 
 WeatherData *weather_get_data();
 
+void weather_init_data();
+
 // update all weather layer instances (backward compatible wrapper)
 void update_weather();
 

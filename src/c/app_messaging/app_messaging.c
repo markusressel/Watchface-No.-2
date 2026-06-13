@@ -361,6 +361,7 @@ static void read_weather_data(DictionaryIterator *iterator) {
             weatherData->RainForecastMmX10Count
         );
 
+        weather_init_data(); // Ensure initialized flag is set if it wasn't already
         update_weather();
         update_weather_forecast();
     }
