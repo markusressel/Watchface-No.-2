@@ -44,8 +44,8 @@ export default [
                 "defaultValue": "Colors"
             },
             {
-                "type": "text",
-                "defaultValue": "These values will only have effect if you have selected \"Custom\" Theme in the section above."
+                "type": "markdown",
+                "defaultValue": "These values <b>will only have effect</b> if you have selected \"Custom\" Theme in the section above."
             },
             {
                 "type": "text",
@@ -147,11 +147,15 @@ export default [
                 "defaultValue": "Dotted Font Settings"
             },
             {
+                "type": "markdown",
+                "defaultValue": "These settings define the <b>base shape</b> of the dotted characters. They apply regardless of scaling mode."
+            },
+            {
                 "type": "slider",
                 "messageKey": "SliderDigitWidth",
                 "defaultValue": 4,
                 "label": "Digit Width",
-                "description": "Amount of dots used to display digits",
+                "description": "Number of vertical dot columns used per digit.",
                 "min": 3,
                 "max": 5,
                 "step": 1
@@ -161,7 +165,7 @@ export default [
                 "messageKey": "SliderDotWidth",
                 "defaultValue": 3,
                 "label": "Dot Width",
-                "description": "Width in Pixel for a single dot",
+                "description": "Internal width of a single dot.",
                 "min": 1,
                 "max": 5,
                 "step": 1
@@ -171,7 +175,7 @@ export default [
                 "messageKey": "SliderDotHeight",
                 "defaultValue": 3,
                 "label": "Dot Height",
-                "description": "Height in Pixel for a single dot",
+                "description": "Internal height of a single dot.",
                 "min": 1,
                 "max": 5,
                 "step": 1
@@ -180,8 +184,8 @@ export default [
                 "type": "slider",
                 "messageKey": "SliderDotHorizontalGap",
                 "defaultValue": 3,
-                "label": "Dot Horizontal Gap",
-                "description": "Horizontal gap in pixels between two dots",
+                "label": "Horizontal Gap",
+                "description": "Internal space between dots horizontally.",
                 "min": 1,
                 "max": 5,
                 "step": 1
@@ -190,37 +194,49 @@ export default [
                 "type": "slider",
                 "messageKey": "SliderDotVerticalGap",
                 "defaultValue": 3,
-                "label": "Dot Vertical Gap",
-                "description": "Vertical gap in pixels between two dots",
+                "label": "Vertical Gap",
+                "description": "Internal space between dots vertically.",
                 "min": 1,
                 "max": 5,
                 "step": 1
             },
             {
+                "type": "heading",
+                "defaultValue": "Scaling & Layout"
+            },
+            {
                 "type": "toggle",
                 "messageKey": "ToggleDotAutoScale",
-                "label": "Auto Scale",
+                "label": "Enable Auto Scale",
                 "defaultValue": true
             },
             {
-                "type": "slider",
-                "messageKey": "SliderDotScaleFactorPercent",
-                "defaultValue": 100,
-                "label": "Manual Scale (%)",
-                "description": "Used when Auto Scale is disabled",
-                "min": 50,
-                "max": 300,
-                "step": 5
+                "type": "markdown",
+                "defaultValue": "When <b>Auto Scale</b> is <b>Enabled</b>:<ul><li>Widgets automatically stretch to fill the available row height.</li><li>Spacing between rows is balanced automatically.</li><li>Use the <b>Time Row Size Ratio</b> below to control the clock's relative size.</li></ul>"
             },
             {
                 "type": "slider",
                 "messageKey": "SliderTimeRowRatioPercent",
                 "defaultValue": 120,
                 "label": "Time Row Size Ratio (%)",
-                "description": "How much larger the time row should be compared to other rows (Auto-Scale only)",
+                "description": "Relative size of the Time row (e.g., 120% means the clock is 20% larger than other rows).",
                 "min": 100,
                 "max": 300,
                 "step": 10
+            },
+            {
+                "type": "markdown",
+                "defaultValue": "When <b>Auto Scale</b> is <b>Disabled</b>:<ul><li>Widgets use the <b>Manual Scale</b> factor below.</li><li>Dot sizes remain uniform across all widgets (<b>Pixel Perfect</b>).</li></ul>"
+            },
+            {
+                "type": "slider",
+                "messageKey": "SliderDotScaleFactorPercent",
+                "defaultValue": 100,
+                "label": "Manual Scale (%)",
+                "description": "Global multiplier for the base font metrics.",
+                "min": 50,
+                "max": 300,
+                "step": 5
             }
         ]
     },
