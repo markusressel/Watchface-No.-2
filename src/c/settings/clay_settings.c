@@ -160,9 +160,10 @@ ClaySettings *clay_sanitize_settings(ClaySettings *settings) {
 static ClaySettings *clay_reset_to_default_settings() {
     ClaySettings *settings = clay_get_settings();
 
-    settings->BackgroundColor = GColorWhite;
-    GColor foregroundColor = GColorBlack;
-    GColor textColor = GColorBlack;
+    const bool is_dark = strcmp(THEME_DEFAULT, THEME_DARK_STR) == 0;
+    settings->BackgroundColor = is_dark ? GColorBlack : GColorWhite;
+    GColor foregroundColor = is_dark ? GColorWhite : GColorBlack;
+    GColor textColor = is_dark ? GColorWhite : GColorBlack;
 
     // Time Layer
     settings->TimeTextColor = textColor;

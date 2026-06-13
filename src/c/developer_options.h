@@ -23,7 +23,7 @@ static const DeveloperOptions DEV_OPTIONS __attribute__((unused)) = {
 
 // DEBUG-build-only developer options
 static const DeveloperOptions DEV_OPTIONS __attribute__((unused)) = {
-    .ShowLayerBounds = true,
+    .ShowLayerBounds = false,
     .IsEmulator = IS_EMULATOR_BUILD,
 };
 

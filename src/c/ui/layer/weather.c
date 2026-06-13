@@ -321,38 +321,60 @@ typedef enum WeatherValueType {
 
 typedef struct WeatherLayerData {
     DottedTextLayer *slots[3];
+    DottedTextLayer *separators[2];
 } WeatherLayerData;
 
 static void weather_layer_update_proc(Layer *layer, GContext *ctx) {
     WeatherLayerData *data = layer_get_data(layer);
     GRect bounds = layer_get_bounds(layer);
 
-    int widths[3] = {0};
+    int slot_widths[3] = {0};
+    int sep_widths[2] = {0};
     int total_width = 0;
-    int visible_count = 0;
-    const int spacing = 2; // pixel gap between slots
+    const int spacing = 2; // pixel gap between elements
 
-    // 1. Calculate widths and total width
+    // 1. Calculate widths and visibility
     for (int i = 0; i < 3; i++) {
         if (data->slots[i]) {
-            widths[i] = dotted_text_layer_get_content_width(data->slots[i]);
-            if (widths[i] > 0) {
-                total_width += widths[i];
-                visible_count++;
+            slot_widths[i] = dotted_text_layer_get_content_width(data->slots[i]);
+            total_width += slot_widths[i];
+        }
+    }
+
+    // Separators are visible only if both adjacent slots have content
+    for (int i = 0; i < 2; i++) {
+        if (data->separators[i]) {
+            if (slot_widths[i] > 0 && slot_widths[i+1] > 0) {
+                dotted_text_layer_set_text(data->separators[i], "|");
+                sep_widths[i] = dotted_text_layer_get_content_width(data->separators[i]);
+                total_width += sep_widths[i];
+            } else {
+                dotted_text_layer_set_text(data->separators[i], NULL);
+                sep_widths[i] = 0;
             }
         }
     }
 
-    if (visible_count > 0) {
-        total_width += (visible_count - 1) * spacing;
+    int visible_elements = 0;
+    for (int i = 0; i < 3; i++) if (slot_widths[i] > 0) visible_elements++;
+    for (int i = 0; i < 2; i++) if (sep_widths[i] > 0) visible_elements++;
+
+    if (visible_elements > 0) {
+        total_width += (visible_elements - 1) * spacing;
     }
 
     // 2. Position child layers (Right aligned)
     int current_x = bounds.size.w - total_width;
     for (int i = 0; i < 3; i++) {
-        if (data->slots[i] && widths[i] > 0) {
-            layer_set_frame((Layer *) data->slots[i], GRect(current_x, 0, widths[i], bounds.size.h));
-            current_x += widths[i] + spacing;
+        // Slot i
+        if (data->slots[i] && slot_widths[i] > 0) {
+            layer_set_frame((Layer *) data->slots[i], GRect(current_x, 0, slot_widths[i], bounds.size.h));
+            current_x += slot_widths[i] + spacing;
+        }
+        // Separator after slot i
+        if (i < 2 && data->separators[i] && sep_widths[i] > 0) {
+            layer_set_frame((Layer *) data->separators[i], GRect(current_x, 0, sep_widths[i], bounds.size.h));
+            current_x += sep_widths[i] + spacing;
         }
     }
 }
@@ -459,6 +481,21 @@ Layer *create_weather_layer(LayerBuilder builder) {
         } else {
             dotted_text_layer_set_scale_factor(data->slots[i], settings->DotScaleFactor);
         }
+
+        if (i < 2) {
+            data->separators[i] = layer_factory_create_dotted_text_layer(
+                child_builder,
+                settings->WeatherTextColor,
+                HORIZONTAL_ALIGN_LEFT,
+                VERTICAL_ALIGN_TOP,
+                NULL
+            );
+            if (settings->DotAutoScale) {
+                dotted_text_layer_set_auto_scale(data->separators[i], true);
+            } else {
+                dotted_text_layer_set_scale_factor(data->separators[i], settings->DotScaleFactor);
+            }
+        }
     }
 
     s_active_weather_layers++;
@@ -488,6 +525,9 @@ void destroy_weather_layer(Layer *layer) {
     for (int i = 0; i < 3; i++) {
         if (data->slots[i]) {
             dotted_text_layer_destroy(data->slots[i]);
+        }
+        if (i < 2 && data->separators[i]) {
+            dotted_text_layer_destroy(data->separators[i]);
         }
     }
     layer_destroy(layer);
