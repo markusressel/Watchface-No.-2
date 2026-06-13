@@ -435,6 +435,10 @@ export default [
                 ]
             },
             {
+                "type": "heading",
+                "defaultValue": "Weather Forecast"
+            },
+            {
                 "type": "slider",
                 "messageKey": "SliderWeatherForecastPreviewHoursCount",
                 "defaultValue": 6,
