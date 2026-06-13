@@ -37,6 +37,7 @@ Layer *create_time_layer(LayerBuilder builder) {
         VERTICAL_ALIGN_CENTER,
         "00:00"
     );
+    dotted_text_layer_set_rendering_mode(time_layer, DOTTED_TEXT_RENDERING_MODE_SUBPIXEL);
     // For time, force square metrics so each block appears square.
     const int base_dot = 10;
     const int base_gap = 0;
@@ -49,7 +50,7 @@ Layer *create_time_layer(LayerBuilder builder) {
     );
     dotted_text_layer_set_character_offset(
         time_layer,
-        8, DOTTED_TEXT_OFFSET_PIXELS
+        8, DOTTED_TEXT_OFFSET_UNIT_PIXELS
     );
 
     if (clay_get_settings()->DotAutoScale) {

@@ -6,8 +6,8 @@
 typedef Layer DottedTextLayer;
 
 typedef enum DottedTextOffsetUnit {
-    DOTTED_TEXT_OFFSET_PIXELS = 0,
-    DOTTED_TEXT_OFFSET_BLOCKS = 1,
+    DOTTED_TEXT_OFFSET_UNIT_PIXELS = 0,
+    DOTTED_TEXT_OFFSET_UNIT_BLOCKS = 1,
 } DottedTextOffsetUnit;
 
 typedef enum HorizontalAlignment {
@@ -22,26 +22,28 @@ typedef enum VerticalAlignment {
     VERTICAL_ALIGN_BOTTOM = 2,
 } VerticalAlignment;
 
+typedef enum DottedTextRenderingMode {
+    DOTTED_TEXT_RENDERING_MODE_PIXEL_PERFECT = 0,
+    DOTTED_TEXT_RENDERING_MODE_SUBPIXEL = 1,
+} DottedTextRenderingMode;
+
 typedef struct DottedTextLayerData {
     char *text;
-    HorizontalAlignment horizontal_alignment;
-    VerticalAlignment vertical_alignment;
-    bool character_offset_overridden;
-    int character_offset_value;
-    DottedTextOffsetUnit character_offset_unit;
     float scale_factor;
-    bool auto_scale;
-    bool use_custom_metrics;
-    int custom_dot_width;
-    int custom_dot_height;
-    int custom_gap_horizontal;
-    int custom_gap_vertical;
-    int custom_digit_width;
     GColor text_color;
-    int cached_bounds_h;
-    int cached_base_dot_height;
-    int cached_base_gap_vertical;
-    float cached_scale;
+    int16_t character_offset_value;
+    int8_t custom_dot_width;
+    int8_t custom_dot_height;
+    int8_t custom_gap_horizontal;
+    int8_t custom_gap_vertical;
+    int8_t custom_digit_width;
+    uint8_t horizontal_alignment: HORIZONTAL_ALIGN_RIGHT;
+    uint8_t vertical_alignment: VERTICAL_ALIGN_BOTTOM;
+    uint8_t rendering_mode: DOTTED_TEXT_RENDERING_MODE_SUBPIXEL;
+    uint8_t character_offset_unit: DOTTED_TEXT_OFFSET_UNIT_BLOCKS;
+    bool character_offset_overridden: true;
+    bool auto_scale: true;
+    bool use_custom_metrics: true;
 } __attribute__((__packed__)) DottedTextLayerData;
 
 
@@ -80,6 +82,11 @@ void dotted_text_layer_set_horizontal_alignment(
 void dotted_text_layer_set_vertical_alignment(
     DottedTextLayer *dotted_text_layer,
     VerticalAlignment alignment
+);
+
+void dotted_text_layer_set_rendering_mode(
+    DottedTextLayer *dotted_text_layer,
+    DottedTextRenderingMode mode
 );
 
 // Use this method to set the scale factor for the layer.

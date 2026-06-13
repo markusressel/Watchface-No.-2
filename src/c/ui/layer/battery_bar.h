@@ -1,5 +1,6 @@
 #pragma once
 #include "../../ui/layer_factory.h"
+#include "dotted_text_layer.h"
 
 // update all battery bar layer instances (backward compatible wrapper)
 void update_battery_bar();
@@ -15,6 +16,8 @@ void battery_bar_layer_set_horizontal_alignment(Layer *layer, HorizontalAlignmen
 
 // set battery bar vertical alignment for a specific layer
 void battery_bar_layer_set_vertical_alignment(Layer *layer, VerticalAlignment alignment);
+
+void battery_bar_layer_set_rendering_mode(Layer *layer, DottedTextRenderingMode mode);
 
 // destroy the layer
 void destroy_battery_bar_layer(Layer * layer);

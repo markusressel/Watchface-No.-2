@@ -1,6 +1,8 @@
 #pragma once
 #include <pebble.h>
 
+#include "../layer/dotted_text_layer.h"
+
 // Draws a character onto the canvas at the specified position
 //
 // @param ctx                  Pebble graphics context
@@ -12,16 +14,19 @@
 // @param gap_size_horizontal  The size of horizontally empty space between two dots
 // @param gap_size_vertical    The size of vertically empty space between two dots
 // @param align_right          Draws the characters from right to left instead of left to right
+// @param digit_size           Size variant for digits
+// @param mode                 Rendering mode (PIXEL_PERFECT or SUBPIXEL)
 // @return  width of the drawn matrix (for width in pixel this has to be multiplied by scale_factor)
 int pixel_matrix_drawer_draw_char(
     GContext *ctx,
     GPoint point_zero,
     char character,
     GColor color,
-    int dot_width, int dot_height,
-    int gap_size_horizontal, int gap_size_vertical,
+    float dot_width, float dot_height,
+    float gap_size_horizontal, float gap_size_vertical,
     bool align_right,
-    int digit_size);
+    int digit_size,
+    DottedTextRenderingMode mode);
 
 // Returns glyph width in matrix columns for the given character.
 int pixel_matrix_drawer_char_width(char character, int digit_size);

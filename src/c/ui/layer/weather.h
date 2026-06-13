@@ -6,7 +6,11 @@
 
 // Persistent storage key
 #define WEATHER_DATA_KEY PERSIST_KEY_WEATHER_DATA
+#ifdef PBL_PLATFORM_APLITE
+#define WEATHER_FORECAST_MAX_POINTS 50
+#else
 #define WEATHER_FORECAST_MAX_POINTS 100
+#endif
 
 typedef struct WeatherData {
     int CurrentTemperature;

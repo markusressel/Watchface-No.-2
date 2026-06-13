@@ -31,14 +31,14 @@ typedef struct PersistedWeatherData {
     char CurrentConditions[48];
 } PersistedWeatherData;
 
-static int s_mock_temp_forecast[50] = {
+static int s_mock_temp_forecast[WEATHER_FORECAST_MAX_POINTS] = {
     18, 20, 22, 24, 23, 21, 19, 17, 16, 15,
     17, 20, 23, 26, 28, 30, 29, 27, 25, 24,
     26, 28, 31, 33, 34, 32, 30, 28, 27, 25,
     22, 19, 16, 13, 10, 8, 7, 6, 5, 4,
     2, 0, -2, -4, -3, -1, 1, 3, 5, 7
 };
-static int s_mock_rain_forecast[] = {
+static int s_mock_rain_forecast[WEATHER_FORECAST_MAX_POINTS] = {
     0, 0, 0, 0, 0, 5, 10, 8, 3, 0,
     0, 0, 0, 0, 0, 20, 50, 100, 30, 5,
     0, 0, 0, 0, 0, 0, 10, 30, 80, 20,
