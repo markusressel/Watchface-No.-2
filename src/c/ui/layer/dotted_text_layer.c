@@ -412,6 +412,53 @@ void dotted_text_layer_set_digit_width(DottedTextLayer *dotted_text_layer, const
     layer_mark_dirty(dotted_text_layer);
 }
 
+int dotted_text_layer_get_content_width(DottedTextLayer *dotted_text_layer) {
+    if (!dotted_text_layer) {
+        return 0;
+    }
+
+    DottedTextLayerData *data = get_layer_data(dotted_text_layer);
+    if (!data->text) {
+        return 0;
+    }
+
+    GRect bounds = layer_get_bounds(dotted_text_layer);
+    ClaySettings *settings = clay_get_settings();
+    int base_dot_width = data->use_custom_metrics ? data->custom_dot_width : settings->DotWidth;
+    int base_dot_height = data->use_custom_metrics ? data->custom_dot_height : settings->DotHeight;
+    int base_gap_horizontal = data->use_custom_metrics ? data->custom_gap_horizontal : settings->DotHorizontalGap;
+    int base_gap_vertical = data->use_custom_metrics ? data->custom_gap_vertical : settings->DotVerticalGap;
+
+    float scale_factor = get_scale_factor(data, base_dot_height, base_gap_vertical, bounds.size.h);
+    if (scale_factor <= 0.0f) {
+        scale_factor = 1.0f;
+    }
+
+    int dot_width = scaled_dimension(base_dot_width, scale_factor);
+    int gap_size_horizontal = scaled_non_negative_dimension(base_gap_horizontal, scale_factor);
+    const int digit_width = data->custom_digit_width > 0
+                                ? data->custom_digit_width
+                                : clay_get_settings()->DigitWidth;
+
+    int character_offset;
+    if (!data->character_offset_overridden) {
+        character_offset = 2 * dot_width;
+    } else if (data->character_offset_unit == DOTTED_TEXT_OFFSET_BLOCKS) {
+        character_offset = data->character_offset_value * dot_width;
+    } else {
+        character_offset = scaled_non_negative_dimension(data->character_offset_value, scale_factor);
+    }
+
+    return text_width_in_pixels(
+        data->text,
+        strlen(data->text),
+        dot_width,
+        gap_size_horizontal,
+        character_offset,
+        digit_width
+    );
+}
+
 void dotted_text_layer_destroy(DottedTextLayer *dotted_text_layer) {
     if (!dotted_text_layer) {
         APP_LOG(APP_LOG_LEVEL_ERROR, "DottedTextLayer is NULL!");

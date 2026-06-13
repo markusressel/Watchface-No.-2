@@ -97,7 +97,25 @@ export default [
                 "type": "color",
                 "messageKey": "WeatherTextColor",
                 "defaultValue": "0xFFFFFF",
-                "label": "Weather Text Color"
+                "label": "Weather Forecast Color"
+            },
+            {
+                "type": "color",
+                "messageKey": "WeatherMaxTempColor",
+                "defaultValue": "0xFF0000",
+                "label": "Max Temperature Color"
+            },
+            {
+                "type": "color",
+                "messageKey": "WeatherCurrentTempColor",
+                "defaultValue": "0xFFFFFF",
+                "label": "Current Temperature Color"
+            },
+            {
+                "type": "color",
+                "messageKey": "WeatherMinTempColor",
+                "defaultValue": "0x00AAFF",
+                "label": "Min Temperature Color"
             },
             {
                 "type": "text",
@@ -379,6 +397,42 @@ export default [
             {
                 "type": "text",
                 "defaultValue": "This watchface uses https://open-meteo.com/"
+            },
+            {
+                "type": "select",
+                "messageKey": "WeatherSlot1",
+                "defaultValue": 2,
+                "label": "Left Slot",
+                "options": [
+                    {"label": "None", "value": 0},
+                    {"label": "Current Temp", "value": 1},
+                    {"label": "Max Temp", "value": 2},
+                    {"label": "Min Temp", "value": 3}
+                ]
+            },
+            {
+                "type": "select",
+                "messageKey": "WeatherSlot2",
+                "defaultValue": 1,
+                "label": "Middle Slot",
+                "options": [
+                    {"label": "None", "value": 0},
+                    {"label": "Current Temp", "value": 1},
+                    {"label": "Max Temp", "value": 2},
+                    {"label": "Min Temp", "value": 3}
+                ]
+            },
+            {
+                "type": "select",
+                "messageKey": "WeatherSlot3",
+                "defaultValue": 3,
+                "label": "Right Slot",
+                "options": [
+                    {"label": "None", "value": 0},
+                    {"label": "Current Temp", "value": 1},
+                    {"label": "Max Temp", "value": 2},
+                    {"label": "Min Temp", "value": 3}
+                ]
             },
             {
                 "type": "slider",

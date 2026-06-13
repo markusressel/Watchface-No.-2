@@ -312,18 +312,102 @@ static void on_scheduled_update_triggered(void *data) {
     schedule_next_update(next_request_ms, on_scheduled_update_triggered);
 }
 
-static void update_weather_for_layer(DottedTextLayer *weather_layer) {
-    WeatherData *data = weather_get_data();
-    if (data == NULL) {
+typedef enum WeatherValueType {
+    WEATHER_VALUE_TYPE_NONE = 0,
+    WEATHER_VALUE_TYPE_CURRENT = 1,
+    WEATHER_VALUE_TYPE_MAX = 2,
+    WEATHER_VALUE_TYPE_MIN = 3
+} WeatherValueType;
+
+typedef struct WeatherLayerData {
+    DottedTextLayer *slots[3];
+} WeatherLayerData;
+
+static void weather_layer_update_proc(Layer *layer, GContext *ctx) {
+    WeatherLayerData *data = layer_get_data(layer);
+    GRect bounds = layer_get_bounds(layer);
+
+    int widths[3] = {0};
+    int total_width = 0;
+    int visible_count = 0;
+    const int spacing = 2; // pixel gap between slots
+
+    // 1. Calculate widths and total width
+    for (int i = 0; i < 3; i++) {
+        if (data->slots[i]) {
+            widths[i] = dotted_text_layer_get_content_width(data->slots[i]);
+            if (widths[i] > 0) {
+                total_width += widths[i];
+                visible_count++;
+            }
+        }
+    }
+
+    if (visible_count > 0) {
+        total_width += (visible_count - 1) * spacing;
+    }
+
+    // 2. Position child layers (Right aligned)
+    int current_x = bounds.size.w - total_width;
+    for (int i = 0; i < 3; i++) {
+        if (data->slots[i] && widths[i] > 0) {
+            layer_set_frame((Layer *) data->slots[i], GRect(current_x, 0, widths[i], bounds.size.h));
+            current_x += widths[i] + spacing;
+        }
+    }
+}
+
+static void update_weather_for_layer(Layer *weather_container_layer) {
+    WeatherLayerData *layer_data = layer_get_data(weather_container_layer);
+    WeatherData *weather_data = weather_get_data();
+    ClaySettings *settings = clay_get_settings();
+
+    if (weather_data == NULL) {
         APP_LOG(APP_LOG_LEVEL_WARNING, "Weather data is NULL!");
         return;
     }
 
-    // Write the current temperature into a buffer
-    snprintf(s_buffer, sizeof(s_buffer), "%d|%d|%d", data->MaxTemperature, data->CurrentTemperature, data->MinTemperature);
+    int slot_configs[3] = {
+        settings->WeatherSlot1,
+        settings->WeatherSlot2,
+        settings->WeatherSlot3
+    };
 
-    // update text layer
-    dotted_text_layer_set_text(weather_layer, s_buffer);
+    for (int i = 0; i < 3; i++) {
+        if (layer_data->slots[i] == NULL) continue;
+
+        int value = 0;
+        GColor color = settings->WeatherTextColor;
+        bool has_value = true;
+
+        switch (slot_configs[i]) {
+            case WEATHER_VALUE_TYPE_CURRENT:
+                value = weather_data->CurrentTemperature;
+                color = settings->WeatherCurrentTempColor;
+                break;
+            case WEATHER_VALUE_TYPE_MAX:
+                value = weather_data->MaxTemperature;
+                color = settings->WeatherMaxTempColor;
+                break;
+            case WEATHER_VALUE_TYPE_MIN:
+                value = weather_data->MinTemperature;
+                color = settings->WeatherMinTempColor;
+                break;
+            default:
+                has_value = false;
+                break;
+        }
+
+        if (has_value) {
+            snprintf(s_buffer, sizeof(s_buffer), "%d", value);
+            dotted_text_layer_set_text(layer_data->slots[i], s_buffer);
+            dotted_text_layer_set_color(layer_data->slots[i], color);
+        } else {
+            dotted_text_layer_set_text(layer_data->slots[i], NULL);
+        }
+    }
+
+    layer_mark_dirty(weather_container_layer);
 }
 
 // Backward compatible wrapper (called by app messaging or other code)
@@ -335,7 +419,7 @@ void update_weather() {
 
         APP_LOG(
             APP_LOG_LEVEL_DEBUG,
-            "weather rain forecast: next_1h=%d.%dmm pop=%d%%",
+            "weather rain update: next_1h=%d.%dmm pop=%d%%",
             data->RainNextHourMmX10 / 10,
             data->RainNextHourMmX10 % 10,
             data->RainPopPercent
@@ -344,7 +428,7 @@ void update_weather() {
 
     for (int i = 0; i < ui_state_get_row_count(); i++) {
         if (ui_state_get_widget_id(i) == WIDGET_WEATHER) {
-            update_weather_for_layer((DottedTextLayer *) ui_state_get_layer(i));
+            update_weather_for_layer(ui_state_get_layer(i));
         }
     }
 }
@@ -352,29 +436,41 @@ void update_weather() {
 Layer *create_weather_layer(LayerBuilder builder) {
     restore_saved_weather_data();
 
-    DottedTextLayer *weather_layer = layer_factory_create_dotted_text_layer(
+    Layer *container = layer_factory_create_custom_layer_with_data(
         builder,
-        theme_get_theme()->WeatherTextColor,
-        HORIZONTAL_ALIGN_RIGHT,
-        VERTICAL_ALIGN_TOP,
-        "---"
+        weather_layer_update_proc,
+        sizeof(WeatherLayerData)
     );
-    if (clay_get_settings()->DotAutoScale) {
-        dotted_text_layer_set_auto_scale(weather_layer, true);
-    } else {
-        dotted_text_layer_set_scale_factor(weather_layer, clay_get_settings()->DotScaleFactor);
+    WeatherLayerData *data = layer_get_data(container);
+
+    ClaySettings *settings = clay_get_settings();
+    LayerBuilder child_builder = layer_builder_from_rect(container, GRect(0, 0, builder.bounds.size.w, builder.bounds.size.h));
+
+    for (int i = 0; i < 3; i++) {
+        data->slots[i] = layer_factory_create_dotted_text_layer(
+            child_builder,
+            settings->WeatherTextColor,
+            HORIZONTAL_ALIGN_LEFT,
+            VERTICAL_ALIGN_TOP,
+            NULL
+        );
+        if (settings->DotAutoScale) {
+            dotted_text_layer_set_auto_scale(data->slots[i], true);
+        } else {
+            dotted_text_layer_set_scale_factor(data->slots[i], settings->DotScaleFactor);
+        }
     }
 
     s_active_weather_layers++;
 
-    update_weather_for_layer(weather_layer);
+    update_weather_for_layer(container);
 
     if (s_update_timer == NULL) {
         const int next_request_ms = compute_next_weather_update_request_ms();
         s_update_timer = app_timer_register(next_request_ms, on_scheduled_update_triggered, NULL);
     }
 
-    return (Layer *) weather_layer;
+    return container;
 }
 
 void destroy_weather_layer(Layer *layer) {
@@ -388,7 +484,13 @@ void destroy_weather_layer(Layer *layer) {
         }
     }
 
-    dotted_text_layer_destroy((DottedTextLayer *) layer);
+    WeatherLayerData *data = layer_get_data(layer);
+    for (int i = 0; i < 3; i++) {
+        if (data->slots[i]) {
+            dotted_text_layer_destroy(data->slots[i]);
+        }
+    }
+    layer_destroy(layer);
 }
 
 void deinit_weather_data() {

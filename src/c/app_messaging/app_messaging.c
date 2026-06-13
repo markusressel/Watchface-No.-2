@@ -167,8 +167,15 @@ static bool read_configuration_properties(
     APPLY_COLOR(MESSAGE_KEY_BatteryFrameColor, BatteryFrameColor);
     APPLY_COLOR(MESSAGE_KEY_BatteryFillColor, BatteryFillColor);
     APPLY_COLOR(MESSAGE_KEY_WeatherTextColor, WeatherTextColor);
+    APPLY_COLOR(MESSAGE_KEY_WeatherMaxTempColor, WeatherMaxTempColor);
+    APPLY_COLOR(MESSAGE_KEY_WeatherCurrentTempColor, WeatherCurrentTempColor);
+    APPLY_COLOR(MESSAGE_KEY_WeatherMinTempColor, WeatherMinTempColor);
     APPLY_COLOR(MESSAGE_KEY_StepcountTextColor, StepcountTextColor);
     APPLY_COLOR(MESSAGE_KEY_HeartrateTextColor, HeartrateTextColor);
+
+    APPLY_INT(MESSAGE_KEY_WeatherSlot1, WeatherSlot1);
+    APPLY_INT(MESSAGE_KEY_WeatherSlot2, WeatherSlot2);
+    APPLY_INT(MESSAGE_KEY_WeatherSlot3, WeatherSlot3);
 
     APPLY_INT(MESSAGE_KEY_SliderDigitWidth, DigitWidth);
     APPLY_INT(MESSAGE_KEY_SliderDotWidth, DotWidth);

@@ -29,16 +29,26 @@ void clay_log_settings_debug(const char *context_label, ClaySettings *settings) 
 
     APP_LOG(
         APP_LOG_LEVEL_DEBUG,
-        "%s colors bg=%lu time=%lu date=%lu weather=%lu step=%lu hr=%lu batt_frame=%lu batt_fill=%lu",
+        "%s colors bg=%lu time=%lu date=%lu weather=%lu max=%lu cur=%lu min=%lu step=%lu hr=%lu",
         label,
         (unsigned long) settings->BackgroundColor.argb,
         (unsigned long) settings->TimeTextColor.argb,
         (unsigned long) settings->DateTextColor.argb,
         (unsigned long) settings->WeatherTextColor.argb,
+        (unsigned long) settings->WeatherMaxTempColor.argb,
+        (unsigned long) settings->WeatherCurrentTempColor.argb,
+        (unsigned long) settings->WeatherMinTempColor.argb,
         (unsigned long) settings->StepcountTextColor.argb,
-        (unsigned long) settings->HeartrateTextColor.argb,
-        (unsigned long) settings->BatteryFrameColor.argb,
-        (unsigned long) settings->BatteryFillColor.argb
+        (unsigned long) settings->HeartrateTextColor.argb
+    );
+
+    APP_LOG(
+        APP_LOG_LEVEL_DEBUG,
+        "%s weather slots: %d, %d, %d",
+        label,
+        settings->WeatherSlot1,
+        settings->WeatherSlot2,
+        settings->WeatherSlot3
     );
 
     APP_LOG(
@@ -138,6 +148,10 @@ ClaySettings *clay_sanitize_settings(ClaySettings *settings) {
         settings->WeatherUpdateIntervalMinutes = 15;
     }
 
+    if (settings->WeatherSlot1 < 0 || settings->WeatherSlot1 > 3) settings->WeatherSlot1 = 2;
+    if (settings->WeatherSlot2 < 0 || settings->WeatherSlot2 > 3) settings->WeatherSlot2 = 1;
+    if (settings->WeatherSlot3 < 0 || settings->WeatherSlot3 > 3) settings->WeatherSlot3 = 3;
+
     return settings;
 }
 
@@ -161,6 +175,13 @@ static ClaySettings *clay_reset_to_default_settings() {
 
     // Weather Layer
     settings->WeatherTextColor = textColor;
+    settings->WeatherMaxTempColor = GColorRed;
+    settings->WeatherCurrentTempColor = textColor;
+    settings->WeatherMinTempColor = GColorPictonBlue;
+
+    settings->WeatherSlot1 = 2; // Max
+    settings->WeatherSlot2 = 1; // Current
+    settings->WeatherSlot3 = 3; // Min
 
     // Stepcount layer
     settings->StepcountTextColor = textColor;

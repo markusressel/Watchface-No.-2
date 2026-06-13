@@ -119,6 +119,10 @@ void dotted_text_layer_set_digit_width(
     int digit_width
 );
 
+// Calculate the total width of the current text content in pixels,
+// considering current scale and metrics.
+int dotted_text_layer_get_content_width(DottedTextLayer *dotted_text_layer);
+
 
 // Use this method to destroy a DottedTextLayer
 //
