@@ -344,7 +344,7 @@ static void weather_layer_update_proc(Layer *layer, GContext *ctx) {
     // Separators are visible only if both adjacent slots have content
     for (int i = 0; i < 2; i++) {
         if (data->separators[i]) {
-            if (slot_widths[i] > 0 && slot_widths[i+1] > 0) {
+            if (slot_widths[i] > 0 && slot_widths[i + 1] > 0) {
                 dotted_text_layer_set_text(data->separators[i], "|");
                 sep_widths[i] = dotted_text_layer_get_content_width(data->separators[i]);
                 total_width += sep_widths[i];
@@ -485,7 +485,7 @@ Layer *create_weather_layer(LayerBuilder builder) {
         if (i < 2) {
             data->separators[i] = layer_factory_create_dotted_text_layer(
                 child_builder,
-                settings->WeatherTextColor,
+                GColorLightGray,
                 HORIZONTAL_ALIGN_LEFT,
                 VERTICAL_ALIGN_TOP,
                 NULL
