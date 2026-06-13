@@ -271,13 +271,11 @@ static void read_weather_data(DictionaryIterator *iterator) {
     if (temp_cur_tuple && temp_min_tuple && temp_max_tuple && condition_tuple) {
         WeatherData *weatherData = weather_get_data();
 
-        APP_LOG(APP_LOG_LEVEL_DEBUG, "temp changed: old: %d new: %d", (int) weatherData->CurrentTemperature, (int) temp_cur_tuple->value->int32);
-
-        weatherData->CurrentTemperature = temp_cur_tuple->value->int32;
-        weatherData->MinTemperature = temp_min_tuple->value->int32;
-        weatherData->MaxTemperature = temp_max_tuple->value->int32;
+        weatherData->CurrentTemperature = tuple_to_int(temp_cur_tuple);
+        weatherData->MinTemperature = tuple_to_int(temp_min_tuple);
+        weatherData->MaxTemperature = tuple_to_int(temp_max_tuple);
         if (forecast_start_ts_tuple) {
-            weatherData->ForecastStartTimestamp = forecast_start_ts_tuple->value->int32;
+            weatherData->ForecastStartTimestamp = (time_t) tuple_to_int(forecast_start_ts_tuple);
         }
 
         if (condition_tuple->type == TUPLE_CSTRING) {
@@ -292,10 +290,10 @@ static void read_weather_data(DictionaryIterator *iterator) {
         }
 
         if (rain_next_hour_tuple) {
-            weatherData->RainNextHourMmX10 = rain_next_hour_tuple->value->int32;
+            weatherData->RainNextHourMmX10 = tuple_to_int(rain_next_hour_tuple);
         }
         if (rain_pop_percent_tuple) {
-            weatherData->RainPopPercent = rain_pop_percent_tuple->value->int32;
+            weatherData->RainPopPercent = tuple_to_int(rain_pop_percent_tuple);
         }
 
         // 1. ONLY free the arrays if they were genuinely allocated via malloc
@@ -368,11 +366,13 @@ static void read_weather_data(DictionaryIterator *iterator) {
 }
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
+    ClaySettings *settings = clay_get_settings();
+    const bool was_sync_pending = !settings->InitialSyncDone;
+
     const bool has_settings_update = read_configuration_properties(iterator);
     read_weather_data(iterator);
 
-    if (has_settings_update) {
-        ClaySettings *settings = clay_get_settings();
+    if (has_settings_update || was_sync_pending) {
         settings->InitialSyncDone = true;
         clay_log_settings_debug("received settings update", settings);
         clay_save_settings(settings);

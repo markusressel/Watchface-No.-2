@@ -51,7 +51,6 @@ Layer *create_time_layer(LayerBuilder builder) {
         time_layer,
         8, DOTTED_TEXT_OFFSET_PIXELS
     );
-    dotted_text_layer_set_digit_width(time_layer, 3);
 
     if (clay_get_settings()->DotAutoScale) {
         dotted_text_layer_set_auto_scale(time_layer, true);
