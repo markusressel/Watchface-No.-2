@@ -224,6 +224,8 @@ static ClaySettings *clay_reset_to_default_settings() {
     settings->SliderWeatherForecastPreviewHoursCount = 6;
     settings->WeatherUpdateIntervalMinutes = 15;
 
+    settings->InitialSyncDone = false;
+
     return settings;
 }
 
@@ -245,7 +247,6 @@ ClaySettings *internal_load_settings() {
         );
         // save default settings to persistent storage
         clay_save_settings(settings);
-        app_messaging_request_settings();
         return settings;
     }
 

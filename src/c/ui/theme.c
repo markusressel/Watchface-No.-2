@@ -42,6 +42,10 @@ static void set_colors(Theme *theme, enum ThemeEnum themeEnum) {
     theme->BatteryFillColor = foregroundColor;
 
     theme->WeatherTextColor = mainTextColor;
+    theme->WeatherMaxTempColor = GColorRed;
+    theme->WeatherCurrentTempColor = mainTextColor;
+    theme->WeatherMinTempColor = GColorPictonBlue;
+
     theme->StepcountTextColor = mainTextColor;
     theme->HeartrateTextColor = mainTextColor;
 }
@@ -84,6 +88,9 @@ void apply_theme_from_settings(ClaySettings *settings, Window *window) {
         custom_theme.BatteryOutlineColor = settings->BatteryFrameColor;
         custom_theme.BatteryFillColor = settings->BatteryFillColor;
         custom_theme.WeatherTextColor = settings->WeatherTextColor;
+        custom_theme.WeatherMaxTempColor = settings->WeatherMaxTempColor;
+        custom_theme.WeatherCurrentTempColor = settings->WeatherCurrentTempColor;
+        custom_theme.WeatherMinTempColor = settings->WeatherMinTempColor;
         custom_theme.StepcountTextColor = settings->StepcountTextColor;
         custom_theme.HeartrateTextColor = settings->HeartrateTextColor;
         theme_set_fonts(&custom_theme, settings->ShowSeconds);

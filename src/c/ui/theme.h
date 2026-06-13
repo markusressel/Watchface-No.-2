@@ -26,6 +26,9 @@ typedef struct Theme {
 
     // Weather Layer
     GColor WeatherTextColor;
+    GColor WeatherMaxTempColor;
+    GColor WeatherCurrentTempColor;
+    GColor WeatherMinTempColor;
 
     // Stepcount layer
     GColor StepcountTextColor;

@@ -61,7 +61,13 @@ static void deinit() {
 int main(void) {
     app_messaging_initialize();
     init();
-    app_messaging_send_app_ready();
+
+    if (!clay_get_settings()->InitialSyncDone) {
+        app_messaging_send_app_ready_and_request_settings();
+    } else {
+        app_messaging_send_app_ready();
+    }
+
     app_event_loop();
     deinit();
 }

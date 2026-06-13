@@ -383,6 +383,7 @@ static void update_weather_for_layer(Layer *weather_container_layer) {
     WeatherLayerData *layer_data = layer_get_data(weather_container_layer);
     WeatherData *weather_data = weather_get_data();
     ClaySettings *settings = clay_get_settings();
+    Theme *theme = theme_get_theme();
 
     if (weather_data == NULL) {
         APP_LOG(APP_LOG_LEVEL_WARNING, "Weather data is NULL!");
@@ -399,21 +400,21 @@ static void update_weather_for_layer(Layer *weather_container_layer) {
         if (layer_data->slots[i] == NULL) continue;
 
         int value = 0;
-        GColor color = settings->WeatherTextColor;
+        GColor color = theme->WeatherTextColor;
         bool has_value = true;
 
         switch (slot_configs[i]) {
             case WEATHER_VALUE_TYPE_CURRENT:
                 value = weather_data->CurrentTemperature;
-                color = settings->WeatherCurrentTempColor;
+                color = theme->WeatherCurrentTempColor;
                 break;
             case WEATHER_VALUE_TYPE_MAX:
                 value = weather_data->MaxTemperature;
-                color = settings->WeatherMaxTempColor;
+                color = theme->WeatherMaxTempColor;
                 break;
             case WEATHER_VALUE_TYPE_MIN:
                 value = weather_data->MinTemperature;
-                color = settings->WeatherMinTempColor;
+                color = theme->WeatherMinTempColor;
                 break;
             default:
                 has_value = false;
@@ -466,12 +467,13 @@ Layer *create_weather_layer(LayerBuilder builder) {
     WeatherLayerData *data = layer_get_data(container);
 
     ClaySettings *settings = clay_get_settings();
+    Theme *theme = theme_get_theme();
     LayerBuilder child_builder = layer_builder_from_rect(container, GRect(0, 0, builder.bounds.size.w, builder.bounds.size.h));
 
     for (int i = 0; i < 3; i++) {
         data->slots[i] = layer_factory_create_dotted_text_layer(
             child_builder,
-            settings->WeatherTextColor,
+            theme->WeatherTextColor,
             HORIZONTAL_ALIGN_LEFT,
             VERTICAL_ALIGN_TOP,
             NULL

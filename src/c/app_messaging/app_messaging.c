@@ -23,9 +23,39 @@ void app_messaging_send_app_ready() {
     app_message_outbox_send();
 }
 
+void app_messaging_send_app_ready_and_request_settings() {
+    DictionaryIterator *iter;
+    app_message_outbox_begin(&iter);
+    if (iter == NULL) {
+        return;
+    }
+    dict_write_uint8(iter, MESSAGE_KEY_AppReady, 1);
+    dict_write_uint8(iter, MESSAGE_KEY_RequestSettings, 1);
+    dict_write_end(iter);
+    app_message_outbox_send();
+}
+
 void app_messaging_request_settings() {
     queue_message(MESSAGE_KEY_RequestSettings, 1);
     app_message_outbox_send();
+}
+
+static int hex_to_int(const char *hex_str) {
+    if (hex_str == NULL) return 0;
+    if (hex_str[0] == '0' && (hex_str[1] == 'x' || hex_str[1] == 'X')) {
+        hex_str += 2;
+    }
+    int result = 0;
+    while (*hex_str) {
+        char c = *hex_str++;
+        int val = 0;
+        if (c >= '0' && c <= '9') val = c - '0';
+        else if (c >= 'a' && c <= 'f') val = c - 'a' + 10;
+        else if (c >= 'A' && c <= 'F') val = c - 'A' + 10;
+        else break;
+        result = (result << 4) | val;
+    }
+    return result;
 }
 
 static int tuple_to_int(const Tuple *tuple) {
@@ -34,6 +64,10 @@ static int tuple_to_int(const Tuple *tuple) {
     }
 
     if (tuple->type == TUPLE_CSTRING) {
+        // Handle both decimal and hex strings
+        if (tuple->value->cstring[0] == '0' && (tuple->value->cstring[1] == 'x' || tuple->value->cstring[1] == 'X')) {
+            return hex_to_int(tuple->value->cstring);
+        }
         return atoi(tuple->value->cstring);
     }
 
@@ -85,7 +119,7 @@ static bool apply_color_setting(
         return false;
     }
 
-    *destination = GColorFromHEX(tuple->value->int32);
+    *destination = GColorFromHEX(tuple_to_int(tuple));
     return true;
 }
 
@@ -338,6 +372,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
     if (has_settings_update) {
         ClaySettings *settings = clay_get_settings();
+        settings->InitialSyncDone = true;
         clay_log_settings_debug("received settings update", settings);
         clay_save_settings(settings);
         main_reload_layout(settings, main_get_window());
