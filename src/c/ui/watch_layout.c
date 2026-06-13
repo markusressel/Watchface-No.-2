@@ -15,9 +15,6 @@ typedef struct WidgetMetrics {
     int width_margin;
 } WidgetMetrics;
 
-#define TIME_ROW_RATIO 1.2f
-#define DEFAULT_ROW_RATIO 1.0f
-
 static const WidgetMetrics s_widget_metrics[WIDGET_COUNT] = {
     [WIDGET_WEATHER] = {.x = 0, .width_margin = 3},
     [WIDGET_DATE] = {.x = 0, .width_margin = 3},
@@ -29,7 +26,7 @@ static const WidgetMetrics s_widget_metrics[WIDGET_COUNT] = {
 };
 
 #define EDGE_MARGIN 5
-#define ROW_GAP 8
+#define ROW_GAP 1
 
 static int scaled_dimension(int value, float scale_factor) {
     int scaled = (int) (value * scale_factor + 0.5f);
@@ -148,48 +145,6 @@ static void compute_auto_row_heights(
     }
 }
 
-static int top_group_end_y(const WatchLayout *layout, const int *row_heights, int center_idx, int gap_padding) {
-    if (center_idx == 0) {
-        return EDGE_MARGIN;
-    }
-
-    int y = EDGE_MARGIN;
-    int extra_per_gap = (layout->row_count > 1) ? (gap_padding / (layout->row_count - 1)) : 0;
-
-    for (int i = 0; i < center_idx; i++) {
-        y += row_heights[i];
-        if (i < center_idx) {
-            y += ROW_GAP + extra_per_gap;
-        }
-    }
-
-    return y;
-}
-
-static int bottom_group_start_y(
-    const WatchLayout *layout,
-    const int *row_heights,
-    int center_idx,
-    int screen_height,
-    int gap_padding
-) {
-    int rows_after = layout->row_count - 1 - center_idx;
-    if (rows_after == 0) {
-        return screen_height - EDGE_MARGIN;
-    }
-
-    int extra_per_gap = (layout->row_count > 1) ? (gap_padding / (layout->row_count - 1)) : 0;
-    int total_height = 0;
-    for (int i = center_idx + 1; i < layout->row_count; i++) {
-        total_height += row_heights[i];
-        if (i < layout->row_count - 1) {
-            total_height += ROW_GAP + extra_per_gap;
-        }
-    }
-
-    return screen_height - EDGE_MARGIN - total_height;
-}
-
 LayerBuilder watch_layout_make_builder(
     const WatchLayout *layout,
     Layer *window_layer,
@@ -217,44 +172,17 @@ LayerBuilder watch_layout_make_builder(
         if (gap_padding < 0) gap_padding = 0;
     }
 
-    int extra_per_gap = (layout->row_count > 1) ? (gap_padding / (layout->row_count - 1)) : 0;
-    int y;
-
-    if (center_idx < 0) {
-        // ... (remaining gap count implementation for no-center-row if needed, 
-        // but current watchface always has time as center).
-        int total_height = 0;
-        for (int i = 0; i < layout->row_count; i++) total_height += row_heights[i];
-        int remaining = screen.size.h - total_height;
-        int gap = remaining / (layout->row_count + 1);
-
-        y = gap;
-        for (int i = 0; i < row_index; i++) {
-            y += row_heights[i] + gap;
-        }
-    } else if (row_index < center_idx) {
-        y = EDGE_MARGIN;
-        for (int i = 0; i < row_index; i++) {
-            y += row_heights[i] + ROW_GAP + extra_per_gap;
-        }
-    } else if (row_index > center_idx) {
-        y = screen.size.h - EDGE_MARGIN - row_heights[row_index];
-        for (int i = row_index + 1; i < layout->row_count; i++) {
-            y -= row_heights[i] + ROW_GAP + extra_per_gap;
-        }
-    } else {
-        const int center_height = row_heights[center_idx];
-
-        if (center_idx == 0) {
-            y = EDGE_MARGIN;
-        } else if (center_idx == layout->row_count - 1) {
-            y = screen.size.h - EDGE_MARGIN - center_height;
-        } else {
-            const int top_end_y = top_group_end_y(layout, row_heights, center_idx, gap_padding);
-            const int bottom_start_y = bottom_group_start_y(layout, row_heights, center_idx, screen.size.h, gap_padding);
-            y = top_end_y + (bottom_start_y - top_end_y - center_height) / 2;
-        }
+    int total_height_before = 0;
+    for (int i = 0; i < row_index; i++) {
+        total_height_before += row_heights[i];
     }
+
+    const int gap_count = layout->row_count - 1;
+    const int total_gap_space = (gap_count > 0) ? (gap_count * ROW_GAP + gap_padding) : 0;
+
+    // Linear interpolation to distribute gaps/padding perfectly across the screen
+    int accumulated_gap_space = (gap_count > 0) ? (row_index * total_gap_space) / gap_count : 0;
+    int y = EDGE_MARGIN + total_height_before + accumulated_gap_space;
 
     const WidgetMetrics *m = &s_widget_metrics[layout->rows[row_index].widget];
     GRect bounds = GRect(m->x, y, screen.size.w - m->width_margin, row_heights[row_index]);
