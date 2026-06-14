@@ -232,7 +232,7 @@ export default [
                 "messageKey": "SliderWeatherForecastPreviewHoursCount",
                 "defaultValue": 6,
                 "label": "Weather Forecast Preview Hours",
-                "description": "Number of hours to preview in weather forecast",
+                "description": "Number of hours to display in the graph",
                 "min": 1,
                 "max": 24,
                 "step": 1
@@ -242,7 +242,7 @@ export default [
                 "messageKey": "WeatherUpdateIntervalMinutes",
                 "defaultValue": 15,
                 "label": "Weather Update Interval",
-                "description": "How often the weather should update (minutes)",
+                "description": "How often the new weather data should be fetched from the API (minutes)",
                 "min": 15,
                 "max": 180,
                 "step": 15
