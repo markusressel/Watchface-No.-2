@@ -1,108 +1,111 @@
-# Build
+# Project: Watchface No. 2
 
-Use the [Justfile](./Justfile) to build the project:
+A dot-styled, highly configurable watchface for the Pebble ecosystem.
+
+# Directives for Gemini CLI
+
+As a senior engineer agent, adhere to these mandates:
+
+- **Reproduction First**: For bug fixes, always create a reproduction test case or script before implementing a fix.
+- **Validation**: Every change must be verified using `just test` (or specific `test-c`/`test-js`) and confirmed by a successful build.
+- **Surgical Updates**: Minimize changes to the absolute necessary. Adhere to existing patterns.
+- **Source of Truth**:
+  - `package.json` -> `pebble.messageKeys`: Authority for all AppMessage communication keys.
+  - `src/js-modern/config/configPage.js`: Authority for settings UI and default values.
+  - `src/c/developer_options.h`: Authority for debug and developer flags.
+- **JS Development**: ONLY edit files in `src/js-modern`. Files in `build/generated/pkjs` are auto-generated.
+
+# Environment Setup
 
 ```shell
-# optional clean
-just clean
-# build
-just build
+# Install dependencies
+npm install
+just setup
 ```
 
-or run in relevant emulators (preferred for instant visual feedback from the developer):
+# Build & Deploy
+
+Use the [Justfile](./Justfile) for all operations:
 
 ```shell
+# Standard build (runs generation and transpilation)
+just build
+
+# Clean and build
+just clean && just build
+
+# Deploy to emulator (e.g., emery) with logs
 just deploy debug emery
 ```
 
-Tasks too complex to be written directly into the Justfile should use Python 3 like [run.py](scripts/run.py).
+## Build Flags (C Implementation)
 
-## Build Flags
+- **Release Build**: `#define WF_RELEASE 1` (via `just release`)
+- **Debug Build**: `#define WF_DEBUG 1` (default)
+- **Emulator Build**: `#define WF_EMULATOR 1` (automatically set when running in emulator)
 
-- A **release build** is indicated within C through `#define RELEASE 1`
-- An **emulator build** by `#define WF_EMULATOR 1`
-
-# Test
-
-Run all tests:
+# Testing
 
 ```shell
+# Run all tests
 just test
+
+# Language specific
+just test-c
+just test-js
 ```
 
-## JavaScript Configuration Page
+- **C Tests**: Use Unity framework in `tests/c`. Requires `gcc`.
+- **JS Tests**: Use Jest in `tests/js`.
 
-Setup a node.js environment
+# Settings Architecture
 
-```shell
-npm init -y
-npm install --save-dev jest
-```
+Modifying settings is a multi-step process:
 
-Run JS tests:
+1. **Define Key**: Add entry to `pebble.messageKeys` in `package.json`.
+2. **UI & Default**: Add item to `src/js-modern/config/configPage.js`.
+3. **Generate Helper**: Run `just generate` (or `just build`) to update `src/js-modern/generated/settings.js`.
+4. **C Receipt**: Update `src/c/app_messaging/app_messaging.c` to handle the new key.
+5. **C Storage**: Update `src/c/settings/clay_settings.c` and `persist_keys.h` for persistence.
 
-```shell
-just test-js   # JS Only
-```
+**Note**: A `just clean` is required if `package.json` message keys change to ensure they are picked up by the Pebble build system.
 
-## C Implementation
+# Project Structure
 
-`gcc` must be available for C tests.
+- `src/c/`: Pebble C source code.
+  - `app_messaging/`: Communication with JS.
+  - `settings/`: Persistence and configuration storage.
+  - `ui/`: Layout and drawing logic.
+  - `ui/layer/`: Specific watchface components (time, weather, etc.).
+- `src/js-modern/`: Modern JavaScript source (ES6+).
+  - `config/`: Configuration page logic.
+  - `weather/`: Weather provider implementations.
+  - `generated/`: Auto-generated JS helpers (Do not edit).
+- `scripts/`: Build and utility scripts (Python).
+- `tests/`: Unity (C) and Jest (JS) test suites.
 
-Run C tests:
+# Platform Limitations
 
-```shell
-just test-c    # C Only
-```
+## Watch Hardware (C)
 
-# Settings
+- **Stack Size**: Extremely limited. Avoid large local arrays and deep recursion. Use heap allocation (`malloc`) for large structures.
+- **Memory**: Be mindful of heap fragmentation.
 
-Working with settings requires many different parts:
+## App-Side (JavaScript)
 
-1. [JavaScript Configuration Page](./pkjs/configPage.js) - This is the page that is shown in the Pebble app when you click on the settings of the watchface. It is written in
-   JavaScript and uses the Pebble JS API to communicate with the watchface.
-    - `MESSAGE_KEY_*` consts are generated based on the entries in the `package.json` file. To ensure they are generated correctly after changes were made to the `package.json` **a
-      clean build is required**.
-2. App Messaging - This is the part of the watchface that handles the communication between the watchface and the JavaScript Configuration Page. It receives the settings from the
-   JavaScript Configuration Page and saves them in persistent storage.
-    1. [C Implementation](src/c/app_messaging/app_messaging.c) - This is the C implementation of the App Messaging. It uses the Pebble C API to receive messages from the JavaScript
-       Configuration Page and save them in persistent storage.
-    2. [package.json](./package.json) - Requires "pebble"->"messageKeys" to be set to the keys used in the JavaScript Configuration Page.
-3. [Settings Storage](src/c/settings/clay_settings.c) - This is the C implementation of the persistent storage for the settings.
-
-# Platform limitations
-
-## Watch Hardware
-
-### Stack size
-
-The stack of the Pebble ecosystem is limited, storing big amounts of data in it results in an OS crash (stackoverflow).
-To avoid these issues use heap allocation for large data structures and avoid recursion.
-
-## App-Side
-
-### JavaScript Engine (pkjs)
-
-This project uses babel to transpile modern JS features into a compatible style for the Pebble SDK build environment.
-Source code is written in `src/js-modern`, transpiled code lands in `build/generated/pkjs`, which is picked up by the pebble sdk.
-
-### Dependencies NOT ALLOWED
-
-- No external dependencies are allowed in the JavaScript code.
-- No external dependencies are allowed in the C code.
+- **Limited Environment**: No Node.js built-ins. Use standard ES5/ES6 features.
+- **Dependencies**: NO external dependencies allowed in the final JS bundle, except for `@rebble/clay` for the config page. Babel transpiles modern features, but do not add new
+  `npm` packages to the logic.
 
 # Codestyle
 
 ## C
 
-- You may use `const` on variables and function parameters where possible and reasonable, except:
-    - Pebble SDK methods
+- Use `const` for variables and parameters where possible (except Pebble SDK callbacks).
+- Use descriptive naming following the existing `snake_case` or `CamelCase` as per local file conventions.
 
 ## JavaScript
 
-- prefer `let` over `var`
-- write js docs for parameters and return values including `{type}` information (f.ex. `{number}`) to describe the expected input and output types.
-
-# Developer Options
-
-Can be found in [developer_options.h](./src/c/developer_options.h).
+- Prefer `let`/`const` over `var`.
+- Use JSDoc for all functions: `/** @param {type} name - description */`.
+- Explicitly define return types in JSDoc.
