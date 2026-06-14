@@ -172,18 +172,18 @@ static void update_layer_settings(WeatherForecastLayerData *data) {
     data->forecast_graph.config.axis.tick_color_x = theme->WeatherAxisTickColor;
 
 #if defined(PBL_COLOR)
-    data->temperature_color_stops[0] = (GraphColorStop) {.value = -10, .color = theme->ForecastTempColorM10};
-    data->temperature_color_stops[1] = (GraphColorStop) {.value = 0, .color = theme->ForecastTempColor0};
-    data->temperature_color_stops[2] = (GraphColorStop) {.value = 10, .color = theme->ForecastTempColor10};
-    data->temperature_color_stops[3] = (GraphColorStop) {.value = 20, .color = theme->ForecastTempColor20};
-    data->temperature_color_stops[4] = (GraphColorStop) {.value = 30, .color = theme->ForecastTempColor30};
-    data->temperature_color_stops[5] = (GraphColorStop) {.value = 40, .color = theme->ForecastTempColor40};
+    data->temperature_color_stops[0] = (GraphColorStop){.value = -10, .color = theme->ForecastTempColorM10};
+    data->temperature_color_stops[1] = (GraphColorStop){.value = 0, .color = theme->ForecastTempColor0};
+    data->temperature_color_stops[2] = (GraphColorStop){.value = 10, .color = theme->ForecastTempColor10};
+    data->temperature_color_stops[3] = (GraphColorStop){.value = 20, .color = theme->ForecastTempColor20};
+    data->temperature_color_stops[4] = (GraphColorStop){.value = 30, .color = theme->ForecastTempColor30};
+    data->temperature_color_stops[5] = (GraphColorStop){.value = 40, .color = theme->ForecastTempColor40};
 
-    data->rain_color_stops[0] = (GraphColorStop) {.value = 0, .color = theme->ForecastRainColor0};
-    data->rain_color_stops[1] = (GraphColorStop) {.value = 3, .color = theme->ForecastRainColor3};
-    data->rain_color_stops[2] = (GraphColorStop) {.value = 10, .color = theme->ForecastRainColor10};
-    data->rain_color_stops[3] = (GraphColorStop) {.value = 50, .color = theme->ForecastRainColor50};
-    data->rain_color_stops[4] = (GraphColorStop) {.value = 100, .color = theme->ForecastRainColor100};
+    data->rain_color_stops[0] = (GraphColorStop){.value = 0, .color = theme->ForecastRainColor0};
+    data->rain_color_stops[1] = (GraphColorStop){.value = 3, .color = theme->ForecastRainColor3};
+    data->rain_color_stops[2] = (GraphColorStop){.value = 10, .color = theme->ForecastRainColor10};
+    data->rain_color_stops[3] = (GraphColorStop){.value = 50, .color = theme->ForecastRainColor50};
+    data->rain_color_stops[4] = (GraphColorStop){.value = 100, .color = theme->ForecastRainColor100};
 #endif
 }
 
@@ -211,7 +211,7 @@ Layer *create_weather_forecast_layer(LayerBuilder builder) {
     data->last_rendered_indicator_x = -1;
 
     // Rain Y-axis scaling
-    data->y_axis_scaling_configs[0] = (GraphYAxisScalingConfig) {
+    data->y_axis_scaling_configs[0] = (GraphYAxisScalingConfig){
         .has_y_axis_range = true,
         .y_min = 0,
         .y_max = 0,
@@ -225,7 +225,7 @@ Layer *create_weather_forecast_layer(LayerBuilder builder) {
     };
 
     // Temperature Y-axis scaling (auto)
-    data->y_axis_scaling_configs[1] = (GraphYAxisScalingConfig) {
+    data->y_axis_scaling_configs[1] = (GraphYAxisScalingConfig){
         .has_y_axis_range = false,
     };
 
@@ -233,7 +233,7 @@ Layer *create_weather_forecast_layer(LayerBuilder builder) {
     update_layer_settings(data);
 
     // Rain series config
-    data->series_configs[0] = (GraphSeriesConfig) {
+    data->series_configs[0] = (GraphSeriesConfig){
         .graph_type = GRAPH_TYPE_LINE,
         .dot_size = 1,
         .min_interpolated_dot_distance_px = 0,
@@ -253,7 +253,7 @@ Layer *create_weather_forecast_layer(LayerBuilder builder) {
     };
 
     // Temperature series config
-    data->series_configs[1] = (GraphSeriesConfig) {
+    data->series_configs[1] = (GraphSeriesConfig){
         .graph_type = GRAPH_TYPE_LINE,
         .dot_size = 1,
         .min_interpolated_dot_distance_px = 0,
