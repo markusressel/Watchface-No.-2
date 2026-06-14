@@ -26,7 +26,26 @@ void test_set_theme_dark(void) {
     TEST_ASSERT_EQUAL_HEX(GColorWhite.argb, theme->DateTextColor.argb);
     TEST_ASSERT_EQUAL_HEX(GColorWhite.argb, theme->BatteryOutlineColor.argb);
     TEST_ASSERT_EQUAL_HEX(GColorWhite.argb, theme->BatteryFillColor.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorRed.argb, theme->BatteryLowColor.argb);
     TEST_ASSERT_EQUAL_HEX(GColorWhite.argb, theme->WeatherTextColor.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorDarkGray.argb, theme->WeatherAxisTickColor.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorWhite.argb, theme->WeatherIndicatorColor.argb);
+
+#if defined(PBL_COLOR)
+    TEST_ASSERT_EQUAL_HEX(GColorBlueMoon.argb, theme->ForecastTempColorM10.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorPictonBlue.argb, theme->ForecastTempColor0.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorGreen.argb, theme->ForecastTempColor10.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorChromeYellow.argb, theme->ForecastTempColor20.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorOrange.argb, theme->ForecastTempColor30.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorRed.argb, theme->ForecastTempColor40.argb);
+
+    TEST_ASSERT_EQUAL_HEX(GColorLightGray.argb, theme->ForecastRainColor0.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorPictonBlue.argb, theme->ForecastRainColor3.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorBlueMoon.argb, theme->ForecastRainColor10.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorBlue.argb, theme->ForecastRainColor50.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorDukeBlue.argb, theme->ForecastRainColor100.argb);
+#endif
+
     TEST_ASSERT_EQUAL_HEX(GColorWhite.argb, theme->StepcountTextColor.argb);
     TEST_ASSERT_EQUAL_HEX(GColorWhite.argb, theme->HeartrateTextColor.argb);
 }
@@ -42,7 +61,26 @@ void test_set_theme_light(void) {
     TEST_ASSERT_EQUAL_HEX(GColorBlack.argb, theme->DateTextColor.argb);
     TEST_ASSERT_EQUAL_HEX(GColorBlack.argb, theme->BatteryOutlineColor.argb);
     TEST_ASSERT_EQUAL_HEX(GColorBlack.argb, theme->BatteryFillColor.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorRed.argb, theme->BatteryLowColor.argb);
     TEST_ASSERT_EQUAL_HEX(GColorBlack.argb, theme->WeatherTextColor.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorDarkGray.argb, theme->WeatherAxisTickColor.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorBlack.argb, theme->WeatherIndicatorColor.argb);
+
+#if defined(PBL_COLOR)
+    TEST_ASSERT_EQUAL_HEX(GColorBlueMoon.argb, theme->ForecastTempColorM10.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorPictonBlue.argb, theme->ForecastTempColor0.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorGreen.argb, theme->ForecastTempColor10.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorChromeYellow.argb, theme->ForecastTempColor20.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorOrange.argb, theme->ForecastTempColor30.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorRed.argb, theme->ForecastTempColor40.argb);
+
+    TEST_ASSERT_EQUAL_HEX(GColorLightGray.argb, theme->ForecastRainColor0.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorPictonBlue.argb, theme->ForecastRainColor3.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorBlueMoon.argb, theme->ForecastRainColor10.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorBlue.argb, theme->ForecastRainColor50.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorDukeBlue.argb, theme->ForecastRainColor100.argb);
+#endif
+
     TEST_ASSERT_EQUAL_HEX(GColorBlack.argb, theme->StepcountTextColor.argb);
     TEST_ASSERT_EQUAL_HEX(GColorBlack.argb, theme->HeartrateTextColor.argb);
 }
@@ -56,7 +94,26 @@ void test_init_custom_theme(void) {
     custom_theme.DateTextColor = GColorBlue;
     custom_theme.BatteryOutlineColor = GColorYellow;
     custom_theme.BatteryFillColor = GColorCyan;
+    custom_theme.BatteryLowColor = GColorVividCerulean;
     custom_theme.WeatherTextColor = GColorMagenta;
+    custom_theme.WeatherAxisTickColor = GColorDarkGray;
+    custom_theme.WeatherIndicatorColor = GColorWhite;
+
+#if defined(PBL_COLOR)
+    custom_theme.ForecastTempColorM10 = GColorBlueMoon;
+    custom_theme.ForecastTempColor0 = GColorPictonBlue;
+    custom_theme.ForecastTempColor10 = GColorGreen;
+    custom_theme.ForecastTempColor20 = GColorChromeYellow;
+    custom_theme.ForecastTempColor30 = GColorOrange;
+    custom_theme.ForecastTempColor40 = GColorRed;
+
+    custom_theme.ForecastRainColor0 = GColorLightGray;
+    custom_theme.ForecastRainColor3 = GColorPictonBlue;
+    custom_theme.ForecastRainColor10 = GColorBlueMoon;
+    custom_theme.ForecastRainColor50 = GColorBlue;
+    custom_theme.ForecastRainColor100 = GColorDukeBlue;
+#endif
+
     custom_theme.StepcountTextColor = GColorOrange;
     custom_theme.HeartrateTextColor = GColorPurple;
     theme_set_fonts(&custom_theme, false);
