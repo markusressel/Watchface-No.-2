@@ -72,9 +72,11 @@ Pebble.addEventListener('appmessage',
 
         if ("AppReady" in dict) {
             onAppReady();
-        } else if ("RequestWeatherData" in dict) {
+        }
+        if ("RequestWeatherData" in dict) {
             onRequestWeatherData()
-        } else if ("RequestSettings" in dict) {
+        }
+        if ("RequestSettings" in dict) {
             onRequestSettings()
         }
     }

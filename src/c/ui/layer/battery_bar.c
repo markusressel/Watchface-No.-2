@@ -8,8 +8,9 @@
 #include "../ui_state.h"
 
 typedef struct {
-    HorizontalAlignment horizontal_alignment;
-    VerticalAlignment vertical_alignment;
+    uint8_t horizontal_alignment;
+    uint8_t vertical_alignment;
+    uint8_t rendering_mode;
 } BatteryLayerData;
 
 static int s_active_battery_layers = 0;
@@ -28,31 +29,37 @@ static int s_battery_charging_animation_duration_ms = 2000;
 static int s_battery_charging_animation_delay_ms = 600;
 static const int s_battery_charging_animation_repeat_count = ANIMATION_DURATION_INFINITE;
 
-static int scaled_dimension(int value, float scale_factor) {
-    int scaled = (int) ((float) value * scale_factor + 0.5f);
-    return scaled < 1 ? 1 : scaled;
-}
-
-static float auto_scale_for_height(const ClaySettings *settings, int available_height) {
+static float auto_scale_for_height(
+    const ClaySettings *settings,
+    int available_height,
+    DottedTextRenderingMode mode
+) {
     const int base_height = (5 * settings->DotHeight) + (4 * settings->DotVerticalGap);
     if (base_height <= 0 || available_height <= 0) {
         return 1.0f;
     }
 
     float scale = (float) available_height / (float) base_height;
-    return scale > 0.0f ? scale : 1.0f;
-}
+    if (scale <= 0.0f) {
+        return 1.0f;
+    }
 
-static void fit_vertical_metrics_to_bounds(int *dot_height, int *gap_vertical, int max_height) {
-    while ((5 * (*dot_height) + 4 * (*gap_vertical)) > max_height) {
-        if (*gap_vertical > 1) {
-            (*gap_vertical)--;
-        } else if (*dot_height > 1) {
-            (*dot_height)--;
-        } else {
-            break;
+    if (mode == DOTTED_TEXT_RENDERING_MODE_PIXEL_PERFECT) {
+        // Calculate the total height with current scale using rounding.
+        int scaled_h = (int) ((float) settings->DotHeight * scale + 0.5f);
+        int scaled_g = (int) ((float) settings->DotVerticalGap * scale + 0.5f);
+        int total_h = 5 * scaled_h + 4 * scaled_g;
+
+        if (total_h > available_height) {
+            // Apply safe algebraic lower bound. Max error for 9 segments is 4.5 pixels.
+            scale = (float) (available_height - 4.5f) / (float) base_height;
+            if (scale <= 0.0f) {
+                scale = 0.1f;
+            }
         }
     }
+
+    return scale;
 }
 
 static void draw_battery_fill(int percent) {
@@ -84,125 +91,89 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
 
     const HorizontalAlignment horizontal_alignment = data ? data->horizontal_alignment : HORIZONTAL_ALIGN_RIGHT;
     const VerticalAlignment vertical_alignment = data ? data->vertical_alignment : VERTICAL_ALIGN_TOP;
+    const DottedTextRenderingMode rendering_mode = data ? data->rendering_mode : DOTTED_TEXT_RENDERING_MODE_SUBPIXEL;
 
     ClaySettings *settings = clay_get_settings();
     float scale_factor = settings->DotAutoScale
-                             ? auto_scale_for_height(settings, bounds.size.h)
+                             ? auto_scale_for_height(settings, bounds.size.h, rendering_mode)
                              : settings->DotScaleFactor;
-    if (scale_factor <= 0.0f) {
-        scale_factor = 1.0f;
+    if (scale_factor <= 0.0f) scale_factor = 1.0f;
+
+    float dw = (float) settings->DotWidth * scale_factor;
+    float dh = (float) settings->DotHeight * scale_factor;
+    float gh = (float) settings->DotHorizontalGap * scale_factor;
+    float gv = (float) settings->DotVerticalGap * scale_factor;
+
+    if (rendering_mode == DOTTED_TEXT_RENDERING_MODE_PIXEL_PERFECT) {
+        dw = (float) ((int) (dw + 0.5f));
+        dh = (float) ((int) (dh + 0.5f));
+        gh = (float) ((int) (gh + 0.5f));
+        gv = (float) ((int) (gv + 0.5f));
     }
 
-    const int dot_width = scaled_dimension(settings->DotWidth, scale_factor);
-    int dot_height = scaled_dimension(settings->DotHeight, scale_factor);
-    const int gap_horizontal = scaled_dimension(settings->DotHorizontalGap, scale_factor);
-    int gap_vertical = scaled_dimension(settings->DotVerticalGap, scale_factor);
-    fit_vertical_metrics_to_bounds(&dot_height, &gap_vertical, bounds.size.h);
-    const int step_x = dot_width + gap_horizontal;
-    const int step_y = dot_height + gap_vertical;
+    const float sx = dw + gh;
+    const float sy = dh + gv;
 
-    const int left_margin = 0;
-    const int right_margin = 0;
+    const int width_dots_count = (int) (((float) bounds.size.w + gh) / sx);
+    if (width_dots_count < 5) return;
 
-    // Draw battery outline
+    const float battery_width = dw + ((float) (width_dots_count - 1) * sx);
+    const float battery_height = dh + (4.0f * sy);
+    float start_x = 0, start_y = 0;
+
+    if (horizontal_alignment == HORIZONTAL_ALIGN_CENTER) start_x = ((float) bounds.size.w - battery_width) / 2.0f;
+    else if (horizontal_alignment == HORIZONTAL_ALIGN_RIGHT) start_x = (float) bounds.size.w - battery_width;
+
+    if (vertical_alignment == VERTICAL_ALIGN_CENTER) start_y = ((float) bounds.size.h - battery_height) / 2.0f;
+    else if (vertical_alignment == VERTICAL_ALIGN_BOTTOM) start_y = (float) bounds.size.h - battery_height;
+
     graphics_context_set_stroke_color(ctx, theme_get_theme()->BatteryOutlineColor);
     graphics_context_set_fill_color(ctx, theme_get_theme()->BatteryOutlineColor);
 
-    // Calculate how many matrix columns fit horizontally.
-    const int available_width = bounds.size.w - left_margin - right_margin;
-    const int width_dots_count = (available_width + gap_horizontal) / step_x;
-    if (width_dots_count < 5) {
-        // if the available space is too small, don't draw the battery at all
-        return;
-    }
-    const int battery_width = dot_width + ((width_dots_count - 1) * step_x);
-    const int battery_height = dot_height + (4 * step_y);
-    int start_x = 0;
-    int start_y = 0;
-
-    if (horizontal_alignment == HORIZONTAL_ALIGN_CENTER) {
-        start_x = (bounds.size.w - battery_width) / 2;
-    } else if (horizontal_alignment == HORIZONTAL_ALIGN_RIGHT) {
-        start_x = bounds.size.w - battery_width;
-    }
-    if (start_x < 0) {
-        start_x = 0;
-    }
-
-    if (vertical_alignment == VERTICAL_ALIGN_CENTER) {
-        start_y = (bounds.size.h - battery_height) / 2;
-    } else if (vertical_alignment == VERTICAL_ALIGN_BOTTOM) {
-        start_y = bounds.size.h - battery_height;
-    }
-    if (start_y < 0) {
-        start_y = 0;
-    }
-
-    // upper row
-    int x; // dot x position;
-    int y; // dot y position;
-    GRect currentDotBorder;
     for (int row = 0; row < 5; row++) {
-        y = start_y + row * step_y;
+        const float y_f = start_y + (float) row * sy;
+        const int y = (int) (y_f + 0.5f);
+        const int h = (rendering_mode == DOTTED_TEXT_RENDERING_MODE_SUBPIXEL) ? (int) (y_f + dh + 0.5f) - y : (int) (dh + 0.5f);
 
-        // single dot at the tip (representing +pole)
         if (row == 2) {
-            x = ((width_dots_count - 1) * step_x);
-            currentDotBorder = GRect(
-                start_x + battery_width - dot_width - x,
-                y,
-                dot_width,
-                dot_height);
-            graphics_fill_rect(ctx, currentDotBorder, 0, GCornerNone);
+            // Tip pole on the LEFT
+            const int x = (int) (start_x + 0.5f);
+            const int w = (rendering_mode == DOTTED_TEXT_RENDERING_MODE_SUBPIXEL) ? (int) (start_x + dw + 0.5f) - x : (int) (dw + 0.5f);
+            graphics_fill_rect(ctx, GRect(x, y, w, h), 0, GCornerNone);
         }
 
-        // upper and lower row
         if (row == 0 || row == 4) {
-            for (int column = 0; column < width_dots_count - 1; column++) {
-                x = (column * step_x);
-                currentDotBorder = GRect(
-                    start_x + battery_width - dot_width - x,
-                    y,
-                    dot_width,
-                    dot_height);
-                graphics_fill_rect(ctx, currentDotBorder, 0, GCornerNone);
+            for (int col = 0; col < width_dots_count - 1; col++) {
+                const float x_f = start_x + battery_width - dw - (float) col * sx;
+                const int x = (int) (x_f + 0.5f);
+                const int w = (rendering_mode == DOTTED_TEXT_RENDERING_MODE_SUBPIXEL) ? (int) (x_f + dw + 0.5f) - x : (int) (dw + 0.5f);
+                graphics_fill_rect(ctx, GRect(x, y, w, h), 0, GCornerNone);
             }
         } else {
-            // single dot at beginning and end of the battery (left and right borders)
-
-            x = ((width_dots_count - 2) * step_x);
-            currentDotBorder = GRect(
-                start_x + battery_width - dot_width - x,
-                y,
-                dot_width,
-                dot_height);
-            graphics_fill_rect(ctx, currentDotBorder, 0, GCornerNone);
-
-            x = 0;
-            currentDotBorder = GRect(
-                start_x + battery_width - dot_width - x,
-                y,
-                dot_width,
-                dot_height);
-            graphics_fill_rect(ctx, currentDotBorder, 0, GCornerNone);
+            // Left & Right borders
+            for (int i = 0; i < 2; i++) {
+                const float x_f = (i == 0) ? start_x + sx : start_x + battery_width - dw;
+                const int x = (int) (x_f + 0.5f);
+                const int w = (rendering_mode == DOTTED_TEXT_RENDERING_MODE_SUBPIXEL) ? (int) (x_f + dw + 0.5f) - x : (int) (dw + 0.5f);
+                graphics_fill_rect(ctx, GRect(x, y, w, h), 0, GCornerNone);
+            }
         }
     }
 
-    // Draw the bar inside
-    graphics_context_set_fill_color(ctx, theme_get_theme()->BatteryFillColor);
-
-    int fillDotsCount = (s_current_battery_level * (width_dots_count - 5)) / 100;
-
-    const int row = 2;
-    for (int column = 0; column < fillDotsCount; column++) {
-        x = ((column + 2) * step_x);
-        y = start_y + row * step_y;
-        currentDotBorder = GRect(
-            start_x + battery_width - dot_width - x,
-            y,
-            dot_width,
-            dot_height);
-        graphics_fill_rect(ctx, currentDotBorder, 0, GCornerNone);
+    if (s_current_battery_level <= settings->LowBatteryThreshold) {
+        graphics_context_set_fill_color(ctx, theme_get_theme()->BatteryLowColor);
+    } else {
+        graphics_context_set_fill_color(ctx, theme_get_theme()->BatteryFillColor);
+    }
+    const int fill_dots = (s_current_battery_level * (width_dots_count - 5)) / 100;
+    const float y_f = start_y + 2.0f * sy;
+    const int y = (int) (y_f + 0.5f);
+    const int h = (rendering_mode == DOTTED_TEXT_RENDERING_MODE_SUBPIXEL) ? (int) (y_f + dh + 0.5f) - y : (int) (dh + 0.5f);
+    for (int col = 0; col < fill_dots; col++) {
+        const float x_f = start_x + battery_width - dw - (float) (col + 2) * sx;
+        const int x = (int) (x_f + 0.5f);
+        const int w = (rendering_mode == DOTTED_TEXT_RENDERING_MODE_SUBPIXEL) ? (int) (x_f + dw + 0.5f) - x : (int) (dw + 0.5f);
+        graphics_fill_rect(ctx, GRect(x, y, w, h), 0, GCornerNone);
     }
 }
 
@@ -272,6 +243,8 @@ Layer *create_battery_bar_layer(LayerBuilder builder) {
 
     data->horizontal_alignment = HORIZONTAL_ALIGN_RIGHT;
     data->vertical_alignment = VERTICAL_ALIGN_TOP;
+    data->rendering_mode = DOTTED_TEXT_RENDERING_MODE_PIXEL_PERFECT;
+
 
     s_active_battery_layers++;
 
@@ -325,6 +298,22 @@ void battery_bar_layer_set_vertical_alignment(Layer *layer, VerticalAlignment al
     }
 
     data->vertical_alignment = alignment;
+    layer_mark_dirty(layer);
+}
+
+void battery_bar_layer_set_rendering_mode(Layer *layer, DottedTextRenderingMode mode) {
+    if (!layer) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Battery bar layer is NULL!");
+        return;
+    }
+
+    BatteryLayerData *data = layer_get_data(layer);
+    if (!data) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Battery bar layer data not found!");
+        return;
+    }
+
+    data->rendering_mode = mode;
     layer_mark_dirty(layer);
 }
 

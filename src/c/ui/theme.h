@@ -23,9 +23,31 @@ typedef struct Theme {
     // Battery Bar Layer
     GColor BatteryOutlineColor;
     GColor BatteryFillColor;
+    GColor BatteryLowColor;
 
     // Weather Layer
     GColor WeatherTextColor;
+    GColor WeatherMaxTempColor;
+    GColor WeatherCurrentTempColor;
+    GColor WeatherMinTempColor;
+    GColor WeatherAxisTickColor;
+    GColor WeatherIndicatorColor;
+
+#if defined(PBL_COLOR)
+    // Forecast Graph Colors
+    GColor ForecastTempColorM10;
+    GColor ForecastTempColor0;
+    GColor ForecastTempColor10;
+    GColor ForecastTempColor20;
+    GColor ForecastTempColor30;
+    GColor ForecastTempColor40;
+
+    GColor ForecastRainColor0;
+    GColor ForecastRainColor3;
+    GColor ForecastRainColor10;
+    GColor ForecastRainColor50;
+    GColor ForecastRainColor100;
+#endif
 
     // Stepcount layer
     GColor StepcountTextColor;

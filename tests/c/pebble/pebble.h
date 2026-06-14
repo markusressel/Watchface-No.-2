@@ -40,6 +40,13 @@ typedef struct GColor {
 #define GColorMagenta   ((GColor){.argb = 0b11110011})
 #define GColorOrange    ((GColor){.argb = 0b11110100})
 #define GColorPurple    ((GColor){.argb = 0b11010010})
+#define GColorPictonBlue ((GColor){.argb = 0b11001011}) // Mock Picton Blue
+#define GColorDarkGray   ((GColor){.argb = 0b11010101}) // Mock Dark Gray
+#define GColorBlueMoon   ((GColor){.argb = 0b11000110}) // Mock Blue Moon
+#define GColorChromeYellow ((GColor){.argb = 0b11111000}) // Mock Chrome Yellow
+#define GColorVividCerulean ((GColor){.argb = 0b11001011}) // Mock Vivid Cerulean
+#define GColorLightGray  ((GColor){.argb = 0b11101010}) // Mock Light Gray
+#define GColorDukeBlue   ((GColor){.argb = 0b11000010}) // Mock Duke Blue
 #define GColorClear     ((GColor){.argb = 0b00000000}) // Mock GColorClear
 
 // Mock gcolor_equal function

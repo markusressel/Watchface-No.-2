@@ -631,7 +631,10 @@ void graph_instance_draw(const GraphInstance *instance, GContext *ctx, const GRe
 
             const int x = (int) ((final_x_idx * (float) (bounds.size.w - max_dot_size)) / (float) (max_points - 1)) + (max_dot_size / 2);
             graphics_context_set_stroke_color(ctx, instance->config.axis.indicator_line_color);
-            graphics_draw_line(ctx, GPoint(x, 0), GPoint(x, bounds.size.h));
+            int y_bottom = bounds.size.h;
+            int y_top = y_bottom - instance->config.axis.tick_length_y;
+            if (y_top < 0) y_top = 0;
+            graphics_draw_line(ctx, GPoint(x, y_bottom), GPoint(x, y_top));
         }
     }
 }

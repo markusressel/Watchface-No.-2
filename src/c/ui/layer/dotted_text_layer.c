@@ -7,21 +7,16 @@ static DottedTextLayerData *get_layer_data(const DottedTextLayer *dotted_text_la
     return layer_get_data(dotted_text_layer);
 }
 
-static int scaled_dimension(int value, float scale_factor) {
-    int scaled = (int) ((float) value * scale_factor + 0.5f);
-    return scaled < 1 ? 1 : scaled;
-}
-
-static int scaled_non_negative_dimension(int value, float scale_factor) {
-    int scaled = (int) ((float) value * scale_factor + 0.5f);
-    return scaled < 0 ? 0 : scaled;
-}
-
 static int matrix_base_height(int dot_height, int gap_vertical) {
     return (5 * dot_height) + (4 * gap_vertical);
 }
 
-static float auto_scale_for_height(int dot_height, int gap_vertical, int available_height) {
+static float auto_scale_for_height(
+    int dot_height,
+    int gap_vertical,
+    int available_height,
+    DottedTextRenderingMode mode
+) {
     const int base_height = matrix_base_height(dot_height, gap_vertical);
     if (base_height <= 0 || available_height <= 0) {
         return 1.0f;
@@ -32,72 +27,42 @@ static float auto_scale_for_height(int dot_height, int gap_vertical, int availab
         return 1.0f;
     }
 
-    // Iteratively reduce scale until the text fits.
-    // This is to correct for rounding errors that can make the text too tall.
-    for (int i = 0; i < 5; i++) {
-        // Limit iterations to prevent infinite loops
-        int scaled_h = scaled_dimension(dot_height, scale);
-        int scaled_g = scaled_non_negative_dimension(gap_vertical, scale);
+    if (mode == DOTTED_TEXT_RENDERING_MODE_PIXEL_PERFECT) {
+        // Calculate the total height with current scale using rounding.
+        int scaled_h = (int) ((float) dot_height * scale + 0.5f);
+        int scaled_g = (int) ((float) gap_vertical * scale + 0.5f);
         int total_h = 5 * scaled_h + 4 * scaled_g;
 
-        if (total_h <= available_height) {
-            break; // It fits, we are done.
+        if (total_h > available_height) {
+            // If rounded values exceed available height, apply a safe algebraic lower bound.
+            // The maximum possible rounding error for 9 segments is 4.5 pixels.
+            scale = (float) (available_height - 4.5f) / (float) base_height;
+            if (scale <= 0.0f) {
+                scale = 0.1f; // Minimum fallback scale
+            }
         }
-
-        // It doesn't fit, reduce scale.
-        // The ratio of heights is a good heuristic for reduction.
-        scale *= (float) available_height / (float) total_h;
     }
 
     return scale;
 }
 
 // Returns the scale factor to use based on the layer data and available height.
-static float get_scale_factor(DottedTextLayerData *data, int base_dot_height, int base_gap_vertical, int available_height) {
+static float get_scale_factor(
+    DottedTextLayerData *data,
+    int base_dot_height,
+    int base_gap_vertical,
+    int available_height
+) {
     if (!data->auto_scale) {
         return data->scale_factor;
     }
 
-    if (data->cached_bounds_h == available_height &&
-        data->cached_base_dot_height == base_dot_height &&
-        data->cached_base_gap_vertical == base_gap_vertical) {
-        return data->cached_scale;
-    }
-
-    float scale_factor = auto_scale_for_height(base_dot_height, base_gap_vertical, available_height);
-    data->cached_bounds_h = available_height;
-    data->cached_base_dot_height = base_dot_height;
-    data->cached_base_gap_vertical = base_gap_vertical;
-    data->cached_scale = scale_factor;
-
-    return scale_factor;
-}
-
-static int text_width_in_pixels(
-    const char *text,
-    const unsigned int length,
-    int dot_width,
-    int gap_size_horizontal,
-    int character_offset,
-    int digit_size
-) {
-    if (!text) {
-        return 0;
-    }
-
-    int width = 0;
-    for (unsigned int i = 0; i < length; i++) {
-        const int glyph_width = pixel_matrix_drawer_char_width(text[i], digit_size);
-        width += glyph_width * dot_width;
-        if (glyph_width > 1) {
-            width += (glyph_width - 1) * gap_size_horizontal;
-        }
-        if (i + 1 < length) {
-            width += character_offset;
-        }
-    }
-
-    return width;
+    return auto_scale_for_height(
+        base_dot_height,
+        base_gap_vertical,
+        available_height,
+        data->rendering_mode
+    );
 }
 
 static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
@@ -120,48 +85,65 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
         scale_factor = 1.0f;
     }
 
-    int dot_width = scaled_dimension(base_dot_width, scale_factor);
-    int dot_height = scaled_dimension(base_dot_height, scale_factor);
-    int gap_size_horizontal = scaled_non_negative_dimension(base_gap_horizontal, scale_factor);
-    int gap_size_vertical = scaled_non_negative_dimension(base_gap_vertical, scale_factor);
+    float dot_width = (float) base_dot_width * scale_factor;
+    float dot_height = (float) base_dot_height * scale_factor;
+    float gap_size_horizontal = (float) base_gap_horizontal * scale_factor;
+    float gap_size_vertical = (float) base_gap_vertical * scale_factor;
+
+    if (data->rendering_mode == DOTTED_TEXT_RENDERING_MODE_PIXEL_PERFECT) {
+        dot_width = (float) ((int) (dot_width + 0.5f));
+        dot_height = (float) ((int) (dot_height + 0.5f));
+        gap_size_horizontal = (float) ((int) (gap_size_horizontal + 0.5f));
+        gap_size_vertical = (float) ((int) (gap_size_vertical + 0.5f));
+    }
+
     const int digit_width = data->custom_digit_width > 0
                                 ? data->custom_digit_width
                                 : clay_get_settings()->DigitWidth;
-    int character_offset;
+
+    float character_offset;
     if (!data->character_offset_overridden) {
-        character_offset = 2 * dot_width;
-    } else if (data->character_offset_unit == DOTTED_TEXT_OFFSET_BLOCKS) {
-        character_offset = data->character_offset_value * dot_width;
+        character_offset = 2.0f * dot_width;
+    } else if (data->character_offset_unit == DOTTED_TEXT_OFFSET_UNIT_BLOCKS) {
+        character_offset = (float) data->character_offset_value * dot_width;
     } else {
-        character_offset = scaled_non_negative_dimension(data->character_offset_value, scale_factor);
+        character_offset = (float) data->character_offset_value * scale_factor;
+        if (data->rendering_mode == DOTTED_TEXT_RENDERING_MODE_PIXEL_PERFECT) {
+            character_offset = (float) ((int) (character_offset + 0.5f));
+        }
     }
 
-    const int text_height = (5 * dot_height) + (4 * gap_size_vertical);
-    int start_y = 0;
+    const float text_height = (5.0f * dot_height) + (4.0f * gap_size_vertical);
+    float start_y = 0;
     if (data->vertical_alignment == VERTICAL_ALIGN_CENTER) {
-        start_y = (bounds.size.h - text_height) / 2;
+        start_y = ((float) bounds.size.h - text_height) / 2.0f;
     } else if (data->vertical_alignment == VERTICAL_ALIGN_BOTTOM) {
-        start_y = bounds.size.h - text_height;
+        start_y = (float) bounds.size.h - text_height;
     }
     if (start_y < 0) {
         start_y = 0;
     }
 
     const unsigned int length = strlen(data->text);
-    const int text_width = text_width_in_pixels(
-        data->text,
-        length,
-        dot_width,
-        gap_size_horizontal,
-        character_offset,
-        digit_width
-    );
 
-    int current_start_x = 0;
+    // Calculate width in pixels using float math
+    float text_width = 0;
+    for (unsigned int i = 0; i < length; i++) {
+        const int glyph_width = pixel_matrix_drawer_char_width(data->text[i], digit_width);
+        text_width += (float) glyph_width * dot_width;
+        if (glyph_width > 1) {
+            text_width += (float) (glyph_width - 1) * gap_size_horizontal;
+        }
+        if (i + 1 < length) {
+            text_width += character_offset;
+        }
+    }
+
+    float current_start_x = 0;
     if (data->horizontal_alignment == HORIZONTAL_ALIGN_CENTER) {
-        current_start_x = (bounds.size.w - text_width) / 2;
+        current_start_x = ((float) bounds.size.w - text_width) / 2.0f;
     } else if (data->horizontal_alignment == HORIZONTAL_ALIGN_RIGHT) {
-        current_start_x = bounds.size.w - text_width;
+        current_start_x = (float) bounds.size.w - text_width;
     }
     if (current_start_x < 0) {
         current_start_x = 0;
@@ -172,19 +154,18 @@ static void update_proc(DottedTextLayer *dotted_text_layer, GContext *ctx) {
 
         int pixelated_char_width = pixel_matrix_drawer_draw_char(
             ctx,
-            GPoint(current_start_x, start_y),
+            current_start_x, start_y,
             current_character,
             data->text_color,
             dot_width, dot_height,
             gap_size_horizontal, gap_size_vertical,
             false,
-            digit_width
+            digit_width,
+            data->rendering_mode
         );
 
-        // APP_LOG(APP_LOG_LEVEL_DEBUG, "pxelated char width: %d", pixelated_char_width);
-
-        current_start_x += pixelated_char_width * dot_width
-                + ((pixelated_char_width - 1) * gap_size_horizontal);
+        current_start_x += (float) pixelated_char_width * dot_width
+                + ((float) (pixelated_char_width - 1) * gap_size_horizontal);
         if (i + 1 < length) {
             current_start_x += character_offset;
         }
@@ -198,9 +179,11 @@ DottedTextLayer *dotted_text_layer_create(GRect bounds) {
     data->text = NULL;
     data->horizontal_alignment = HORIZONTAL_ALIGN_LEFT;
     data->vertical_alignment = VERTICAL_ALIGN_TOP;
+    data->rendering_mode = DOTTED_TEXT_RENDERING_MODE_PIXEL_PERFECT;
     data->character_offset_overridden = false;
+
     data->character_offset_value = 0;
-    data->character_offset_unit = DOTTED_TEXT_OFFSET_PIXELS;
+    data->character_offset_unit = DOTTED_TEXT_OFFSET_UNIT_PIXELS;
     data->scale_factor = 1.0f;
     data->auto_scale = true;
     data->use_custom_metrics = false;
@@ -210,12 +193,10 @@ DottedTextLayer *dotted_text_layer_create(GRect bounds) {
     data->custom_gap_vertical = 0;
     data->custom_digit_width = 0;
     data->text_color = GColorBlack;
-    data->cached_bounds_h = -1;
-    data->cached_base_dot_height = -1;
-    data->cached_base_gap_vertical = -1;
-    data->cached_scale = 1.0f;
+
     // connect with update method
     layer_set_update_proc(dotted_text_layer, update_proc);
+
 
     return dotted_text_layer;
 }
@@ -295,6 +276,20 @@ void dotted_text_layer_set_vertical_alignment(
     layer_mark_dirty(dotted_text_layer);
 }
 
+void dotted_text_layer_set_rendering_mode(
+    DottedTextLayer *dotted_text_layer,
+    DottedTextRenderingMode mode
+) {
+    if (!dotted_text_layer) {
+        APP_LOG(APP_LOG_LEVEL_ERROR, "DottedTextLayer is NULL!");
+        return;
+    }
+
+    DottedTextLayerData *data = get_layer_data(dotted_text_layer);
+    data->rendering_mode = mode;
+    layer_mark_dirty(dotted_text_layer);
+}
+
 void dotted_text_layer_set_color(DottedTextLayer *dotted_text_layer, GColor color) {
     if (!dotted_text_layer) {
         APP_LOG(APP_LOG_LEVEL_ERROR, "DottedTextLayer is NULL!");
@@ -348,7 +343,7 @@ void dotted_text_layer_set_character_offset(
         return;
     }
 
-    if (unit != DOTTED_TEXT_OFFSET_PIXELS && unit != DOTTED_TEXT_OFFSET_BLOCKS) {
+    if (unit != DOTTED_TEXT_OFFSET_UNIT_PIXELS && unit != DOTTED_TEXT_OFFSET_UNIT_BLOCKS) {
         APP_LOG(APP_LOG_LEVEL_ERROR, "Invalid character offset unit!");
         return;
     }
@@ -410,6 +405,73 @@ void dotted_text_layer_set_digit_width(DottedTextLayer *dotted_text_layer, const
     DottedTextLayerData *data = get_layer_data(dotted_text_layer);
     data->custom_digit_width = digit_width;
     layer_mark_dirty(dotted_text_layer);
+}
+
+int dotted_text_layer_get_content_width(DottedTextLayer *dotted_text_layer) {
+    if (!dotted_text_layer) {
+        return 0;
+    }
+
+    DottedTextLayerData *data = get_layer_data(dotted_text_layer);
+    if (!data->text) {
+        return 0;
+    }
+
+    GRect bounds = layer_get_bounds(dotted_text_layer);
+    ClaySettings *settings = clay_get_settings();
+    int base_dot_width = data->use_custom_metrics ? data->custom_dot_width : settings->DotWidth;
+    int base_dot_height = data->use_custom_metrics ? data->custom_dot_height : settings->DotHeight;
+    int base_gap_horizontal = data->use_custom_metrics ? data->custom_gap_horizontal : settings->DotHorizontalGap;
+    int base_gap_vertical = data->use_custom_metrics ? data->custom_gap_vertical : settings->DotVerticalGap;
+
+    float scale_factor = get_scale_factor(data, base_dot_height, base_gap_vertical, bounds.size.h);
+    if (scale_factor <= 0.0f) {
+        scale_factor = 1.0f;
+    }
+
+    float dot_width = (float) base_dot_width * scale_factor;
+    float dot_height = (float) base_dot_height * scale_factor;
+    float gap_size_horizontal = (float) base_gap_horizontal * scale_factor;
+    float gap_size_vertical = (float) base_gap_vertical * scale_factor;
+
+    if (data->rendering_mode == DOTTED_TEXT_RENDERING_MODE_PIXEL_PERFECT) {
+        dot_width = (float) ((int) (dot_width + 0.5f));
+        dot_height = (float) ((int) (dot_height + 0.5f));
+        gap_size_horizontal = (float) ((int) (gap_size_horizontal + 0.5f));
+        gap_size_vertical = (float) ((int) (gap_size_vertical + 0.5f));
+    }
+
+    const int digit_width = data->custom_digit_width > 0
+                                ? data->custom_digit_width
+                                : clay_get_settings()->DigitWidth;
+
+    float character_offset;
+    if (!data->character_offset_overridden) {
+        character_offset = 2.0f * dot_width;
+    } else if (data->character_offset_unit == DOTTED_TEXT_OFFSET_UNIT_BLOCKS) {
+        character_offset = (float) data->character_offset_value * dot_width;
+    } else {
+        character_offset = (float) data->character_offset_value * scale_factor;
+        if (data->rendering_mode == DOTTED_TEXT_RENDERING_MODE_PIXEL_PERFECT) {
+            character_offset = (float) ((int) (character_offset + 0.5f));
+        }
+    }
+
+
+    float width = 0;
+    const unsigned int length = strlen(data->text);
+    for (unsigned int i = 0; i < length; i++) {
+        const int glyph_width = pixel_matrix_drawer_char_width(data->text[i], digit_width);
+        width += (float) glyph_width * dot_width;
+        if (glyph_width > 1) {
+            width += (float) (glyph_width - 1) * gap_size_horizontal;
+        }
+        if (i + 1 < length) {
+            width += character_offset;
+        }
+    }
+
+    return (int) (width + 0.5f);
 }
 
 void dotted_text_layer_destroy(DottedTextLayer *dotted_text_layer) {

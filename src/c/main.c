@@ -24,6 +24,8 @@ static void init() {
 
     ClaySettings *settings = clay_load_settings();
 
+    weather_init_data();
+
     // Create main Window element first
     s_main_window = window_create();
 
@@ -37,11 +39,15 @@ static void init() {
     // Set handler to manage the elements inside the Window
     window_set_window_handlers(
         s_main_window,
-        (WindowHandlers){
-            .load = window_load,
-            .unload = window_unload
-        }
-    );
+        (WindowHandlers)
+    {
+        .
+        load = window_load,
+        .
+        unload = window_unload
+    }
+    )
+    ;
 
     // Show the Window on the watch, with animated=true
     window_stack_push(s_main_window, true);
@@ -59,9 +65,20 @@ static void deinit() {
 
 // watchface lifecycle
 int main(void) {
+    if (DEV_OPTIONS.IsEmulator) {
+        // force backlight on continuously
+        light_enable(true);
+    }
+
     app_messaging_initialize();
     init();
-    app_messaging_send_app_ready();
+
+    if (!clay_get_settings()->InitialSyncDone) {
+        app_messaging_send_app_ready_and_request_settings();
+    } else {
+        app_messaging_send_app_ready();
+    }
+
     app_event_loop();
     deinit();
 }

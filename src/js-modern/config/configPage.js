@@ -4,199 +4,6 @@ export default [
         "defaultValue": "Watchface No. 2"
     },
     {
-        "type": "text",
-        "defaultValue": "Configure colors and other settings."
-    },
-    {
-        "type": "section",
-        "items": [
-            {
-                "type": "heading",
-                "defaultValue": "Theme"
-            },
-            {
-                "type": "radiogroup",
-                "messageKey": "Theme",
-                "label": "Theme",
-                "defaultValue": "LIGHT",
-                "options": [
-                    {
-                        "label": "Light",
-                        "value": "LIGHT"
-                    },
-                    {
-                        "label": "Dark",
-                        "value": "DARK"
-                    },
-                    {
-                        "label": "Custom",
-                        "value": "CUSTOM"
-                    }
-                ]
-            }
-        ]
-    },
-    {
-        "type": "section",
-        "items": [
-            {
-                "type": "heading",
-                "defaultValue": "Colors"
-            },
-            {
-                "type": "text",
-                "defaultValue": "These values will only have effect if you have selected \"Custom\" Theme in the section above."
-            },
-            {
-                "type": "text",
-                "defaultValue": "General"
-            },
-            {
-                "type": "color",
-                "messageKey": "BackgroundColor",
-                "defaultValue": "0x000000",
-                "label": "Background Color"
-            },
-            {
-                "type": "text",
-                "defaultValue": "Time & Date"
-            },
-            {
-                "type": "color",
-                "messageKey": "TimeTextColor",
-                "defaultValue": "0xFFFFFF",
-                "label": "Time Color"
-            },
-            {
-                "type": "color",
-                "messageKey": "DateTextColor",
-                "defaultValue": "0xFFFFFF",
-                "label": "Date Color"
-            },
-            {
-                "type": "text",
-                "defaultValue": "Battery"
-            },
-            {
-                "type": "color",
-                "messageKey": "BatteryFrameColor",
-                "defaultValue": "0xFFFFFF",
-                "label": "Battery Frame Color"
-            },
-            {
-                "type": "color",
-                "messageKey": "BatteryFillColor",
-                "defaultValue": "0xFFFFFF",
-                "label": "Battery Fill Color"
-            },
-            {
-                "type": "text",
-                "defaultValue": "Weather"
-            },
-            {
-                "type": "color",
-                "messageKey": "WeatherTextColor",
-                "defaultValue": "0xFFFFFF",
-                "label": "Weather Text Color"
-            },
-            {
-                "type": "text",
-                "defaultValue": "Stepcount"
-            },
-            {
-                "type": "color",
-                "messageKey": "StepcountTextColor",
-                "defaultValue": "0xFFFFFF",
-                "label": "Stepcount Text Color"
-            },
-            {
-                "type": "text",
-                "defaultValue": "Heartrate"
-            },
-            {
-                "type": "color",
-                "messageKey": "HeartrateTextColor",
-                "defaultValue": "0xFFFFFF",
-                "label": "Heartrate Text Color"
-            }
-        ]
-    },
-    {
-        "type": "section",
-        "items": [
-            {
-                "type": "heading",
-                "defaultValue": "Dotted Font Settings"
-            },
-            {
-                "type": "slider",
-                "messageKey": "SliderDigitWidth",
-                "defaultValue": 4,
-                "label": "Digit Width",
-                "description": "Amount of dots used to display digits",
-                "min": 3,
-                "max": 5,
-                "step": 1
-            },
-            {
-                "type": "slider",
-                "messageKey": "SliderDotWidth",
-                "defaultValue": 3,
-                "label": "Dot Width",
-                "description": "Width in Pixel for a single dot",
-                "min": 1,
-                "max": 5,
-                "step": 1
-            },
-            {
-                "type": "slider",
-                "messageKey": "SliderDotHeight",
-                "defaultValue": 3,
-                "label": "Dot Height",
-                "description": "Height in Pixel for a single dot",
-                "min": 1,
-                "max": 5,
-                "step": 1
-            },
-            {
-                "type": "slider",
-                "messageKey": "SliderDotHorizontalGap",
-                "defaultValue": 3,
-                "label": "Dot Horizontal Gap",
-                "description": "Horizontal gap in pixels between two dots",
-                "min": 1,
-                "max": 5,
-                "step": 1
-            },
-            {
-                "type": "slider",
-                "messageKey": "SliderDotVerticalGap",
-                "defaultValue": 3,
-                "label": "Dot Vertical Gap",
-                "description": "Vertical gap in pixels between two dots",
-                "min": 1,
-                "max": 5,
-                "step": 1
-            },
-            {
-                "type": "toggle",
-                "messageKey": "ToggleDotAutoScale",
-                "label": "Auto Scale",
-                "defaultValue": true
-            },
-            {
-                "type": "slider",
-                "messageKey": "SliderDotScaleFactorPercent",
-                "defaultValue": 100,
-                "label": "Manual Scale (%)",
-                "description": "Used when Auto Scale is disabled",
-                "min": 50,
-                "max": 300,
-                "step": 5
-            }
-        ]
-    },
-    {
         "type": "section",
         "items": [
             {
@@ -204,12 +11,8 @@ export default [
                 "defaultValue": "Row Layout"
             },
             {
-                "type": "text",
-                "defaultValue": "Choose how many rows to render and what each row should display."
-            },
-            {
-                "type": "text",
-                "defaultValue": "Rows 6 and 7 only take effect if Row Count is set to 6 or 7."
+                "type": "markdown",
+                "defaultValue": "Choose <b>how many</b> rows to render <b>and</b> what each row should display.<br>Rows 6 and 7 only take effect if Row Count is set to 6 or 7."
             },
             {
                 "type": "slider",
@@ -220,6 +23,10 @@ export default [
                 "min": 5,
                 "max": 7,
                 "step": 1
+            },
+            {
+                "type": "subheader",
+                "defaultValue": "Row Widget Selection"
             },
             {
                 "type": "select",
@@ -333,14 +140,14 @@ export default [
         "items": [
             {
                 "type": "heading",
-                "defaultValue": "Widgets"
+                "defaultValue": "Widget-Specific Settings"
             },
             {
                 "type": "text",
                 "defaultValue": "Configure widget-specific behavior."
             },
             {
-                "type": "heading",
+                "type": "subheader",
                 "defaultValue": "Time"
             },
             {
@@ -351,7 +158,7 @@ export default [
                 "defaultValue": false
             },
             {
-                "type": "heading",
+                "type": "subheader",
                 "defaultValue": "Date"
             },
             {
@@ -373,7 +180,7 @@ export default [
                 "defaultValue": false
             },
             {
-                "type": "heading",
+                "type": "subheader",
                 "defaultValue": "Weather"
             },
             {
@@ -381,11 +188,51 @@ export default [
                 "defaultValue": "This watchface uses https://open-meteo.com/"
             },
             {
+                "type": "select",
+                "messageKey": "WeatherSlot1",
+                "defaultValue": 2,
+                "label": "Left Slot",
+                "options": [
+                    {"label": "None", "value": 0},
+                    {"label": "Current Temp", "value": 1},
+                    {"label": "Max Temp", "value": 2},
+                    {"label": "Min Temp", "value": 3}
+                ]
+            },
+            {
+                "type": "select",
+                "messageKey": "WeatherSlot2",
+                "defaultValue": 1,
+                "label": "Middle Slot",
+                "options": [
+                    {"label": "None", "value": 0},
+                    {"label": "Current Temp", "value": 1},
+                    {"label": "Max Temp", "value": 2},
+                    {"label": "Min Temp", "value": 3}
+                ]
+            },
+            {
+                "type": "select",
+                "messageKey": "WeatherSlot3",
+                "defaultValue": 3,
+                "label": "Right Slot",
+                "options": [
+                    {"label": "None", "value": 0},
+                    {"label": "Current Temp", "value": 1},
+                    {"label": "Max Temp", "value": 2},
+                    {"label": "Min Temp", "value": 3}
+                ]
+            },
+            {
+                "type": "subheader",
+                "defaultValue": "Weather Forecast"
+            },
+            {
                 "type": "slider",
                 "messageKey": "SliderWeatherForecastPreviewHoursCount",
                 "defaultValue": 6,
                 "label": "Weather Forecast Preview Hours",
-                "description": "Number of hours to preview in weather forecast",
+                "description": "Number of hours to display in the graph",
                 "min": 1,
                 "max": 24,
                 "step": 1
@@ -395,23 +242,357 @@ export default [
                 "messageKey": "WeatherUpdateIntervalMinutes",
                 "defaultValue": 15,
                 "label": "Weather Update Interval",
-                "description": "How often the weather should update (minutes)",
+                "description": "How often the new weather data should be fetched from the API (minutes)",
                 "min": 15,
                 "max": 180,
                 "step": 15
             },
             {
-                "type": "button",
-                "id": "clear_weather_cache_button",
-                "defaultValue": "Clear Weather Cache",
-                "primary": false
+                "type": "subheader",
+                "defaultValue": "Battery"
+            },
+            {
+                "type": "slider",
+                "messageKey": "LowBatteryThreshold",
+                "defaultValue": 30,
+                "label": "Low Battery Threshold (%)",
+                "description": "The battery bar will change color when the battery level is at or below this value.",
+                "min": 0,
+                "max": 30,
+                "step": 5
+            }
+        ]
+    },
+    {
+        "type": "section",
+        "items": [
+            {
+                "type": "heading",
+                "defaultValue": "Dotted Font Settings"
+            },
+            {
+                "type": "markdown",
+                "defaultValue": "These settings define the <b>base shape</b> of the dotted characters. They apply regardless of scaling mode."
+            },
+            {
+                "type": "slider",
+                "messageKey": "SliderDigitWidth",
+                "defaultValue": 4,
+                "label": "Digit Width",
+                "description": "Number of vertical dot columns used per digit.",
+                "min": 3,
+                "max": 5,
+                "step": 1
+            },
+            {
+                "type": "slider",
+                "messageKey": "SliderDotWidth",
+                "defaultValue": 3,
+                "label": "Dot Width",
+                "description": "Internal width of a single dot.",
+                "min": 1,
+                "max": 5,
+                "step": 1
+            },
+            {
+                "type": "slider",
+                "messageKey": "SliderDotHeight",
+                "defaultValue": 3,
+                "label": "Dot Height",
+                "description": "Internal height of a single dot.",
+                "min": 1,
+                "max": 5,
+                "step": 1
+            },
+            {
+                "type": "slider",
+                "messageKey": "SliderDotHorizontalGap",
+                "defaultValue": 3,
+                "label": "Horizontal Gap",
+                "description": "Internal space between dots horizontally.",
+                "min": 1,
+                "max": 5,
+                "step": 1
+            },
+            {
+                "type": "slider",
+                "messageKey": "SliderDotVerticalGap",
+                "defaultValue": 3,
+                "label": "Vertical Gap",
+                "description": "Internal space between dots vertically.",
+                "min": 1,
+                "max": 5,
+                "step": 1
+            },
+            {
+                "type": "subheader",
+                "defaultValue": "Scaling & Layout"
             },
             {
                 "type": "toggle",
-                "messageKey": "ClearWeatherCache",
-                "label": "Clear Weather Cache on Save",
-                "defaultValue": false,
-                "id": "hidden_clear_cache"
+                "messageKey": "ToggleDotAutoScale",
+                "label": "Enable Auto Scale",
+                "defaultValue": true
+            },
+            {
+                "type": "markdown",
+                "defaultValue": "When <b>Auto Scale</b> is <b>Enabled</b>:<ul><li>Widgets automatically stretch to fill the available row height.</li><li>Spacing between rows is balanced automatically.</li><li>Use the <b>Time Row Size Ratio</b> below to control the clock's relative size.</li></ul>"
+            },
+            {
+                "type": "slider",
+                "messageKey": "SliderTimeRowRatioPercent",
+                "defaultValue": 120,
+                "label": "Time Row Size Ratio (%)",
+                "description": "Relative size of the Time row (e.g., 120% means the clock is 20% larger than other rows).",
+                "min": 100,
+                "max": 300,
+                "step": 10
+            },
+            {
+                "type": "markdown",
+                "defaultValue": "When <b>Auto Scale</b> is <b>Disabled</b>:<ul><li>Widgets use the <b>Manual Scale</b> factor below.</li><li>Dot sizes remain uniform across all widgets (<b>Pixel Perfect</b>).</li></ul>"
+            },
+            {
+                "type": "slider",
+                "messageKey": "SliderDotScaleFactorPercent",
+                "defaultValue": 100,
+                "label": "Manual Scale (%)",
+                "description": "Global multiplier for the base font metrics.",
+                "min": 50,
+                "max": 300,
+                "step": 5
+            }
+        ]
+    },
+    {
+        "type": "section",
+        "items": [
+            {
+                "type": "heading",
+                "defaultValue": "Theme"
+            },
+            {
+                "type": "radiogroup",
+                "messageKey": "Theme",
+                "label": "Theme",
+                "defaultValue": "LIGHT",
+                "options": [
+                    {
+                        "label": "Light - Black on White Background",
+                        "value": "LIGHT"
+                    },
+                    {
+                        "label": "Dark - White on Black Background",
+                        "value": "DARK"
+                    },
+                    {
+                        "label": "Custom - see below",
+                        "value": "CUSTOM"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "type": "section",
+        "items": [
+            {
+                "type": "heading",
+                "defaultValue": "Colors"
+            },
+            {
+                "type": "markdown",
+                "defaultValue": "These values <b>will only have an effect</b> if you have selected \"Custom\" Theme in the section above."
+            },
+            {
+                "type": "subheader",
+                "defaultValue": "General"
+            },
+            {
+                "type": "color",
+                "messageKey": "BackgroundColor",
+                "defaultValue": "0x000000",
+                "label": "Background"
+            },
+            {
+                "type": "subheader",
+                "defaultValue": "Time & Date"
+            },
+            {
+                "type": "color",
+                "messageKey": "TimeTextColor",
+                "defaultValue": "0xFFFFFF",
+                "label": "Time"
+            },
+            {
+                "type": "color",
+                "messageKey": "DateTextColor",
+                "defaultValue": "0xFFFFFF",
+                "label": "Date"
+            },
+            {
+                "type": "subheader",
+                "defaultValue": "Battery"
+            },
+            {
+                "type": "color",
+                "messageKey": "BatteryFrameColor",
+                "defaultValue": "0xFFFFFF",
+                "label": "Frame"
+            },
+            {
+                "type": "color",
+                "messageKey": "BatteryFillColor",
+                "defaultValue": "0xFFFFFF",
+                "label": "Bar"
+            },
+            {
+                "type": "color",
+                "messageKey": "BatteryLowColor",
+                "defaultValue": "0xFF0000",
+                "label": "Bar (Low Battery)"
+            },
+            {
+                "type": "subheader",
+                "defaultValue": "Weather"
+            },
+            {
+                "type": "color",
+                "messageKey": "WeatherTextColor",
+                "defaultValue": "0xFFFFFF",
+                "label": "Weather Forecast"
+            },
+            {
+                "type": "color",
+                "messageKey": "WeatherAxisTickColor",
+                "defaultValue": "0x555555",
+                "label": "Hour Ticks"
+            },
+            {
+                "type": "color",
+                "messageKey": "WeatherIndicatorColor",
+                "defaultValue": "0xFFFFFF",
+                "label": "Current Time Indicator"
+            },
+            {
+                "type": "color",
+                "messageKey": "WeatherMaxTempColor",
+                "defaultValue": "0xFF0000",
+                "label": "Max Temperature"
+            },
+            {
+                "type": "color",
+                "messageKey": "WeatherCurrentTempColor",
+                "defaultValue": "0xFFFFFF",
+                "label": "Current Temperature"
+            },
+            {
+                "type": "color",
+                "messageKey": "WeatherMinTempColor",
+                "defaultValue": "0x00AAFF",
+                "label": "Min Temperature"
+            },
+            {
+                "type": "subheader",
+                "defaultValue": "Forecast Graph Colors"
+            },
+            {
+                "type": "markdown",
+                "defaultValue": "These colors define the <b>gradient stops</b> used in the Weather Forecast graph. Colors are interpolated based on the value."
+            },
+            {
+                "type": "text",
+                "defaultValue": "--- Temperature Gradient Stops ---"
+            },
+            {
+                "type": "color",
+                "messageKey": "ForecastTempColorM10",
+                "defaultValue": "0x0055AA",
+                "label": "-10°C - Very cold"
+            },
+            {
+                "type": "color",
+                "messageKey": "ForecastTempColor0",
+                "defaultValue": "0x00AAFF",
+                "label": "0°C - Freezing / Ice"
+            },
+            {
+                "type": "color",
+                "messageKey": "ForecastTempColor10",
+                "defaultValue": "0x00FF00",
+                "label": "10°C - Cool / Nice"
+            },
+            {
+                "type": "color",
+                "messageKey": "ForecastTempColor20",
+                "defaultValue": "0xFFAA00",
+                "label": "20°C - Pleasant / Warm"
+            },
+            {
+                "type": "color",
+                "messageKey": "ForecastTempColor30",
+                "defaultValue": "0xFF5500",
+                "label": "30°C - Hot"
+            },
+            {
+                "type": "color",
+                "messageKey": "ForecastTempColor40",
+                "defaultValue": "0xFF0000",
+                "label": "40°C - Extremely hot"
+            },
+            {
+                "type": "text",
+                "defaultValue": "--- Rain Gradient Stops ---"
+            },
+            {
+                "type": "color",
+                "messageKey": "ForecastRainColor0",
+                "defaultValue": "0xAAAAAA",
+                "label": "0.0mm - None"
+            },
+            {
+                "type": "color",
+                "messageKey": "ForecastRainColor3",
+                "defaultValue": "0x00AAFF",
+                "label": "0.3mm - Fine mist"
+            },
+            {
+                "type": "color",
+                "messageKey": "ForecastRainColor10",
+                "defaultValue": "0x0055AA",
+                "label": "1.0mm - Light rain"
+            },
+            {
+                "type": "color",
+                "messageKey": "ForecastRainColor50",
+                "defaultValue": "0x0000FF",
+                "label": "5.0mm - Moderate rain"
+            },
+            {
+                "type": "color",
+                "messageKey": "ForecastRainColor100",
+                "defaultValue": "0x000055",
+                "label": "10.0mm - Heavy rain"
+            },
+            {
+                "type": "subheader",
+                "defaultValue": "Stepcount"
+            },
+            {
+                "type": "color",
+                "messageKey": "StepcountTextColor",
+                "defaultValue": "0xFFFFFF",
+                "label": "Text"
+            },
+            {
+                "type": "subheader",
+                "defaultValue": "Heartrate"
+            },
+            {
+                "type": "color",
+                "messageKey": "HeartrateTextColor",
+                "defaultValue": "0xFFFFFF",
+                "label": "Text"
             }
         ]
     },
@@ -431,6 +612,19 @@ export default [
                 "messageKey": "WeatherUseSimulation",
                 "label": "Use simulated weather data",
                 "defaultValue": false
+            },
+            {
+                "type": "button",
+                "id": "clear_weather_cache_button",
+                "defaultValue": "Clear Weather Cache",
+                "primary": false
+            },
+            {
+                "type": "toggle",
+                "messageKey": "ClearWeatherCache",
+                "label": "Clear Weather Cache on Save",
+                "defaultValue": false,
+                "id": "hidden_clear_cache"
             }
         ]
     },

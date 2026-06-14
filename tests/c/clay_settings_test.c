@@ -61,10 +61,35 @@ void test_clay_load_settings_with_valid_version(void) {
     TEST_ASSERT_TRUE(loaded_settings->ShowSeconds);
 }
 
+void test_clay_battery_settings_defaults(void) {
+    // Act
+    ClaySettings *settings = clay_reset_to_default_settings();
+
+    // Assert
+    TEST_ASSERT_EQUAL_INT(30, settings->LowBatteryThreshold);
+    TEST_ASSERT_EQUAL_UINT8(GColorRed.argb, settings->BatteryLowColor.argb);
+
+#if defined(PBL_COLOR)
+    TEST_ASSERT_EQUAL_UINT8(GColorBlueMoon.argb, settings->ForecastTempColorM10.argb);
+    TEST_ASSERT_EQUAL_UINT8(GColorPictonBlue.argb, settings->ForecastTempColor0.argb);
+    TEST_ASSERT_EQUAL_UINT8(GColorGreen.argb, settings->ForecastTempColor10.argb);
+    TEST_ASSERT_EQUAL_UINT8(GColorChromeYellow.argb, settings->ForecastTempColor20.argb);
+    TEST_ASSERT_EQUAL_UINT8(GColorOrange.argb, settings->ForecastTempColor30.argb);
+    TEST_ASSERT_EQUAL_UINT8(GColorRed.argb, settings->ForecastTempColor40.argb);
+
+    TEST_ASSERT_EQUAL_UINT8(GColorLightGray.argb, settings->ForecastRainColor0.argb);
+    TEST_ASSERT_EQUAL_UINT8(GColorPictonBlue.argb, settings->ForecastRainColor3.argb);
+    TEST_ASSERT_EQUAL_UINT8(GColorBlueMoon.argb, settings->ForecastRainColor10.argb);
+    TEST_ASSERT_EQUAL_UINT8(GColorBlue.argb, settings->ForecastRainColor50.argb);
+    TEST_ASSERT_EQUAL_UINT8(GColorDukeBlue.argb, settings->ForecastRainColor100.argb);
+#endif
+}
+
 
 int main() {
     UNITY_BEGIN();
     // RUN_TEST(test_clay_load_settings_migrates_old_version);
     RUN_TEST(test_clay_load_settings_with_valid_version);
+    RUN_TEST(test_clay_battery_settings_defaults);
     return UNITY_END();
 }

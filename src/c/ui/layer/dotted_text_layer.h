@@ -6,8 +6,8 @@
 typedef Layer DottedTextLayer;
 
 typedef enum DottedTextOffsetUnit {
-    DOTTED_TEXT_OFFSET_PIXELS = 0,
-    DOTTED_TEXT_OFFSET_BLOCKS = 1,
+    DOTTED_TEXT_OFFSET_UNIT_PIXELS = 0,
+    DOTTED_TEXT_OFFSET_UNIT_BLOCKS = 1,
 } DottedTextOffsetUnit;
 
 typedef enum HorizontalAlignment {
@@ -22,26 +22,28 @@ typedef enum VerticalAlignment {
     VERTICAL_ALIGN_BOTTOM = 2,
 } VerticalAlignment;
 
+typedef enum DottedTextRenderingMode {
+    DOTTED_TEXT_RENDERING_MODE_PIXEL_PERFECT = 0,
+    DOTTED_TEXT_RENDERING_MODE_SUBPIXEL = 1,
+} DottedTextRenderingMode;
+
 typedef struct DottedTextLayerData {
     char *text;
-    HorizontalAlignment horizontal_alignment;
-    VerticalAlignment vertical_alignment;
-    bool character_offset_overridden;
-    int character_offset_value;
-    DottedTextOffsetUnit character_offset_unit;
     float scale_factor;
-    bool auto_scale;
-    bool use_custom_metrics;
-    int custom_dot_width;
-    int custom_dot_height;
-    int custom_gap_horizontal;
-    int custom_gap_vertical;
-    int custom_digit_width;
     GColor text_color;
-    int cached_bounds_h;
-    int cached_base_dot_height;
-    int cached_base_gap_vertical;
-    float cached_scale;
+    int16_t character_offset_value;
+    int8_t custom_dot_width;
+    int8_t custom_dot_height;
+    int8_t custom_gap_horizontal;
+    int8_t custom_gap_vertical;
+    int8_t custom_digit_width;
+    uint8_t horizontal_alignment: 2;
+    uint8_t vertical_alignment: 2;
+    uint8_t rendering_mode: 1;
+    uint8_t character_offset_unit: 1;
+    bool character_offset_overridden: 1;
+    bool auto_scale: 1;
+    bool use_custom_metrics: 1;
 } __attribute__((__packed__)) DottedTextLayerData;
 
 
@@ -82,6 +84,11 @@ void dotted_text_layer_set_vertical_alignment(
     VerticalAlignment alignment
 );
 
+void dotted_text_layer_set_rendering_mode(
+    DottedTextLayer *dotted_text_layer,
+    DottedTextRenderingMode mode
+);
+
 // Use this method to set the scale factor for the layer.
 // This scales dot size, dot gaps, and spacing between characters.
 //
@@ -91,8 +98,8 @@ void dotted_text_layer_set_scale_factor(DottedTextLayer *dotted_text_layer, floa
 
 // Override spacing between adjacent characters.
 // unit:
-// - DOTTED_TEXT_OFFSET_PIXELS: value is interpreted as pixels before scaling
-// - DOTTED_TEXT_OFFSET_BLOCKS: value is interpreted as block-count * dot-width
+// - DOTTED_TEXT_OFFSET_UNIT_PIXELS: value is interpreted as pixels before scaling
+// - DOTTED_TEXT_OFFSET_UNIT_BLOCKS: value is interpreted as block-count * dot-width
 void dotted_text_layer_set_character_offset(
     DottedTextLayer *dotted_text_layer,
     int value,
@@ -118,6 +125,10 @@ void dotted_text_layer_set_digit_width(
     DottedTextLayer *dotted_text_layer,
     int digit_width
 );
+
+// Calculate the total width of the current text content in pixels,
+// considering current scale and metrics.
+int dotted_text_layer_get_content_width(DottedTextLayer *dotted_text_layer);
 
 
 // Use this method to destroy a DottedTextLayer

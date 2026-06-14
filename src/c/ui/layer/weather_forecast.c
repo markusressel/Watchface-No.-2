@@ -37,25 +37,6 @@ void destroy_weather_forecast_layer(Layer *layer) {
 #define NUM_GRAPH_SERIES 2
 
 #if defined(PBL_COLOR)
-static const GraphColorStop s_temperature_color_stops[] = {
-    {.value = -25, .color = GColorMagenta},
-    {.value = -12, .color = GColorBlueMoon},
-    {.value = -1, .color = GColorPictonBlue},
-    {.value = 0, .color = GColorGreen},
-    {.value = 15, .color = GColorChromeYellow},
-    {.value = 30, .color = GColorRed},
-};
-
-static const GraphColorStop s_rain_color_stops[] = {
-    {.value = -50, .color = GColorVividCerulean},
-    {.value = -10, .color = GColorPictonBlue},
-    {.value = 0, .color = GColorLightGray},
-    {.value = 3, .color = GColorPictonBlue},
-    {.value = 10, .color = GColorBlueMoon},
-    {.value = 50, .color = GColorBlue},
-    {.value = 100, .color = GColorDukeBlue},
-};
-
 static const int s_rain_scale_steps[] = {25, 50, 100, 250, 500, 1000};
 #endif
 
@@ -65,6 +46,10 @@ typedef struct {
     GraphYAxisScalingConfig y_axis_scaling_configs[NUM_GRAPH_SERIES];
     GraphInstance forecast_graph;
     int last_rendered_indicator_x;
+#if defined(PBL_COLOR)
+    GraphColorStop temperature_color_stops[6];
+    GraphColorStop rain_color_stops[5];
+#endif
 } WeatherForecastLayerData;
 
 static void update_proc(Layer *layer, GContext *ctx) {
@@ -113,7 +98,7 @@ static void update_proc(Layer *layer, GContext *ctx) {
         data->forecast_graph.config.axis.show_indicator_line = true;
         data->forecast_graph.config.axis.interpolate_indicator_line = true;
         data->forecast_graph.config.axis.indicator_line_x_index = x_index;
-        data->forecast_graph.config.axis.indicator_line_color = theme_get_theme()->WeatherTextColor;
+        data->forecast_graph.config.axis.indicator_line_color = theme_get_theme()->WeatherIndicatorColor;
 
         // Update the tracked pixel position to stay in sync
         int max_dot_size = 1;
@@ -181,13 +166,34 @@ void weather_forecast_tick_update() {
     }
 }
 
+static void update_layer_settings(WeatherForecastLayerData *data) {
+    const Theme *theme = theme_get_theme();
+    data->series_configs[1].default_color = theme->WeatherTextColor;
+    data->forecast_graph.config.axis.tick_color_x = theme->WeatherAxisTickColor;
+
+#if defined(PBL_COLOR)
+    data->temperature_color_stops[0] = (GraphColorStop){.value = -10, .color = theme->ForecastTempColorM10};
+    data->temperature_color_stops[1] = (GraphColorStop){.value = 0, .color = theme->ForecastTempColor0};
+    data->temperature_color_stops[2] = (GraphColorStop){.value = 10, .color = theme->ForecastTempColor10};
+    data->temperature_color_stops[3] = (GraphColorStop){.value = 20, .color = theme->ForecastTempColor20};
+    data->temperature_color_stops[4] = (GraphColorStop){.value = 30, .color = theme->ForecastTempColor30};
+    data->temperature_color_stops[5] = (GraphColorStop){.value = 40, .color = theme->ForecastTempColor40};
+
+    data->rain_color_stops[0] = (GraphColorStop){.value = 0, .color = theme->ForecastRainColor0};
+    data->rain_color_stops[1] = (GraphColorStop){.value = 3, .color = theme->ForecastRainColor3};
+    data->rain_color_stops[2] = (GraphColorStop){.value = 10, .color = theme->ForecastRainColor10};
+    data->rain_color_stops[3] = (GraphColorStop){.value = 50, .color = theme->ForecastRainColor50};
+    data->rain_color_stops[4] = (GraphColorStop){.value = 100, .color = theme->ForecastRainColor100};
+#endif
+}
+
 void weather_forecast_layer_update_settings() {
     for (int i = 0; i < ui_state_get_row_count(); i++) {
         if (ui_state_get_widget_id(i) == WIDGET_WEATHER_FORECAST) {
             Layer *layer = ui_state_get_layer(i);
             if (layer) {
                 WeatherForecastLayerData *data = layer_get_data(layer);
-                data->series_configs[1].default_color = theme_get_theme()->WeatherTextColor;
+                update_layer_settings(data);
                 layer_mark_dirty(layer);
             }
         }
@@ -223,6 +229,9 @@ Layer *create_weather_forecast_layer(LayerBuilder builder) {
         .has_y_axis_range = false,
     };
 
+    // Initialize color stops in data struct
+    update_layer_settings(data);
+
     // Rain series config
     data->series_configs[0] = (GraphSeriesConfig){
         .graph_type = GRAPH_TYPE_LINE,
@@ -234,8 +243,8 @@ Layer *create_weather_forecast_layer(LayerBuilder builder) {
         .interpolate_color_stops = true,
         .default_color = GColorBlue,
 #if defined(PBL_COLOR)
-        .color_stops = s_rain_color_stops,
-        .color_stop_count = (int) (sizeof(s_rain_color_stops) / sizeof(s_rain_color_stops[0])),
+        .color_stops = data->rain_color_stops,
+        .color_stop_count = 5,
 #else
         .color_stops = NULL,
         .color_stop_count = 0,
@@ -254,8 +263,8 @@ Layer *create_weather_forecast_layer(LayerBuilder builder) {
         .interpolate_color_stops = true,
         .default_color = theme_get_theme()->WeatherTextColor,
 #if defined(PBL_COLOR)
-        .color_stops = s_temperature_color_stops,
-        .color_stop_count = (int) (sizeof(s_temperature_color_stops) / sizeof(s_temperature_color_stops[0])),
+        .color_stops = data->temperature_color_stops,
+        .color_stop_count = 6,
 #else
         .color_stops = NULL,
         .color_stop_count = 0,
@@ -268,7 +277,7 @@ Layer *create_weather_forecast_layer(LayerBuilder builder) {
         .series_count = NUM_GRAPH_SERIES,
         .axis = {
             .tick_interval_x = FORECAST_POINTS_PER_HOUR,
-            .tick_color_x = GColorDarkGray,
+            .tick_color_x = theme_get_theme()->WeatherAxisTickColor,
             .tick_length_y = 3,
         }
     };

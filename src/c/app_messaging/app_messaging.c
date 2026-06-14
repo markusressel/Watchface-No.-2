@@ -23,9 +23,39 @@ void app_messaging_send_app_ready() {
     app_message_outbox_send();
 }
 
+void app_messaging_send_app_ready_and_request_settings() {
+    DictionaryIterator *iter;
+    app_message_outbox_begin(&iter);
+    if (iter == NULL) {
+        return;
+    }
+    dict_write_uint8(iter, MESSAGE_KEY_AppReady, 1);
+    dict_write_uint8(iter, MESSAGE_KEY_RequestSettings, 1);
+    dict_write_end(iter);
+    app_message_outbox_send();
+}
+
 void app_messaging_request_settings() {
     queue_message(MESSAGE_KEY_RequestSettings, 1);
     app_message_outbox_send();
+}
+
+static int hex_to_int(const char *hex_str) {
+    if (hex_str == NULL) return 0;
+    if (hex_str[0] == '0' && (hex_str[1] == 'x' || hex_str[1] == 'X')) {
+        hex_str += 2;
+    }
+    int result = 0;
+    while (*hex_str) {
+        char c = *hex_str++;
+        int val = 0;
+        if (c >= '0' && c <= '9') val = c - '0';
+        else if (c >= 'a' && c <= 'f') val = c - 'a' + 10;
+        else if (c >= 'A' && c <= 'F') val = c - 'A' + 10;
+        else break;
+        result = (result << 4) | val;
+    }
+    return result;
 }
 
 static int tuple_to_int(const Tuple *tuple) {
@@ -34,6 +64,10 @@ static int tuple_to_int(const Tuple *tuple) {
     }
 
     if (tuple->type == TUPLE_CSTRING) {
+        // Handle both decimal and hex strings
+        if (tuple->value->cstring[0] == '0' && (tuple->value->cstring[1] == 'x' || tuple->value->cstring[1] == 'X')) {
+            return hex_to_int(tuple->value->cstring);
+        }
         return atoi(tuple->value->cstring);
     }
 
@@ -85,7 +119,7 @@ static bool apply_color_setting(
         return false;
     }
 
-    *destination = GColorFromHEX(tuple->value->int32);
+    *destination = GColorFromHEX(tuple_to_int(tuple));
     return true;
 }
 
@@ -166,9 +200,36 @@ static bool read_configuration_properties(
     APPLY_COLOR(MESSAGE_KEY_DateTextColor, DateTextColor);
     APPLY_COLOR(MESSAGE_KEY_BatteryFrameColor, BatteryFrameColor);
     APPLY_COLOR(MESSAGE_KEY_BatteryFillColor, BatteryFillColor);
+    APPLY_COLOR(MESSAGE_KEY_BatteryLowColor, BatteryLowColor);
     APPLY_COLOR(MESSAGE_KEY_WeatherTextColor, WeatherTextColor);
+    APPLY_COLOR(MESSAGE_KEY_WeatherMaxTempColor, WeatherMaxTempColor);
+    APPLY_COLOR(MESSAGE_KEY_WeatherCurrentTempColor, WeatherCurrentTempColor);
+    APPLY_COLOR(MESSAGE_KEY_WeatherMinTempColor, WeatherMinTempColor);
+    APPLY_COLOR(MESSAGE_KEY_WeatherAxisTickColor, WeatherAxisTickColor);
+    APPLY_COLOR(MESSAGE_KEY_WeatherIndicatorColor, WeatherIndicatorColor);
+
+#if defined(PBL_COLOR)
+    APPLY_COLOR(MESSAGE_KEY_ForecastTempColorM10, ForecastTempColorM10);
+    APPLY_COLOR(MESSAGE_KEY_ForecastTempColor0, ForecastTempColor0);
+    APPLY_COLOR(MESSAGE_KEY_ForecastTempColor10, ForecastTempColor10);
+    APPLY_COLOR(MESSAGE_KEY_ForecastTempColor20, ForecastTempColor20);
+    APPLY_COLOR(MESSAGE_KEY_ForecastTempColor30, ForecastTempColor30);
+    APPLY_COLOR(MESSAGE_KEY_ForecastTempColor40, ForecastTempColor40);
+
+    APPLY_COLOR(MESSAGE_KEY_ForecastRainColor0, ForecastRainColor0);
+    APPLY_COLOR(MESSAGE_KEY_ForecastRainColor3, ForecastRainColor3);
+    APPLY_COLOR(MESSAGE_KEY_ForecastRainColor10, ForecastRainColor10);
+    APPLY_COLOR(MESSAGE_KEY_ForecastRainColor50, ForecastRainColor50);
+    APPLY_COLOR(MESSAGE_KEY_ForecastRainColor100, ForecastRainColor100);
+#endif
+
     APPLY_COLOR(MESSAGE_KEY_StepcountTextColor, StepcountTextColor);
     APPLY_COLOR(MESSAGE_KEY_HeartrateTextColor, HeartrateTextColor);
+
+    APPLY_INT(MESSAGE_KEY_WeatherSlot1, WeatherSlot1);
+    APPLY_INT(MESSAGE_KEY_WeatherSlot2, WeatherSlot2);
+    APPLY_INT(MESSAGE_KEY_WeatherSlot3, WeatherSlot3);
+    APPLY_INT(MESSAGE_KEY_LowBatteryThreshold, LowBatteryThreshold);
 
     APPLY_INT(MESSAGE_KEY_SliderDigitWidth, DigitWidth);
     APPLY_INT(MESSAGE_KEY_SliderDotWidth, DotWidth);
@@ -202,6 +263,14 @@ static bool read_configuration_properties(
     APPLY_INT(MESSAGE_KEY_Row6Widget, Row6Widget);
     APPLY_INT_CLAMPED(MESSAGE_KEY_LayoutRowCount, LayoutRowCount, clamp_layout_row_count);
 
+    {
+        int time_ratio_percent = 0;
+        if (apply_int_setting(iterator, MESSAGE_KEY_SliderTimeRowRatioPercent, &time_ratio_percent)) {
+            settings->TimeRowRatio = (float) time_ratio_percent / 100.0f;
+            has_settings_update = true;
+        }
+    }
+
 #undef APPLY_STRING
 #undef APPLY_COLOR
 #undef APPLY_INT
@@ -230,13 +299,11 @@ static void read_weather_data(DictionaryIterator *iterator) {
     if (temp_cur_tuple && temp_min_tuple && temp_max_tuple && condition_tuple) {
         WeatherData *weatherData = weather_get_data();
 
-        APP_LOG(APP_LOG_LEVEL_DEBUG, "temp changed: old: %d new: %d", (int) weatherData->CurrentTemperature, (int) temp_cur_tuple->value->int32);
-
-        weatherData->CurrentTemperature = temp_cur_tuple->value->int32;
-        weatherData->MinTemperature = temp_min_tuple->value->int32;
-        weatherData->MaxTemperature = temp_max_tuple->value->int32;
+        weatherData->CurrentTemperature = tuple_to_int(temp_cur_tuple);
+        weatherData->MinTemperature = tuple_to_int(temp_min_tuple);
+        weatherData->MaxTemperature = tuple_to_int(temp_max_tuple);
         if (forecast_start_ts_tuple) {
-            weatherData->ForecastStartTimestamp = forecast_start_ts_tuple->value->int32;
+            weatherData->ForecastStartTimestamp = (time_t) tuple_to_int(forecast_start_ts_tuple);
         }
 
         if (condition_tuple->type == TUPLE_CSTRING) {
@@ -251,10 +318,10 @@ static void read_weather_data(DictionaryIterator *iterator) {
         }
 
         if (rain_next_hour_tuple) {
-            weatherData->RainNextHourMmX10 = rain_next_hour_tuple->value->int32;
+            weatherData->RainNextHourMmX10 = tuple_to_int(rain_next_hour_tuple);
         }
         if (rain_pop_percent_tuple) {
-            weatherData->RainPopPercent = rain_pop_percent_tuple->value->int32;
+            weatherData->RainPopPercent = tuple_to_int(rain_pop_percent_tuple);
         }
 
         // 1. ONLY free the arrays if they were genuinely allocated via malloc
@@ -320,17 +387,21 @@ static void read_weather_data(DictionaryIterator *iterator) {
             weatherData->RainForecastMmX10Count
         );
 
+        weather_init_data(); // Ensure initialized flag is set if it wasn't already
         update_weather();
         update_weather_forecast();
     }
 }
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
+    ClaySettings *settings = clay_get_settings();
+    const bool was_sync_pending = !settings->InitialSyncDone;
+
     const bool has_settings_update = read_configuration_properties(iterator);
     read_weather_data(iterator);
 
-    if (has_settings_update) {
-        ClaySettings *settings = clay_get_settings();
+    if (has_settings_update || was_sync_pending) {
+        settings->InitialSyncDone = true;
         clay_log_settings_debug("received settings update", settings);
         clay_save_settings(settings);
         main_reload_layout(settings, main_get_window());

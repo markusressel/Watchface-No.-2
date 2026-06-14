@@ -29,16 +29,55 @@ void clay_log_settings_debug(const char *context_label, ClaySettings *settings) 
 
     APP_LOG(
         APP_LOG_LEVEL_DEBUG,
-        "%s colors bg=%lu time=%lu date=%lu weather=%lu step=%lu hr=%lu batt_frame=%lu batt_fill=%lu",
+        "%s colors bg=%lu time=%lu date=%lu weather=%lu max=%lu cur=%lu min=%lu tick=%lu ind=%lu step=%lu hr=%lu bat_low=%lu",
         label,
         (unsigned long) settings->BackgroundColor.argb,
         (unsigned long) settings->TimeTextColor.argb,
         (unsigned long) settings->DateTextColor.argb,
         (unsigned long) settings->WeatherTextColor.argb,
+        (unsigned long) settings->WeatherMaxTempColor.argb,
+        (unsigned long) settings->WeatherCurrentTempColor.argb,
+        (unsigned long) settings->WeatherMinTempColor.argb,
+        (unsigned long) settings->WeatherAxisTickColor.argb,
+        (unsigned long) settings->WeatherIndicatorColor.argb,
         (unsigned long) settings->StepcountTextColor.argb,
         (unsigned long) settings->HeartrateTextColor.argb,
-        (unsigned long) settings->BatteryFrameColor.argb,
-        (unsigned long) settings->BatteryFillColor.argb
+        (unsigned long) settings->BatteryLowColor.argb
+    );
+
+#if defined(PBL_COLOR)
+    APP_LOG(
+        APP_LOG_LEVEL_DEBUG,
+        "%s forecast colors temp: m10=%lu 0=%lu 10=%lu 20=%lu 30=%lu 40=%lu rain: 0=%lu 3=%lu 10=%lu 50=%lu 100=%lu",
+        label,
+        (unsigned long) settings->ForecastTempColorM10.argb,
+        (unsigned long) settings->ForecastTempColor0.argb,
+        (unsigned long) settings->ForecastTempColor10.argb,
+        (unsigned long) settings->ForecastTempColor20.argb,
+        (unsigned long) settings->ForecastTempColor30.argb,
+        (unsigned long) settings->ForecastTempColor40.argb,
+        (unsigned long) settings->ForecastRainColor0.argb,
+        (unsigned long) settings->ForecastRainColor3.argb,
+        (unsigned long) settings->ForecastRainColor10.argb,
+        (unsigned long) settings->ForecastRainColor50.argb,
+        (unsigned long) settings->ForecastRainColor100.argb
+    );
+#endif
+
+    APP_LOG(
+        APP_LOG_LEVEL_DEBUG,
+        "%s battery threshold: %d",
+        label,
+        settings->LowBatteryThreshold
+    );
+
+    APP_LOG(
+        APP_LOG_LEVEL_DEBUG,
+        "%s weather slots: %d, %d, %d",
+        label,
+        settings->WeatherSlot1,
+        settings->WeatherSlot2,
+        settings->WeatherSlot3
     );
 
     APP_LOG(
@@ -70,16 +109,17 @@ void clay_log_settings_debug(const char *context_label, ClaySettings *settings) 
 
     APP_LOG(
         APP_LOG_LEVEL_DEBUG,
-        "%s weather_simulation=%d forecast_preview_hours=%d update_interval_mins=%d",
+        "%s weather_simulation=%d forecast_preview_hours=%d update_interval_mins=%d time_ratio=%.2f",
         label,
         settings->WeatherUseSimulation,
         settings->SliderWeatherForecastPreviewHoursCount,
-        settings->WeatherUpdateIntervalMinutes
+        settings->WeatherUpdateIntervalMinutes,
+        (double) settings->TimeRowRatio
     );
 }
 
-static bool is_row_widget_valid(const int widget) {
-    return widget >= 0 && widget < WIDGET_COUNT;
+static bool is_row_widget_valid(const uint8_t widget) {
+    return widget < WIDGET_COUNT;
 }
 
 static int layout_row_count_max_for_platform() {
@@ -106,6 +146,10 @@ static int clamp_layout_row_count(const int requested_row_count) {
 ClaySettings *clay_sanitize_settings(ClaySettings *settings) {
     if (settings->DigitWidth < 3 || settings->DigitWidth > 5) {
         settings->DigitWidth = 4;
+    }
+
+    if (settings->LowBatteryThreshold > 30) {
+        settings->LowBatteryThreshold = 30;
     }
 
     if (settings->DotWidth < 1 || settings->DotWidth > 5) settings->DotWidth = 3;
@@ -138,6 +182,14 @@ ClaySettings *clay_sanitize_settings(ClaySettings *settings) {
         settings->WeatherUpdateIntervalMinutes = 15;
     }
 
+    if (settings->WeatherSlot1 > 3) settings->WeatherSlot1 = 2;
+    if (settings->WeatherSlot2 > 3) settings->WeatherSlot2 = 1;
+    if (settings->WeatherSlot3 > 3) settings->WeatherSlot3 = 3;
+
+    if (settings->TimeRowRatio < 0.5f || settings->TimeRowRatio > 3.0f) {
+        settings->TimeRowRatio = 1.2f;
+    }
+
     return settings;
 }
 
@@ -146,9 +198,10 @@ ClaySettings *clay_sanitize_settings(ClaySettings *settings) {
 static ClaySettings *clay_reset_to_default_settings() {
     ClaySettings *settings = clay_get_settings();
 
-    settings->BackgroundColor = GColorWhite;
-    GColor foregroundColor = GColorBlack;
-    GColor textColor = GColorBlack;
+    const bool is_dark = strcmp(THEME_DEFAULT, THEME_DARK_STR) == 0;
+    settings->BackgroundColor = is_dark ? GColorBlack : GColorWhite;
+    GColor foregroundColor = is_dark ? GColorWhite : GColorBlack;
+    GColor textColor = is_dark ? GColorWhite : GColorBlack;
 
     // Time Layer
     settings->TimeTextColor = textColor;
@@ -158,9 +211,35 @@ static ClaySettings *clay_reset_to_default_settings() {
     // Battery Bar Layer
     settings->BatteryFrameColor = foregroundColor;
     settings->BatteryFillColor = foregroundColor;
+    settings->BatteryLowColor = GColorRed;
 
     // Weather Layer
     settings->WeatherTextColor = textColor;
+    settings->WeatherMaxTempColor = GColorRed;
+    settings->WeatherCurrentTempColor = textColor;
+    settings->WeatherMinTempColor = GColorPictonBlue;
+    settings->WeatherAxisTickColor = GColorDarkGray;
+    settings->WeatherIndicatorColor = textColor;
+
+#if defined(PBL_COLOR)
+    // Forecast Graph Colors
+    settings->ForecastTempColorM10 = GColorBlueMoon;
+    settings->ForecastTempColor0 = GColorPictonBlue;
+    settings->ForecastTempColor10 = GColorGreen;
+    settings->ForecastTempColor20 = GColorChromeYellow;
+    settings->ForecastTempColor30 = GColorOrange;
+    settings->ForecastTempColor40 = GColorRed;
+
+    settings->ForecastRainColor0 = GColorLightGray;
+    settings->ForecastRainColor3 = GColorPictonBlue;
+    settings->ForecastRainColor10 = GColorBlueMoon;
+    settings->ForecastRainColor50 = GColorBlue;
+    settings->ForecastRainColor100 = GColorDukeBlue;
+#endif
+
+    settings->WeatherSlot1 = 2; // Max
+    settings->WeatherSlot2 = 1; // Current
+    settings->WeatherSlot3 = 3; // Min
 
     // Stepcount layer
     settings->StepcountTextColor = textColor;
@@ -175,6 +254,7 @@ static ClaySettings *clay_reset_to_default_settings() {
     strcpy(settings->ThemeValue, THEME_DEFAULT);
 
     settings->DigitWidth = 4;
+    settings->LowBatteryThreshold = 30;
 
     settings->DotWidth = 3;
     settings->DotHeight = 3;
@@ -202,6 +282,9 @@ static ClaySettings *clay_reset_to_default_settings() {
     settings->SliderWeatherForecastPreviewHoursCount = 6;
     settings->WeatherUpdateIntervalMinutes = 15;
 
+    settings->InitialSyncDone = false;
+    settings->TimeRowRatio = 1.2f;
+
     return settings;
 }
 
@@ -223,7 +306,6 @@ ClaySettings *internal_load_settings() {
         );
         // save default settings to persistent storage
         clay_save_settings(settings);
-        app_messaging_request_settings();
         return settings;
     }
 
