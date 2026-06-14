@@ -45,6 +45,8 @@ static void set_colors(Theme *theme, enum ThemeEnum themeEnum) {
     theme->WeatherMaxTempColor = GColorRed;
     theme->WeatherCurrentTempColor = mainTextColor;
     theme->WeatherMinTempColor = GColorPictonBlue;
+    theme->WeatherAxisTickColor = GColorDarkGray;
+    theme->WeatherIndicatorColor = mainTextColor;
 
     theme->StepcountTextColor = mainTextColor;
     theme->HeartrateTextColor = mainTextColor;
@@ -91,6 +93,8 @@ void apply_theme_from_settings(ClaySettings *settings, Window *window) {
         custom_theme.WeatherMaxTempColor = settings->WeatherMaxTempColor;
         custom_theme.WeatherCurrentTempColor = settings->WeatherCurrentTempColor;
         custom_theme.WeatherMinTempColor = settings->WeatherMinTempColor;
+        custom_theme.WeatherAxisTickColor = settings->WeatherAxisTickColor;
+        custom_theme.WeatherIndicatorColor = settings->WeatherIndicatorColor;
         custom_theme.StepcountTextColor = settings->StepcountTextColor;
         custom_theme.HeartrateTextColor = settings->HeartrateTextColor;
         theme_set_fonts(&custom_theme, settings->ShowSeconds);

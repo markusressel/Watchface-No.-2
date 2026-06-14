@@ -113,7 +113,7 @@ static void update_proc(Layer *layer, GContext *ctx) {
         data->forecast_graph.config.axis.show_indicator_line = true;
         data->forecast_graph.config.axis.interpolate_indicator_line = true;
         data->forecast_graph.config.axis.indicator_line_x_index = x_index;
-        data->forecast_graph.config.axis.indicator_line_color = theme_get_theme()->WeatherTextColor;
+        data->forecast_graph.config.axis.indicator_line_color = theme_get_theme()->WeatherIndicatorColor;
 
         // Update the tracked pixel position to stay in sync
         int max_dot_size = 1;
@@ -205,62 +205,94 @@ Layer *create_weather_forecast_layer(LayerBuilder builder) {
     data->last_rendered_indicator_x = -1;
 
     // Rain Y-axis scaling
-    data->y_axis_scaling_configs[0] = (GraphYAxisScalingConfig){
-        .has_y_axis_range = true,
-        .y_min = 0,
-        .y_max = 0,
+    data->y_axis_scaling_configs[0] = (GraphYAxisScalingConfig)
+    {
+        .
+        has_y_axis_range = true,
+        .
+        y_min = 0,
+        .
+        y_max = 0,
 #if defined(PBL_COLOR)
         .y_axis_max_scale_steps = s_rain_scale_steps,
         .y_axis_max_scale_step_count = (int) (sizeof(s_rain_scale_steps) / sizeof(s_rain_scale_steps[0])),
 #else
-        .y_axis_max_scale_steps = NULL,
-        .y_axis_max_scale_step_count = 0,
+        .
+        y_axis_max_scale_steps = NULL,
+        .
+        y_axis_max_scale_step_count = 0,
 #endif
     };
 
     // Temperature Y-axis scaling (auto)
-    data->y_axis_scaling_configs[1] = (GraphYAxisScalingConfig){
-        .has_y_axis_range = false,
+    data->y_axis_scaling_configs[1] = (GraphYAxisScalingConfig)
+    {
+        .
+        has_y_axis_range = false,
     };
 
     // Rain series config
-    data->series_configs[0] = (GraphSeriesConfig){
-        .graph_type = GRAPH_TYPE_LINE,
-        .dot_size = 1,
-        .min_interpolated_dot_distance_px = 0,
-        .fill_area_under_line = true,
-        .dither_fill_colors = true,
-        .suppress_exact_zero_value = true,
-        .interpolate_color_stops = true,
-        .default_color = GColorBlue,
+    data->series_configs[0] = (GraphSeriesConfig)
+    {
+        .
+        graph_type = GRAPH_TYPE_LINE,
+        .
+        dot_size = 1,
+        .
+        min_interpolated_dot_distance_px = 0,
+        .
+        fill_area_under_line = true,
+        .
+        dither_fill_colors = true,
+        .
+        suppress_exact_zero_value = true,
+        .
+        interpolate_color_stops = true,
+        .
+        default_color = GColorBlue,
 #if defined(PBL_COLOR)
         .color_stops = s_rain_color_stops,
         .color_stop_count = (int) (sizeof(s_rain_color_stops) / sizeof(s_rain_color_stops[0])),
 #else
-        .color_stops = NULL,
-        .color_stop_count = 0,
+        .
+        color_stops = NULL,
+        .
+        color_stop_count = 0,
 #endif
-        .y_axis_scaling = &data->y_axis_scaling_configs[0],
+        .
+        y_axis_scaling = &data->y_axis_scaling_configs[0],
     };
 
     // Temperature series config
-    data->series_configs[1] = (GraphSeriesConfig){
-        .graph_type = GRAPH_TYPE_LINE,
-        .dot_size = 1,
-        .min_interpolated_dot_distance_px = 0,
-        .fill_area_under_line = false,
-        .dither_fill_colors = false,
-        .suppress_exact_zero_value = false,
-        .interpolate_color_stops = true,
-        .default_color = theme_get_theme()->WeatherTextColor,
+    data->series_configs[1] = (GraphSeriesConfig)
+    {
+        .
+        graph_type = GRAPH_TYPE_LINE,
+        .
+        dot_size = 1,
+        .
+        min_interpolated_dot_distance_px = 0,
+        .
+        fill_area_under_line = false,
+        .
+        dither_fill_colors = false,
+        .
+        suppress_exact_zero_value = false,
+        .
+        interpolate_color_stops = true,
+        .
+        default_color = theme_get_theme()->WeatherTextColor,
 #if defined(PBL_COLOR)
         .color_stops = s_temperature_color_stops,
         .color_stop_count = (int) (sizeof(s_temperature_color_stops) / sizeof(s_temperature_color_stops[0])),
 #else
-        .color_stops = NULL,
-        .color_stop_count = 0,
+        .
+        color_stops = NULL,
+        .
+        color_stop_count = 0,
 #endif
-        .y_axis_scaling = &data->y_axis_scaling_configs[1],
+        .
+        y_axis_scaling = &data->y_axis_scaling_configs[1],
     };
 
     GraphDrawConfig draw_config = {
@@ -268,7 +300,7 @@ Layer *create_weather_forecast_layer(LayerBuilder builder) {
         .series_count = NUM_GRAPH_SERIES,
         .axis = {
             .tick_interval_x = FORECAST_POINTS_PER_HOUR,
-            .tick_color_x = GColorDarkGray,
+            .tick_color_x = theme_get_theme()->WeatherAxisTickColor,
             .tick_length_y = 3,
         }
     };

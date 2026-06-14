@@ -29,7 +29,7 @@ void clay_log_settings_debug(const char *context_label, ClaySettings *settings) 
 
     APP_LOG(
         APP_LOG_LEVEL_DEBUG,
-        "%s colors bg=%lu time=%lu date=%lu weather=%lu max=%lu cur=%lu min=%lu step=%lu hr=%lu",
+        "%s colors bg=%lu time=%lu date=%lu weather=%lu max=%lu cur=%lu min=%lu tick=%lu ind=%lu step=%lu hr=%lu",
         label,
         (unsigned long) settings->BackgroundColor.argb,
         (unsigned long) settings->TimeTextColor.argb,
@@ -38,6 +38,8 @@ void clay_log_settings_debug(const char *context_label, ClaySettings *settings) 
         (unsigned long) settings->WeatherMaxTempColor.argb,
         (unsigned long) settings->WeatherCurrentTempColor.argb,
         (unsigned long) settings->WeatherMinTempColor.argb,
+        (unsigned long) settings->WeatherAxisTickColor.argb,
+        (unsigned long) settings->WeatherIndicatorColor.argb,
         (unsigned long) settings->StepcountTextColor.argb,
         (unsigned long) settings->HeartrateTextColor.argb
     );
@@ -184,6 +186,8 @@ static ClaySettings *clay_reset_to_default_settings() {
     settings->WeatherMaxTempColor = GColorRed;
     settings->WeatherCurrentTempColor = textColor;
     settings->WeatherMinTempColor = GColorPictonBlue;
+    settings->WeatherAxisTickColor = GColorDarkGray;
+    settings->WeatherIndicatorColor = textColor;
 
     settings->WeatherSlot1 = 2; // Max
     settings->WeatherSlot2 = 1; // Current

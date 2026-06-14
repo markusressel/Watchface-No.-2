@@ -444,6 +444,18 @@ export default [
             },
             {
                 "type": "color",
+                "messageKey": "WeatherAxisTickColor",
+                "defaultValue": "0x555555",
+                "label": "Hour Ticks"
+            },
+            {
+                "type": "color",
+                "messageKey": "WeatherIndicatorColor",
+                "defaultValue": "0xFFFFFF",
+                "label": "Current Time Indicator"
+            },
+            {
+                "type": "color",
                 "messageKey": "WeatherMaxTempColor",
                 "defaultValue": "0xFF0000",
                 "label": "Max Temperature"
