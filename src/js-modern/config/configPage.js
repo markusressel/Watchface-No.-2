@@ -246,19 +246,6 @@ export default [
                 "min": 15,
                 "max": 180,
                 "step": 15
-            },
-            {
-                "type": "button",
-                "id": "clear_weather_cache_button",
-                "defaultValue": "Clear Weather Cache",
-                "primary": false
-            },
-            {
-                "type": "toggle",
-                "messageKey": "ClearWeatherCache",
-                "label": "Clear Weather Cache on Save",
-                "defaultValue": false,
-                "id": "hidden_clear_cache"
             }
         ]
     },
@@ -511,6 +498,19 @@ export default [
                 "messageKey": "WeatherUseSimulation",
                 "label": "Use simulated weather data",
                 "defaultValue": false
+            },
+            {
+                "type": "button",
+                "id": "clear_weather_cache_button",
+                "defaultValue": "Clear Weather Cache",
+                "primary": false
+            },
+            {
+                "type": "toggle",
+                "messageKey": "ClearWeatherCache",
+                "label": "Clear Weather Cache on Save",
+                "defaultValue": false,
+                "id": "hidden_clear_cache"
             }
         ]
     },
