@@ -27,6 +27,8 @@
             "WEATHER_RAIN_FORECAST_MM_X10_ENCODED",
             "WEATHER_FORECAST_START_TS",
             "WeatherTextColor",
+            "WeatherAxisTickColor",
+            "WeatherIndicatorColor",
             "WeatherMaxTempColor",
             "WeatherCurrentTempColor",
             "WeatherMinTempColor",
@@ -66,7 +68,18 @@
             "ClearWeatherCache",
             "WeatherUpdateIntervalMinutes",
             "LowBatteryThreshold",
-            "BatteryLowColor"
+            "BatteryLowColor",
+            "ForecastTempColorM10",
+            "ForecastTempColor0",
+            "ForecastTempColor10",
+            "ForecastTempColor20",
+            "ForecastTempColor30",
+            "ForecastTempColor40",
+            "ForecastRainColor0",
+            "ForecastRainColor3",
+            "ForecastRainColor10",
+            "ForecastRainColor50",
+            "ForecastRainColor100"
         ],
         "projectType": "native",
         "resources": {

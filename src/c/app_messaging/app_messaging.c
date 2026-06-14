@@ -205,6 +205,24 @@ static bool read_configuration_properties(
     APPLY_COLOR(MESSAGE_KEY_WeatherMaxTempColor, WeatherMaxTempColor);
     APPLY_COLOR(MESSAGE_KEY_WeatherCurrentTempColor, WeatherCurrentTempColor);
     APPLY_COLOR(MESSAGE_KEY_WeatherMinTempColor, WeatherMinTempColor);
+    APPLY_COLOR(MESSAGE_KEY_WeatherAxisTickColor, WeatherAxisTickColor);
+    APPLY_COLOR(MESSAGE_KEY_WeatherIndicatorColor, WeatherIndicatorColor);
+
+#if defined(PBL_COLOR)
+    APPLY_COLOR(MESSAGE_KEY_ForecastTempColorM10, ForecastTempColorM10);
+    APPLY_COLOR(MESSAGE_KEY_ForecastTempColor0, ForecastTempColor0);
+    APPLY_COLOR(MESSAGE_KEY_ForecastTempColor10, ForecastTempColor10);
+    APPLY_COLOR(MESSAGE_KEY_ForecastTempColor20, ForecastTempColor20);
+    APPLY_COLOR(MESSAGE_KEY_ForecastTempColor30, ForecastTempColor30);
+    APPLY_COLOR(MESSAGE_KEY_ForecastTempColor40, ForecastTempColor40);
+
+    APPLY_COLOR(MESSAGE_KEY_ForecastRainColor0, ForecastRainColor0);
+    APPLY_COLOR(MESSAGE_KEY_ForecastRainColor3, ForecastRainColor3);
+    APPLY_COLOR(MESSAGE_KEY_ForecastRainColor10, ForecastRainColor10);
+    APPLY_COLOR(MESSAGE_KEY_ForecastRainColor50, ForecastRainColor50);
+    APPLY_COLOR(MESSAGE_KEY_ForecastRainColor100, ForecastRainColor100);
+#endif
+
     APPLY_COLOR(MESSAGE_KEY_StepcountTextColor, StepcountTextColor);
     APPLY_COLOR(MESSAGE_KEY_HeartrateTextColor, HeartrateTextColor);
 

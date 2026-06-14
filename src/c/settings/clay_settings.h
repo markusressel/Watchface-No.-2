@@ -7,7 +7,7 @@
 // Persistent storage key
 #define SETTINGS_KEY PERSIST_KEY_SETTINGS
 #define SETTINGS_VERSION_KEY PERSIST_KEY_SETTINGS_VERSION
-#define SETTINGS_VERSION 18
+#define SETTINGS_VERSION 20
 
 // Theme Values
 #define THEME_LIGHT_STR "LIGHT"
@@ -28,6 +28,19 @@ typedef struct ClaySettings {
     GColor WeatherMinTempColor;
     GColor WeatherAxisTickColor;
     GColor WeatherIndicatorColor;
+#if defined(PBL_COLOR)
+    GColor ForecastTempColorM10;
+    GColor ForecastTempColor0;
+    GColor ForecastTempColor10;
+    GColor ForecastTempColor20;
+    GColor ForecastTempColor30;
+    GColor ForecastTempColor40;
+    GColor ForecastRainColor0;
+    GColor ForecastRainColor3;
+    GColor ForecastRainColor10;
+    GColor ForecastRainColor50;
+    GColor ForecastRainColor100;
+#endif
     GColor StepcountTextColor;
     GColor HeartrateTextColor;
     float DotScaleFactor;

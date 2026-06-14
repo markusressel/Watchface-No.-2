@@ -45,6 +45,25 @@ void clay_log_settings_debug(const char *context_label, ClaySettings *settings) 
         (unsigned long) settings->BatteryLowColor.argb
     );
 
+#if defined(PBL_COLOR)
+    APP_LOG(
+        APP_LOG_LEVEL_DEBUG,
+        "%s forecast colors temp: m10=%lu 0=%lu 10=%lu 20=%lu 30=%lu 40=%lu rain: 0=%lu 3=%lu 10=%lu 50=%lu 100=%lu",
+        label,
+        (unsigned long) settings->ForecastTempColorM10.argb,
+        (unsigned long) settings->ForecastTempColor0.argb,
+        (unsigned long) settings->ForecastTempColor10.argb,
+        (unsigned long) settings->ForecastTempColor20.argb,
+        (unsigned long) settings->ForecastTempColor30.argb,
+        (unsigned long) settings->ForecastTempColor40.argb,
+        (unsigned long) settings->ForecastRainColor0.argb,
+        (unsigned long) settings->ForecastRainColor3.argb,
+        (unsigned long) settings->ForecastRainColor10.argb,
+        (unsigned long) settings->ForecastRainColor50.argb,
+        (unsigned long) settings->ForecastRainColor100.argb
+    );
+#endif
+
     APP_LOG(
         APP_LOG_LEVEL_DEBUG,
         "%s battery threshold: %d",
@@ -201,6 +220,22 @@ static ClaySettings *clay_reset_to_default_settings() {
     settings->WeatherMinTempColor = GColorPictonBlue;
     settings->WeatherAxisTickColor = GColorDarkGray;
     settings->WeatherIndicatorColor = textColor;
+
+#if defined(PBL_COLOR)
+    // Forecast Graph Colors
+    settings->ForecastTempColorM10 = GColorBlueMoon;
+    settings->ForecastTempColor0 = GColorPictonBlue;
+    settings->ForecastTempColor10 = GColorGreen;
+    settings->ForecastTempColor20 = GColorChromeYellow;
+    settings->ForecastTempColor30 = GColorOrange;
+    settings->ForecastTempColor40 = GColorRed;
+
+    settings->ForecastRainColor0 = GColorLightGray;
+    settings->ForecastRainColor3 = GColorPictonBlue;
+    settings->ForecastRainColor10 = GColorBlueMoon;
+    settings->ForecastRainColor50 = GColorBlue;
+    settings->ForecastRainColor100 = GColorDukeBlue;
+#endif
 
     settings->WeatherSlot1 = 2; // Max
     settings->WeatherSlot2 = 1; // Current

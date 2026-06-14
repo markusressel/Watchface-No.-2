@@ -494,6 +494,88 @@ export default [
             },
             {
                 "type": "subheader",
+                "defaultValue": "Forecast Graph Colors"
+            },
+            {
+                "type": "markdown",
+                "defaultValue": "These colors define the <b>gradient stops</b> used in the Weather Forecast graph. Colors are interpolated based on the value."
+            },
+            {
+                "type": "text",
+                "defaultValue": "--- Temperature Gradient Stops ---"
+            },
+            {
+                "type": "color",
+                "messageKey": "ForecastTempColorM10",
+                "defaultValue": "0x0055AA",
+                "label": "-10°C - Very cold"
+            },
+            {
+                "type": "color",
+                "messageKey": "ForecastTempColor0",
+                "defaultValue": "0x00AAFF",
+                "label": "0°C - Freezing / Ice"
+            },
+            {
+                "type": "color",
+                "messageKey": "ForecastTempColor10",
+                "defaultValue": "0x00FF00",
+                "label": "10°C - Cool / Nice"
+            },
+            {
+                "type": "color",
+                "messageKey": "ForecastTempColor20",
+                "defaultValue": "0xFFAA00",
+                "label": "20°C - Pleasant / Warm"
+            },
+            {
+                "type": "color",
+                "messageKey": "ForecastTempColor30",
+                "defaultValue": "0xFF5500",
+                "label": "30°C - Hot"
+            },
+            {
+                "type": "color",
+                "messageKey": "ForecastTempColor40",
+                "defaultValue": "0xFF0000",
+                "label": "40°C - Extremely hot"
+            },
+            {
+                "type": "text",
+                "defaultValue": "--- Rain Gradient Stops ---"
+            },
+            {
+                "type": "color",
+                "messageKey": "ForecastRainColor0",
+                "defaultValue": "0xAAAAAA",
+                "label": "0.0mm - None"
+            },
+            {
+                "type": "color",
+                "messageKey": "ForecastRainColor3",
+                "defaultValue": "0x00AAFF",
+                "label": "0.3mm - Fine mist"
+            },
+            {
+                "type": "color",
+                "messageKey": "ForecastRainColor10",
+                "defaultValue": "0x0055AA",
+                "label": "1.0mm - Light rain"
+            },
+            {
+                "type": "color",
+                "messageKey": "ForecastRainColor50",
+                "defaultValue": "0x0000FF",
+                "label": "5.0mm - Moderate rain"
+            },
+            {
+                "type": "color",
+                "messageKey": "ForecastRainColor100",
+                "defaultValue": "0x000055",
+                "label": "10.0mm - Heavy rain"
+            },
+            {
+                "type": "subheader",
                 "defaultValue": "Stepcount"
             },
             {

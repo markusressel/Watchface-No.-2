@@ -49,6 +49,22 @@ static void set_colors(Theme *theme, enum ThemeEnum themeEnum) {
     theme->WeatherAxisTickColor = GColorDarkGray;
     theme->WeatherIndicatorColor = mainTextColor;
 
+#if defined(PBL_COLOR)
+    // Forecast Graph Colors
+    theme->ForecastTempColorM10 = GColorBlueMoon;
+    theme->ForecastTempColor0 = GColorPictonBlue;
+    theme->ForecastTempColor10 = GColorGreen;
+    theme->ForecastTempColor20 = GColorChromeYellow;
+    theme->ForecastTempColor30 = GColorOrange;
+    theme->ForecastTempColor40 = GColorRed;
+
+    theme->ForecastRainColor0 = GColorLightGray;
+    theme->ForecastRainColor3 = GColorPictonBlue;
+    theme->ForecastRainColor10 = GColorBlueMoon;
+    theme->ForecastRainColor50 = GColorBlue;
+    theme->ForecastRainColor100 = GColorDukeBlue;
+#endif
+
     theme->StepcountTextColor = mainTextColor;
     theme->HeartrateTextColor = mainTextColor;
 }
@@ -97,6 +113,22 @@ void apply_theme_from_settings(ClaySettings *settings, Window *window) {
         custom_theme.WeatherMinTempColor = settings->WeatherMinTempColor;
         custom_theme.WeatherAxisTickColor = settings->WeatherAxisTickColor;
         custom_theme.WeatherIndicatorColor = settings->WeatherIndicatorColor;
+
+#if defined(PBL_COLOR)
+        custom_theme.ForecastTempColorM10 = settings->ForecastTempColorM10;
+        custom_theme.ForecastTempColor0 = settings->ForecastTempColor0;
+        custom_theme.ForecastTempColor10 = settings->ForecastTempColor10;
+        custom_theme.ForecastTempColor20 = settings->ForecastTempColor20;
+        custom_theme.ForecastTempColor30 = settings->ForecastTempColor30;
+        custom_theme.ForecastTempColor40 = settings->ForecastTempColor40;
+
+        custom_theme.ForecastRainColor0 = settings->ForecastRainColor0;
+        custom_theme.ForecastRainColor3 = settings->ForecastRainColor3;
+        custom_theme.ForecastRainColor10 = settings->ForecastRainColor10;
+        custom_theme.ForecastRainColor50 = settings->ForecastRainColor50;
+        custom_theme.ForecastRainColor100 = settings->ForecastRainColor100;
+#endif
+
         custom_theme.StepcountTextColor = settings->StepcountTextColor;
         custom_theme.HeartrateTextColor = settings->HeartrateTextColor;
         theme_set_fonts(&custom_theme, settings->ShowSeconds);
