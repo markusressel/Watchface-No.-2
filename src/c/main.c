@@ -65,6 +65,11 @@ static void deinit() {
 
 // watchface lifecycle
 int main(void) {
+    if (DEV_OPTIONS.IsEmulator) {
+        // force backlight on continuously
+        light_enable(true);
+    }
+
     app_messaging_initialize();
     init();
 
