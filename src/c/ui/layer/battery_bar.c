@@ -160,7 +160,11 @@ static void battery_update_proc(Layer *layer, GContext *ctx) {
         }
     }
 
-    graphics_context_set_fill_color(ctx, theme_get_theme()->BatteryFillColor);
+    if (s_current_battery_level <= settings->LowBatteryThreshold) {
+        graphics_context_set_fill_color(ctx, theme_get_theme()->BatteryLowColor);
+    } else {
+        graphics_context_set_fill_color(ctx, theme_get_theme()->BatteryFillColor);
+    }
     const int fill_dots = (s_current_battery_level * (width_dots_count - 5)) / 100;
     const float y_f = start_y + 2.0f * sy;
     const int y = (int) (y_f + 0.5f);

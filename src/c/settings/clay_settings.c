@@ -29,7 +29,7 @@ void clay_log_settings_debug(const char *context_label, ClaySettings *settings) 
 
     APP_LOG(
         APP_LOG_LEVEL_DEBUG,
-        "%s colors bg=%lu time=%lu date=%lu weather=%lu max=%lu cur=%lu min=%lu tick=%lu ind=%lu step=%lu hr=%lu",
+        "%s colors bg=%lu time=%lu date=%lu weather=%lu max=%lu cur=%lu min=%lu tick=%lu ind=%lu step=%lu hr=%lu bat_low=%lu",
         label,
         (unsigned long) settings->BackgroundColor.argb,
         (unsigned long) settings->TimeTextColor.argb,
@@ -41,7 +41,15 @@ void clay_log_settings_debug(const char *context_label, ClaySettings *settings) 
         (unsigned long) settings->WeatherAxisTickColor.argb,
         (unsigned long) settings->WeatherIndicatorColor.argb,
         (unsigned long) settings->StepcountTextColor.argb,
-        (unsigned long) settings->HeartrateTextColor.argb
+        (unsigned long) settings->HeartrateTextColor.argb,
+        (unsigned long) settings->BatteryLowColor.argb
+    );
+
+    APP_LOG(
+        APP_LOG_LEVEL_DEBUG,
+        "%s battery threshold: %d",
+        label,
+        settings->LowBatteryThreshold
     );
 
     APP_LOG(
@@ -121,6 +129,10 @@ ClaySettings *clay_sanitize_settings(ClaySettings *settings) {
         settings->DigitWidth = 4;
     }
 
+    if (settings->LowBatteryThreshold > 30) {
+        settings->LowBatteryThreshold = 30;
+    }
+
     if (settings->DotWidth < 1 || settings->DotWidth > 5) settings->DotWidth = 3;
     if (settings->DotHeight < 1 || settings->DotHeight > 5) settings->DotHeight = 3;
     if (settings->DotHorizontalGap < 1 || settings->DotHorizontalGap > 5) settings->DotHorizontalGap = 3;
@@ -180,6 +192,7 @@ static ClaySettings *clay_reset_to_default_settings() {
     // Battery Bar Layer
     settings->BatteryFrameColor = foregroundColor;
     settings->BatteryFillColor = foregroundColor;
+    settings->BatteryLowColor = GColorRed;
 
     // Weather Layer
     settings->WeatherTextColor = textColor;
@@ -206,6 +219,7 @@ static ClaySettings *clay_reset_to_default_settings() {
     strcpy(settings->ThemeValue, THEME_DEFAULT);
 
     settings->DigitWidth = 4;
+    settings->LowBatteryThreshold = 30;
 
     settings->DotWidth = 3;
     settings->DotHeight = 3;

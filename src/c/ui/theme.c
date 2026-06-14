@@ -40,6 +40,7 @@ static void set_colors(Theme *theme, enum ThemeEnum themeEnum) {
 
     theme->BatteryOutlineColor = foregroundColor;
     theme->BatteryFillColor = foregroundColor;
+    theme->BatteryLowColor = GColorRed;
 
     theme->WeatherTextColor = mainTextColor;
     theme->WeatherMaxTempColor = GColorRed;
@@ -89,6 +90,7 @@ void apply_theme_from_settings(ClaySettings *settings, Window *window) {
         custom_theme.DateTextColor = settings->DateTextColor;
         custom_theme.BatteryOutlineColor = settings->BatteryFrameColor;
         custom_theme.BatteryFillColor = settings->BatteryFillColor;
+        custom_theme.BatteryLowColor = settings->BatteryLowColor;
         custom_theme.WeatherTextColor = settings->WeatherTextColor;
         custom_theme.WeatherMaxTempColor = settings->WeatherMaxTempColor;
         custom_theme.WeatherCurrentTempColor = settings->WeatherCurrentTempColor;

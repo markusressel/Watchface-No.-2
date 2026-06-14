@@ -246,6 +246,20 @@ export default [
                 "min": 15,
                 "max": 180,
                 "step": 15
+            },
+            {
+                "type": "subheader",
+                "defaultValue": "Battery"
+            },
+            {
+                "type": "slider",
+                "messageKey": "LowBatteryThreshold",
+                "defaultValue": 30,
+                "label": "Low Battery Threshold (%)",
+                "description": "The battery bar will change color when the battery level is at or below this value.",
+                "min": 0,
+                "max": 30,
+                "step": 5
             }
         ]
     },
@@ -431,6 +445,12 @@ export default [
                 "messageKey": "BatteryFillColor",
                 "defaultValue": "0xFFFFFF",
                 "label": "Bar"
+            },
+            {
+                "type": "color",
+                "messageKey": "BatteryLowColor",
+                "defaultValue": "0xFF0000",
+                "label": "Bar (Low Battery)"
             },
             {
                 "type": "subheader",

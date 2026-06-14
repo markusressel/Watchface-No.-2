@@ -64,7 +64,9 @@
             "SliderTimeRowRatioPercent",
             "SliderWeatherForecastPreviewHoursCount",
             "ClearWeatherCache",
-            "WeatherUpdateIntervalMinutes"
+            "WeatherUpdateIntervalMinutes",
+            "LowBatteryThreshold",
+            "BatteryLowColor"
         ],
         "projectType": "native",
         "resources": {

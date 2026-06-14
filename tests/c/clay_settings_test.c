@@ -61,10 +61,20 @@ void test_clay_load_settings_with_valid_version(void) {
     TEST_ASSERT_TRUE(loaded_settings->ShowSeconds);
 }
 
+void test_clay_battery_settings_defaults(void) {
+    // Act
+    ClaySettings *settings = clay_reset_to_default_settings();
+
+    // Assert
+    TEST_ASSERT_EQUAL_INT(30, settings->LowBatteryThreshold);
+    TEST_ASSERT_EQUAL_UINT8(GColorRed.argb, settings->BatteryLowColor.argb);
+}
+
 
 int main() {
     UNITY_BEGIN();
     // RUN_TEST(test_clay_load_settings_migrates_old_version);
     RUN_TEST(test_clay_load_settings_with_valid_version);
+    RUN_TEST(test_clay_battery_settings_defaults);
     return UNITY_END();
 }

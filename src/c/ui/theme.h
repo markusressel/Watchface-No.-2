@@ -23,6 +23,7 @@ typedef struct Theme {
     // Battery Bar Layer
     GColor BatteryOutlineColor;
     GColor BatteryFillColor;
+    GColor BatteryLowColor;
 
     // Weather Layer
     GColor WeatherTextColor;
