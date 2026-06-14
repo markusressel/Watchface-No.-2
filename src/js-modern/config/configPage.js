@@ -377,15 +377,15 @@ export default [
                 "defaultValue": "LIGHT",
                 "options": [
                     {
-                        "label": "Light",
+                        "label": "Light - Black on White Background",
                         "value": "LIGHT"
                     },
                     {
-                        "label": "Dark",
+                        "label": "Dark - White on Black Background",
                         "value": "DARK"
                     },
                     {
-                        "label": "Custom",
+                        "label": "Custom - see below",
                         "value": "CUSTOM"
                     }
                 ]
@@ -401,7 +401,7 @@ export default [
             },
             {
                 "type": "markdown",
-                "defaultValue": "These values <b>will only have effect</b> if you have selected \"Custom\" Theme in the section above."
+                "defaultValue": "These values <b>will only have an effect</b> if you have selected \"Custom\" Theme in the section above."
             },
             {
                 "type": "subheader",
@@ -411,7 +411,7 @@ export default [
                 "type": "color",
                 "messageKey": "BackgroundColor",
                 "defaultValue": "0x000000",
-                "label": "Background Color"
+                "label": "Background"
             },
             {
                 "type": "subheader",
@@ -421,13 +421,13 @@ export default [
                 "type": "color",
                 "messageKey": "TimeTextColor",
                 "defaultValue": "0xFFFFFF",
-                "label": "Time Color"
+                "label": "Time"
             },
             {
                 "type": "color",
                 "messageKey": "DateTextColor",
                 "defaultValue": "0xFFFFFF",
-                "label": "Date Color"
+                "label": "Date"
             },
             {
                 "type": "subheader",
@@ -437,13 +437,13 @@ export default [
                 "type": "color",
                 "messageKey": "BatteryFrameColor",
                 "defaultValue": "0xFFFFFF",
-                "label": "Battery Frame Color"
+                "label": "Frame"
             },
             {
                 "type": "color",
                 "messageKey": "BatteryFillColor",
                 "defaultValue": "0xFFFFFF",
-                "label": "Battery Fill Color"
+                "label": "Bar"
             },
             {
                 "type": "subheader",
@@ -453,25 +453,25 @@ export default [
                 "type": "color",
                 "messageKey": "WeatherTextColor",
                 "defaultValue": "0xFFFFFF",
-                "label": "Weather Forecast Color"
+                "label": "Weather Forecast"
             },
             {
                 "type": "color",
                 "messageKey": "WeatherMaxTempColor",
                 "defaultValue": "0xFF0000",
-                "label": "Max Temperature Color"
+                "label": "Max Temperature"
             },
             {
                 "type": "color",
                 "messageKey": "WeatherCurrentTempColor",
                 "defaultValue": "0xFFFFFF",
-                "label": "Current Temperature Color"
+                "label": "Current Temperature"
             },
             {
                 "type": "color",
                 "messageKey": "WeatherMinTempColor",
                 "defaultValue": "0x00AAFF",
-                "label": "Min Temperature Color"
+                "label": "Min Temperature"
             },
             {
                 "type": "subheader",
@@ -481,7 +481,7 @@ export default [
                 "type": "color",
                 "messageKey": "StepcountTextColor",
                 "defaultValue": "0xFFFFFF",
-                "label": "Stepcount Text Color"
+                "label": "Text"
             },
             {
                 "type": "subheader",
@@ -491,7 +491,7 @@ export default [
                 "type": "color",
                 "messageKey": "HeartrateTextColor",
                 "defaultValue": "0xFFFFFF",
-                "label": "Heartrate Text Color"
+                "label": "Text"
             }
         ]
     },
