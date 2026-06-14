@@ -102,10 +102,11 @@ Modifying settings is a multi-step process:
 ## C
 
 - Use `const` for variables and parameters where possible (except Pebble SDK callbacks).
-- Use descriptive naming following the existing `snake_case` or `CamelCase` as per local file conventions.
+- Use descriptive naming following `snake_case`.
 
 ## JavaScript
 
 - Prefer `let`/`const` over `var`.
-- Use JSDoc for all functions: `/** @param {type} name - description */`.
+- Use descriptive naming following `CamelCase`.
+- Use JSDoc for all functions to provide type information to CLion: `/** @param {type} name - description */`.
 - Explicitly define return types in JSDoc.
