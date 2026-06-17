@@ -61,6 +61,7 @@ static const WeatherData s_mock_weather_data_template = {
 };
 
 static int weather_get_current_temp(WeatherData *data);
+
 static void update_weather_ui();
 
 static void ensure_runtime_forecast_storage() {
