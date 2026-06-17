@@ -8,7 +8,7 @@
  * @param parent_layer The parent layer (typically the window root layer).
  * @return The created status layer.
  */
-Layer* status_layer_create(Layer *parent_layer);
+Layer *status_layer_create(Layer *parent_layer);
 
 /**
  * Destroys the status layer.

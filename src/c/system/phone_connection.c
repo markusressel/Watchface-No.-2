@@ -16,9 +16,9 @@ void register_phone_connection_listener() {
     if (s_registered) {
         return;
     }
-    
+
     s_is_connected = connection_service_peek_pebble_app_connection();
-    connection_service_subscribe((ConnectionHandlers) {
+    connection_service_subscribe((ConnectionHandlers){
         .pebble_app_connection_handler = connection_handler
     });
     s_registered = true;
@@ -28,7 +28,7 @@ void unregister_phone_connection_listener() {
     if (!s_registered) {
         return;
     }
-    
+
     connection_service_unsubscribe();
     s_registered = false;
 }
