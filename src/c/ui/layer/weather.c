@@ -60,6 +60,9 @@ static const WeatherData s_mock_weather_data_template = {
     .CurrentConditions = "Mock",
 };
 
+static int weather_get_current_temp(WeatherData *data);
+static void update_weather_ui();
+
 static void ensure_runtime_forecast_storage() {
     APP_LOG(APP_LOG_LEVEL_DEBUG, "ensuring runtime forecast storage");
     // Only set default pointers if they are not dynamically allocated
@@ -197,6 +200,8 @@ void weather_tick_update() {
     if (time(NULL) > max_valid_time) {
         APP_LOG(APP_LOG_LEVEL_INFO, "Weather data expired. Clearing.");
         weather_clear_data();
+    } else {
+        update_weather_ui();
     }
 }
 
@@ -447,7 +452,7 @@ static void update_weather_for_layer(Layer *weather_container_layer) {
 
         switch (slot_configs[i]) {
             case WEATHER_VALUE_TYPE_CURRENT:
-                value = weather_data->CurrentTemperature;
+                value = weather_get_current_temp(weather_data);
                 color = theme->WeatherCurrentTempColor;
                 break;
             case WEATHER_VALUE_TYPE_MAX:
@@ -475,7 +480,51 @@ static void update_weather_for_layer(Layer *weather_container_layer) {
     layer_mark_dirty(weather_container_layer);
 }
 
-// Backward compatible wrapper (called by app messaging or other code)
+static int weather_get_current_temp(WeatherData *data) {
+    if (data == NULL) {
+        return 0;
+    }
+
+    if (data->ForecastStartTimestamp <= 0 || data->TemperatureForecastCount <= 0 || data->TemperatureForecast == NULL) {
+        return data->CurrentTemperature;
+    }
+
+    const time_t now = time(NULL);
+    const int interval = 15 * 60; // 15 minutes
+
+    // Calculate how many intervals have passed since the forecast started
+    int seconds_since_start = (int) (now - data->ForecastStartTimestamp);
+
+    // If we are before the forecast start, just return the received current temp
+    if (seconds_since_start < 0) {
+        return data->CurrentTemperature;
+    }
+
+    // Find the closest forecast index
+    int index = (seconds_since_start + (interval / 2)) / interval;
+
+    // Only switch to forecast data if we are closer to a later forecast entry (index > 0)
+    // than to the start time/current temp.
+    if (index <= 0) {
+        return data->CurrentTemperature;
+    }
+
+    if (index >= data->TemperatureForecastCount) {
+        return data->TemperatureForecast[data->TemperatureForecastCount - 1];
+    }
+
+    return data->TemperatureForecast[index];
+}
+
+static void update_weather_ui() {
+    for (int i = 0; i < ui_state_get_row_count(); i++) {
+        if (ui_state_get_widget_id(i) == WIDGET_WEATHER) {
+            update_weather_for_layer(ui_state_get_layer(i));
+        }
+    }
+}
+
+// update all weather layer instances (backward compatible wrapper)
 void update_weather() {
     WeatherData *data = weather_get_data();
     if (data != NULL) {
@@ -491,11 +540,7 @@ void update_weather() {
         );
     }
 
-    for (int i = 0; i < ui_state_get_row_count(); i++) {
-        if (ui_state_get_widget_id(i) == WIDGET_WEATHER) {
-            update_weather_for_layer(ui_state_get_layer(i));
-        }
-    }
+    update_weather_ui();
 }
 
 Layer *create_weather_layer(LayerBuilder builder) {
