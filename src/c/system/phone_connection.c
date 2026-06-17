@@ -1,6 +1,7 @@
 #include <pebble.h>
 #include "phone_connection.h"
 #include "../ui/layer/status.h"
+#include "../ui/layer/weather.h"
 
 static bool s_registered = false;
 static bool s_is_connected = false;
@@ -9,6 +10,10 @@ static void connection_handler(bool connected) {
     if (s_is_connected != connected) {
         s_is_connected = connected;
         status_layer_update();
+
+        if (connected) {
+            weather_request_update();
+        }
     }
 }
 

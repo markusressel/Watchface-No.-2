@@ -6,6 +6,7 @@
 #include "dotted_text_layer.h"
 #include "weather_forecast.h"
 #include "../ui_state.h"
+#include "../../system/phone_connection.h"
 
 static char s_buffer[32];
 
@@ -177,6 +178,28 @@ void weather_delete_persisted_data() {
     persist_delete(WEATHER_DATA_KEY);
 }
 
+static void weather_clear_data() {
+    memset(&s_weather_data, 0, sizeof(WeatherData));
+    weather_delete_persisted_data();
+    update_weather();
+    update_weather_forecast();
+}
+
+void weather_tick_update() {
+    if (s_weather_data.ForecastStartTimestamp <= 0) {
+        return;
+    }
+
+    ClaySettings *settings = clay_get_settings();
+    const int forecast_points = settings->SliderWeatherForecastPreviewHoursCount * 4; // 15 min points
+    const time_t max_valid_time = s_weather_data.ForecastStartTimestamp + (forecast_points * 15 * 60);
+
+    if (time(NULL) > max_valid_time) {
+        APP_LOG(APP_LOG_LEVEL_INFO, "Weather data expired. Clearing.");
+        weather_clear_data();
+    }
+}
+
 
 static void save_current_weather_data(WeatherData *weather_data) {
     APP_LOG(APP_LOG_LEVEL_DEBUG, "saving current weather data: %p", weather_data);
@@ -237,7 +260,12 @@ static void save_current_weather_data(WeatherData *weather_data) {
     APP_LOG(APP_LOG_LEVEL_DEBUG, "saved weather data");
 }
 
-static void request_weather_update() {
+void weather_request_update() {
+    if (!phone_connection_is_connected()) {
+        APP_LOG(APP_LOG_LEVEL_INFO, "Skipping weather update: Phone not connected.");
+        return;
+    }
+
     // Declare the dictionary's iterator
     DictionaryIterator *out_iter;
 
@@ -319,7 +347,7 @@ static void on_scheduled_update_triggered(void *data) {
     s_update_timer = NULL;
 
     // send AppMessage to trigger weather update via JS
-    request_weather_update();
+    weather_request_update();
 
     //Register next execution
     const int next_request_ms = compute_next_weather_update_request_ms();

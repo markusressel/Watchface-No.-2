@@ -3,6 +3,7 @@
 #include "../ui/layer/time.h"
 #include "../ui/layer/date.h"
 #include "../ui/layer/weather_forecast.h"
+#include "../ui/layer/weather.h"
 #include "../settings/clay_settings.h"
 
 static bool registered = false;
@@ -18,6 +19,7 @@ static void tick_handler(tm *tick_time, TimeUnits units_changed) {
 
     update_time_layer();
 
+    weather_tick_update();
     weather_forecast_tick_update();
 }
 
