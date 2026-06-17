@@ -14,6 +14,7 @@ const char *THEME_DEFAULT = THEME_LIGHT_STR;
 static ClaySettings s_settings;
 
 void clay_log_settings_debug(const char *context_label, ClaySettings *settings) {
+#if !defined(PBL_PLATFORM_APLITE)
     const char *label = context_label ? context_label : "settings";
 
     APP_LOG(
@@ -116,6 +117,7 @@ void clay_log_settings_debug(const char *context_label, ClaySettings *settings) 
         settings->WeatherUpdateIntervalMinutes,
         (double) settings->TimeRowRatio
     );
+#endif
 }
 
 static bool is_row_widget_valid(const uint8_t widget) {

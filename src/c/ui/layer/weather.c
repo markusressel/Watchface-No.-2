@@ -382,12 +382,12 @@ static void weather_layer_update_proc(Layer *layer, GContext *ctx) {
     for (int i = 0; i < 3; i++) {
         // Slot i
         if (data->slots[i] && slot_widths[i] > 0) {
-            layer_set_frame((Layer *) data->slots[i], GRect(current_x, 0, slot_widths[i], bounds.size.h));
+            layer_set_frame(data->slots[i], GRect(current_x, 0, slot_widths[i], bounds.size.h));
             current_x += slot_widths[i] + spacing;
         }
         // Separator after slot i
         if (i < 2 && data->separators[i] && sep_widths[i] > 0) {
-            layer_set_frame((Layer *) data->separators[i], GRect(current_x, 0, sep_widths[i], bounds.size.h));
+            layer_set_frame(data->separators[i], GRect(current_x, 0, sep_widths[i], bounds.size.h));
             current_x += sep_widths[i] + spacing;
         }
     }
