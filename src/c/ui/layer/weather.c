@@ -15,7 +15,7 @@ static WeatherData s_mock_weather_data;
 static int s_runtime_temp_forecast[WEATHER_FORECAST_MAX_POINTS];
 static int s_runtime_rain_forecast[WEATHER_FORECAST_MAX_POINTS];
 
-static const uint16_t WEATHER_DATA_PERSIST_VERSION = 2;
+static const uint16_t WEATHER_DATA_PERSIST_VERSION = 3;
 
 typedef struct PersistedWeatherData {
     uint16_t Version;
@@ -26,9 +26,7 @@ typedef struct PersistedWeatherData {
     int RainPopPercent;
     time_t ForecastStartTimestamp;
     int TemperatureForecastCount;
-    int TemperatureForecast[WEATHER_FORECAST_MAX_POINTS];
     int RainForecastMmX10Count;
-    int RainForecastMmX10[WEATHER_FORECAST_MAX_POINTS];
     char CurrentConditions[48];
 } PersistedWeatherData;
 
@@ -61,8 +59,8 @@ static const WeatherData s_mock_weather_data_template = {
 };
 
 static int weather_get_current_temp(WeatherData *data);
-
 static void update_weather_ui();
+static void weather_clear_data();
 
 static void ensure_runtime_forecast_storage() {
     APP_LOG(APP_LOG_LEVEL_DEBUG, "ensuring runtime forecast storage");
@@ -150,18 +148,22 @@ static void restore_saved_weather_data() {
     s_weather_data.RainForecastMmX10Count = clamp_forecast_count(persisted.RainForecastMmX10Count);
 
     if (s_weather_data.TemperatureForecastCount > 0) {
-        memcpy(
-            s_weather_data.TemperatureForecast,
-            persisted.TemperatureForecast,
-            sizeof(int) * s_weather_data.TemperatureForecastCount
-        );
+        int count = s_weather_data.TemperatureForecastCount;
+        if (count > 64) {
+            persist_read_data(PERSIST_KEY_WEATHER_FORECAST_TEMP_0, s_weather_data.TemperatureForecast, 64 * sizeof(int));
+            persist_read_data(PERSIST_KEY_WEATHER_FORECAST_TEMP_1, s_weather_data.TemperatureForecast + 64, (count - 64) * sizeof(int));
+        } else {
+            persist_read_data(PERSIST_KEY_WEATHER_FORECAST_TEMP_0, s_weather_data.TemperatureForecast, count * sizeof(int));
+        }
     }
     if (s_weather_data.RainForecastMmX10Count > 0) {
-        memcpy(
-            s_weather_data.RainForecastMmX10,
-            persisted.RainForecastMmX10,
-            sizeof(int) * s_weather_data.RainForecastMmX10Count
-        );
+        int count = s_weather_data.RainForecastMmX10Count;
+        if (count > 64) {
+            persist_read_data(PERSIST_KEY_WEATHER_FORECAST_RAIN_0, s_weather_data.RainForecastMmX10, 64 * sizeof(int));
+            persist_read_data(PERSIST_KEY_WEATHER_FORECAST_RAIN_1, s_weather_data.RainForecastMmX10 + 64, (count - 64) * sizeof(int));
+        } else {
+            persist_read_data(PERSIST_KEY_WEATHER_FORECAST_RAIN_0, s_weather_data.RainForecastMmX10, count * sizeof(int));
+        }
     }
 
     strncpy(s_weather_data.CurrentConditions, persisted.CurrentConditions, sizeof(s_weather_data.CurrentConditions) - 1);
@@ -172,6 +174,18 @@ static void restore_saved_weather_data() {
 
 void weather_init_data() {
     restore_saved_weather_data();
+
+    if (s_weather_data.ForecastStartTimestamp > 0) {
+        ClaySettings *settings = clay_get_settings();
+        const int forecast_points = settings->SliderWeatherForecastPreviewHoursCount * 4; // 15 min points
+        const time_t max_valid_time = s_weather_data.ForecastStartTimestamp + (forecast_points * 15 * 60);
+
+        if (time(NULL) > max_valid_time) {
+            APP_LOG(APP_LOG_LEVEL_INFO, "Restored weather data is expired. Fetching new.");
+            weather_clear_data();
+            weather_request_update();
+        }
+    }
 }
 
 void weather_delete_persisted_data() {
@@ -180,6 +194,10 @@ void weather_delete_persisted_data() {
     }
     APP_LOG(APP_LOG_LEVEL_DEBUG, "deleting persisted weather data");
     persist_delete(WEATHER_DATA_KEY);
+    persist_delete(PERSIST_KEY_WEATHER_FORECAST_TEMP_0);
+    persist_delete(PERSIST_KEY_WEATHER_FORECAST_TEMP_1);
+    persist_delete(PERSIST_KEY_WEATHER_FORECAST_RAIN_0);
+    persist_delete(PERSIST_KEY_WEATHER_FORECAST_RAIN_1);
 }
 
 static void weather_clear_data() {
@@ -241,29 +259,37 @@ static void save_current_weather_data(WeatherData *weather_data) {
     persisted->TemperatureForecastCount = clamp_forecast_count(weather_data->TemperatureForecastCount);
     persisted->RainForecastMmX10Count = clamp_forecast_count(weather_data->RainForecastMmX10Count);
 
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Copying forecast arrays");
-
-    if (weather_data->TemperatureForecast && persisted->TemperatureForecastCount > 0) {
-        memcpy(
-            persisted->TemperatureForecast,
-            weather_data->TemperatureForecast,
-            sizeof(int) * persisted->TemperatureForecastCount
-        );
-    }
-    if (weather_data->RainForecastMmX10 && persisted->RainForecastMmX10Count > 0) {
-        memcpy(
-            persisted->RainForecastMmX10,
-            weather_data->RainForecastMmX10,
-            sizeof(int) * persisted->RainForecastMmX10Count
-        );
-    }
-
     strncpy(persisted->CurrentConditions, weather_data->CurrentConditions, sizeof(persisted->CurrentConditions) - 1);
     persisted->CurrentConditions[sizeof(persisted->CurrentConditions) - 1] = '\0';
 
     persist_write_data(WEATHER_DATA_KEY, persisted, sizeof(PersistedWeatherData));
+
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Saving forecast arrays in fragmented chunks");
+
+    // Save TemperatureForecast
+    if (weather_data->TemperatureForecast && persisted->TemperatureForecastCount > 0) {
+        int count = persisted->TemperatureForecastCount;
+        if (count > 64) {
+            persist_write_data(PERSIST_KEY_WEATHER_FORECAST_TEMP_0, weather_data->TemperatureForecast, 64 * sizeof(int));
+            persist_write_data(PERSIST_KEY_WEATHER_FORECAST_TEMP_1, weather_data->TemperatureForecast + 64, (count - 64) * sizeof(int));
+        } else {
+            persist_write_data(PERSIST_KEY_WEATHER_FORECAST_TEMP_0, weather_data->TemperatureForecast, count * sizeof(int));
+        }
+    }
+
+    // Save RainForecast
+    if (weather_data->RainForecastMmX10 && persisted->RainForecastMmX10Count > 0) {
+        int count = persisted->RainForecastMmX10Count;
+        if (count > 64) {
+            persist_write_data(PERSIST_KEY_WEATHER_FORECAST_RAIN_0, weather_data->RainForecastMmX10, 64 * sizeof(int));
+            persist_write_data(PERSIST_KEY_WEATHER_FORECAST_RAIN_1, weather_data->RainForecastMmX10 + 64, (count - 64) * sizeof(int));
+        } else {
+            persist_write_data(PERSIST_KEY_WEATHER_FORECAST_RAIN_0, weather_data->RainForecastMmX10, count * sizeof(int));
+        }
+    }
+
     free(persisted);
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "saved weather data");
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "saved fragmented weather data");
 }
 
 void weather_request_update() {
