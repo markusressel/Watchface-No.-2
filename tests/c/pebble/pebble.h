@@ -125,12 +125,17 @@ typedef enum StatusCode {
 } StatusCode;
 
 // The state of our mock storage
+#define MAX_MOCK_STORAGE_ENTRIES 64
+
 typedef struct {
-    int version;
-    char data[1024];
-    int data_size;
-    bool version_exists;
-    bool data_exists;
+    uint32_t key;
+    char data[512]; // Buffer for test data, but limit is enforced in write
+    size_t size;
+    bool exists;
+} MockStorageEntry;
+
+typedef struct {
+    MockStorageEntry entries[MAX_MOCK_STORAGE_ENTRIES];
 } MockStorage;
 
 static MockStorage global_mock_storage;
@@ -140,73 +145,101 @@ static void mock_storage_reset() {
     memset(&global_mock_storage, 0, sizeof(MockStorage));
 }
 
+static MockStorageEntry *find_entry(uint32_t key, bool create_if_missing) {
+    for (int i = 0; i < MAX_MOCK_STORAGE_ENTRIES; i++) {
+        if (global_mock_storage.entries[i].exists && global_mock_storage.entries[i].key == key) {
+            return &global_mock_storage.entries[i];
+        }
+    }
+    if (create_if_missing) {
+        for (int i = 0; i < MAX_MOCK_STORAGE_ENTRIES; i++) {
+            if (!global_mock_storage.entries[i].exists) {
+                global_mock_storage.entries[i].key = key;
+                global_mock_storage.entries[i].exists = true;
+                return &global_mock_storage.entries[i];
+            }
+        }
+    }
+    return NULL;
+}
+
 static void mock_storage_set_version(int version) {
-    global_mock_storage.version = version;
-    global_mock_storage.version_exists = true;
+    MockStorageEntry *entry = find_entry(2, true); // PERSIST_KEY_SETTINGS_VERSION
+    if (entry) {
+        memcpy(entry->data, &version, sizeof(int));
+        entry->size = sizeof(int);
+    }
 }
 
 static int mock_storage_get_version() {
-    return global_mock_storage.version;
+    MockStorageEntry *entry = find_entry(2, false);
+    if (entry && entry->size == sizeof(int)) {
+        int val;
+        memcpy(&val, entry->data, sizeof(int));
+        return val;
+    }
+    return 0;
 }
 
 static void mock_storage_set_data(void *data, size_t size) {
-    if (size <= sizeof(global_mock_storage.data)) {
-        memcpy(global_mock_storage.data, data, size);
-        global_mock_storage.data_size = size;
-        global_mock_storage.data_exists = true;
+    MockStorageEntry *entry = find_entry(1, true); // PERSIST_KEY_SETTINGS
+    if (entry) {
+        memcpy(entry->data, data, size);
+        entry->size = size;
     }
 }
 
 // The mock implementations of the Pebble SDK functions
 static bool persist_exists(const uint32_t key) {
-    if (key == 2) return global_mock_storage.version_exists;
-    if (key == 1) return global_mock_storage.data_exists;
-    return false;
+    return find_entry(key, false) != NULL;
 }
 
 //! @return S_TRUE if successful, E_DOES_NOT_EXIST if a value was not set, or another error value from \ref StatusCode.
 static status_t persist_delete(const uint32_t key) {
-    if (key == 2) {
-        global_mock_storage.version_exists = false;
+    MockStorageEntry *entry = find_entry(key, false);
+    if (entry) {
+        entry->exists = false;
         return S_TRUE;
     }
-    if (key == 1) {
-        global_mock_storage.data_exists = false;
-        return S_SUCCESS;
-    }
-    return E_INTERNAL;
+    return S_FALSE;
 }
 
 static int persist_read_int(const uint32_t key) {
-    if (key == 2) return global_mock_storage.version;
+    MockStorageEntry *entry = find_entry(key, false);
+    if (entry && entry->size == sizeof(int32_t)) {
+        int32_t val;
+        memcpy(&val, entry->data, sizeof(int32_t));
+        return val;
+    }
     return 0;
 }
 
 static int persist_read_data(const uint32_t key, void *buffer, const size_t size) {
-    if (key == 1 && global_mock_storage.data_exists) {
-        size_t to_copy = size < global_mock_storage.data_size ? size : global_mock_storage.data_size;
-        memcpy(buffer, global_mock_storage.data, to_copy);
-        return to_copy;
+    MockStorageEntry *entry = find_entry(key, false);
+    if (entry) {
+        size_t to_copy = size < entry->size ? size : entry->size;
+        memcpy(buffer, entry->data, to_copy);
+        return (int) to_copy;
     }
     return 0;
 }
 
 static int persist_write_data(const uint32_t key, const void *data, const size_t size) {
-    if (key == 1) {
-        if (size <= sizeof(global_mock_storage.data)) {
-            memcpy(global_mock_storage.data, data, size);
-            global_mock_storage.data_size = size;
-            global_mock_storage.data_exists = true;
-            return size;
-        }
+    if (size > 256) return E_OUT_OF_RESOURCES; // Simulate Pebble limit!
+    MockStorageEntry *entry = find_entry(key, true);
+    if (entry) {
+        memcpy(entry->data, data, size);
+        entry->size = size;
+        return (int) size;
     }
     return 0;
 }
 
 static status_t persist_write_int(const uint32_t key, const int32_t value) {
-    if (key == 2) {
-        global_mock_storage.version = value;
-        global_mock_storage.version_exists = true;
+    MockStorageEntry *entry = find_entry(key, true);
+    if (entry) {
+        memcpy(entry->data, &value, sizeof(int32_t));
+        entry->size = sizeof(int32_t);
         return S_SUCCESS;
     }
     return E_INTERNAL;
@@ -256,7 +289,9 @@ static void dict_write_int(DictionaryIterator *iter, uint32_t key, const void *v
     (void) signed_val;
 }
 
+static int s_app_message_outbox_send_count = 0;
 static AppMessageResult app_message_outbox_send() {
+    s_app_message_outbox_send_count++;
     return APP_MSG_OK;
 }
 

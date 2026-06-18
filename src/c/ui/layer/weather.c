@@ -6,6 +6,7 @@
 #include "dotted_text_layer.h"
 #include "weather_forecast.h"
 #include "../ui_state.h"
+#include "../../system/phone_connection.h"
 
 static char s_buffer[32];
 
@@ -14,7 +15,7 @@ static WeatherData s_mock_weather_data;
 static int s_runtime_temp_forecast[WEATHER_FORECAST_MAX_POINTS];
 static int s_runtime_rain_forecast[WEATHER_FORECAST_MAX_POINTS];
 
-static const uint16_t WEATHER_DATA_PERSIST_VERSION = 2;
+static const uint16_t WEATHER_DATA_PERSIST_VERSION = 3;
 
 typedef struct PersistedWeatherData {
     uint16_t Version;
@@ -25,9 +26,7 @@ typedef struct PersistedWeatherData {
     int RainPopPercent;
     time_t ForecastStartTimestamp;
     int TemperatureForecastCount;
-    int TemperatureForecast[WEATHER_FORECAST_MAX_POINTS];
     int RainForecastMmX10Count;
-    int RainForecastMmX10[WEATHER_FORECAST_MAX_POINTS];
     char CurrentConditions[48];
 } PersistedWeatherData;
 
@@ -58,6 +57,10 @@ static const WeatherData s_mock_weather_data_template = {
     .ForecastStartTimestamp = 0,
     .CurrentConditions = "Mock",
 };
+
+static int weather_get_current_temp(WeatherData *data);
+static void update_weather_ui();
+static void weather_clear_data();
 
 static void ensure_runtime_forecast_storage() {
     APP_LOG(APP_LOG_LEVEL_DEBUG, "ensuring runtime forecast storage");
@@ -145,18 +148,22 @@ static void restore_saved_weather_data() {
     s_weather_data.RainForecastMmX10Count = clamp_forecast_count(persisted.RainForecastMmX10Count);
 
     if (s_weather_data.TemperatureForecastCount > 0) {
-        memcpy(
-            s_weather_data.TemperatureForecast,
-            persisted.TemperatureForecast,
-            sizeof(int) * s_weather_data.TemperatureForecastCount
-        );
+        int count = s_weather_data.TemperatureForecastCount;
+        if (count > 64) {
+            persist_read_data(PERSIST_KEY_WEATHER_FORECAST_TEMP_0, s_weather_data.TemperatureForecast, 64 * sizeof(int));
+            persist_read_data(PERSIST_KEY_WEATHER_FORECAST_TEMP_1, s_weather_data.TemperatureForecast + 64, (count - 64) * sizeof(int));
+        } else {
+            persist_read_data(PERSIST_KEY_WEATHER_FORECAST_TEMP_0, s_weather_data.TemperatureForecast, count * sizeof(int));
+        }
     }
     if (s_weather_data.RainForecastMmX10Count > 0) {
-        memcpy(
-            s_weather_data.RainForecastMmX10,
-            persisted.RainForecastMmX10,
-            sizeof(int) * s_weather_data.RainForecastMmX10Count
-        );
+        int count = s_weather_data.RainForecastMmX10Count;
+        if (count > 64) {
+            persist_read_data(PERSIST_KEY_WEATHER_FORECAST_RAIN_0, s_weather_data.RainForecastMmX10, 64 * sizeof(int));
+            persist_read_data(PERSIST_KEY_WEATHER_FORECAST_RAIN_1, s_weather_data.RainForecastMmX10 + 64, (count - 64) * sizeof(int));
+        } else {
+            persist_read_data(PERSIST_KEY_WEATHER_FORECAST_RAIN_0, s_weather_data.RainForecastMmX10, count * sizeof(int));
+        }
     }
 
     strncpy(s_weather_data.CurrentConditions, persisted.CurrentConditions, sizeof(s_weather_data.CurrentConditions) - 1);
@@ -167,6 +174,18 @@ static void restore_saved_weather_data() {
 
 void weather_init_data() {
     restore_saved_weather_data();
+
+    if (s_weather_data.ForecastStartTimestamp > 0) {
+        ClaySettings *settings = clay_get_settings();
+        const int forecast_points = settings->SliderWeatherForecastPreviewHoursCount * 4; // 15 min points
+        const time_t max_valid_time = s_weather_data.ForecastStartTimestamp + (forecast_points * 15 * 60);
+
+        if (time(NULL) > max_valid_time) {
+            APP_LOG(APP_LOG_LEVEL_INFO, "Restored weather data is expired. Fetching new.");
+            weather_clear_data();
+            weather_request_update();
+        }
+    }
 }
 
 void weather_delete_persisted_data() {
@@ -175,6 +194,34 @@ void weather_delete_persisted_data() {
     }
     APP_LOG(APP_LOG_LEVEL_DEBUG, "deleting persisted weather data");
     persist_delete(WEATHER_DATA_KEY);
+    persist_delete(PERSIST_KEY_WEATHER_FORECAST_TEMP_0);
+    persist_delete(PERSIST_KEY_WEATHER_FORECAST_TEMP_1);
+    persist_delete(PERSIST_KEY_WEATHER_FORECAST_RAIN_0);
+    persist_delete(PERSIST_KEY_WEATHER_FORECAST_RAIN_1);
+}
+
+static void weather_clear_data() {
+    memset(&s_weather_data, 0, sizeof(WeatherData));
+    weather_delete_persisted_data();
+    update_weather();
+    update_weather_forecast();
+}
+
+void weather_tick_update() {
+    if (s_weather_data.ForecastStartTimestamp <= 0) {
+        return;
+    }
+
+    ClaySettings *settings = clay_get_settings();
+    const int forecast_points = settings->SliderWeatherForecastPreviewHoursCount * 4; // 15 min points
+    const time_t max_valid_time = s_weather_data.ForecastStartTimestamp + (forecast_points * 15 * 60);
+
+    if (time(NULL) > max_valid_time) {
+        APP_LOG(APP_LOG_LEVEL_INFO, "Weather data expired. Clearing.");
+        weather_clear_data();
+    } else {
+        update_weather_ui();
+    }
 }
 
 
@@ -212,32 +259,45 @@ static void save_current_weather_data(WeatherData *weather_data) {
     persisted->TemperatureForecastCount = clamp_forecast_count(weather_data->TemperatureForecastCount);
     persisted->RainForecastMmX10Count = clamp_forecast_count(weather_data->RainForecastMmX10Count);
 
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Copying forecast arrays");
-
-    if (weather_data->TemperatureForecast && persisted->TemperatureForecastCount > 0) {
-        memcpy(
-            persisted->TemperatureForecast,
-            weather_data->TemperatureForecast,
-            sizeof(int) * persisted->TemperatureForecastCount
-        );
-    }
-    if (weather_data->RainForecastMmX10 && persisted->RainForecastMmX10Count > 0) {
-        memcpy(
-            persisted->RainForecastMmX10,
-            weather_data->RainForecastMmX10,
-            sizeof(int) * persisted->RainForecastMmX10Count
-        );
-    }
-
     strncpy(persisted->CurrentConditions, weather_data->CurrentConditions, sizeof(persisted->CurrentConditions) - 1);
     persisted->CurrentConditions[sizeof(persisted->CurrentConditions) - 1] = '\0';
 
     persist_write_data(WEATHER_DATA_KEY, persisted, sizeof(PersistedWeatherData));
+
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Saving forecast arrays in fragmented chunks");
+
+    // Save TemperatureForecast
+    if (weather_data->TemperatureForecast && persisted->TemperatureForecastCount > 0) {
+        int count = persisted->TemperatureForecastCount;
+        if (count > 64) {
+            persist_write_data(PERSIST_KEY_WEATHER_FORECAST_TEMP_0, weather_data->TemperatureForecast, 64 * sizeof(int));
+            persist_write_data(PERSIST_KEY_WEATHER_FORECAST_TEMP_1, weather_data->TemperatureForecast + 64, (count - 64) * sizeof(int));
+        } else {
+            persist_write_data(PERSIST_KEY_WEATHER_FORECAST_TEMP_0, weather_data->TemperatureForecast, count * sizeof(int));
+        }
+    }
+
+    // Save RainForecast
+    if (weather_data->RainForecastMmX10 && persisted->RainForecastMmX10Count > 0) {
+        int count = persisted->RainForecastMmX10Count;
+        if (count > 64) {
+            persist_write_data(PERSIST_KEY_WEATHER_FORECAST_RAIN_0, weather_data->RainForecastMmX10, 64 * sizeof(int));
+            persist_write_data(PERSIST_KEY_WEATHER_FORECAST_RAIN_1, weather_data->RainForecastMmX10 + 64, (count - 64) * sizeof(int));
+        } else {
+            persist_write_data(PERSIST_KEY_WEATHER_FORECAST_RAIN_0, weather_data->RainForecastMmX10, count * sizeof(int));
+        }
+    }
+
     free(persisted);
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "saved weather data");
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "saved fragmented weather data");
 }
 
-static void request_weather_update() {
+void weather_request_update() {
+    if (!phone_connection_is_connected()) {
+        APP_LOG(APP_LOG_LEVEL_INFO, "Skipping weather update: Phone not connected.");
+        return;
+    }
+
     // Declare the dictionary's iterator
     DictionaryIterator *out_iter;
 
@@ -319,7 +379,7 @@ static void on_scheduled_update_triggered(void *data) {
     s_update_timer = NULL;
 
     // send AppMessage to trigger weather update via JS
-    request_weather_update();
+    weather_request_update();
 
     //Register next execution
     const int next_request_ms = compute_next_weather_update_request_ms();
@@ -382,12 +442,12 @@ static void weather_layer_update_proc(Layer *layer, GContext *ctx) {
     for (int i = 0; i < 3; i++) {
         // Slot i
         if (data->slots[i] && slot_widths[i] > 0) {
-            layer_set_frame((Layer *) data->slots[i], GRect(current_x, 0, slot_widths[i], bounds.size.h));
+            layer_set_frame(data->slots[i], GRect(current_x, 0, slot_widths[i], bounds.size.h));
             current_x += slot_widths[i] + spacing;
         }
         // Separator after slot i
         if (i < 2 && data->separators[i] && sep_widths[i] > 0) {
-            layer_set_frame((Layer *) data->separators[i], GRect(current_x, 0, sep_widths[i], bounds.size.h));
+            layer_set_frame(data->separators[i], GRect(current_x, 0, sep_widths[i], bounds.size.h));
             current_x += sep_widths[i] + spacing;
         }
     }
@@ -419,7 +479,7 @@ static void update_weather_for_layer(Layer *weather_container_layer) {
 
         switch (slot_configs[i]) {
             case WEATHER_VALUE_TYPE_CURRENT:
-                value = weather_data->CurrentTemperature;
+                value = weather_get_current_temp(weather_data);
                 color = theme->WeatherCurrentTempColor;
                 break;
             case WEATHER_VALUE_TYPE_MAX:
@@ -447,7 +507,51 @@ static void update_weather_for_layer(Layer *weather_container_layer) {
     layer_mark_dirty(weather_container_layer);
 }
 
-// Backward compatible wrapper (called by app messaging or other code)
+static int weather_get_current_temp(WeatherData *data) {
+    if (data == NULL) {
+        return 0;
+    }
+
+    if (data->ForecastStartTimestamp <= 0 || data->TemperatureForecastCount <= 0 || data->TemperatureForecast == NULL) {
+        return data->CurrentTemperature;
+    }
+
+    const time_t now = time(NULL);
+    const int interval = 15 * 60; // 15 minutes
+
+    // Calculate how many intervals have passed since the forecast started
+    int seconds_since_start = (int) (now - data->ForecastStartTimestamp);
+
+    // If we are before the forecast start, just return the received current temp
+    if (seconds_since_start < 0) {
+        return data->CurrentTemperature;
+    }
+
+    // Find the closest forecast index
+    int index = (seconds_since_start + (interval / 2)) / interval;
+
+    // Only switch to forecast data if we are closer to a later forecast entry (index > 0)
+    // than to the start time/current temp.
+    if (index <= 0) {
+        return data->CurrentTemperature;
+    }
+
+    if (index >= data->TemperatureForecastCount) {
+        return data->TemperatureForecast[data->TemperatureForecastCount - 1];
+    }
+
+    return data->TemperatureForecast[index];
+}
+
+static void update_weather_ui() {
+    for (int i = 0; i < ui_state_get_row_count(); i++) {
+        if (ui_state_get_widget_id(i) == WIDGET_WEATHER) {
+            update_weather_for_layer(ui_state_get_layer(i));
+        }
+    }
+}
+
+// update all weather layer instances (backward compatible wrapper)
 void update_weather() {
     WeatherData *data = weather_get_data();
     if (data != NULL) {
@@ -463,11 +567,7 @@ void update_weather() {
         );
     }
 
-    for (int i = 0; i < ui_state_get_row_count(); i++) {
-        if (ui_state_get_widget_id(i) == WIDGET_WEATHER) {
-            update_weather_for_layer(ui_state_get_layer(i));
-        }
-    }
+    update_weather_ui();
 }
 
 Layer *create_weather_layer(LayerBuilder builder) {

@@ -485,7 +485,6 @@ export function getWeather(force = false) {
                 })
                 .catch(e => {
                     console.log('Error in weather fetch process: ' + e)
-                    clearWeatherData();
                 });
         },
         function (err) {
