@@ -21,11 +21,6 @@ def clean_coverage():
 
 
 def parse_gcov_output(output):
-    # Example gcov output snippet:
-    # File 'src/c/ui/theme.c'
-    # Lines executed:98.95% of 95
-    # Creating 'theme.c.gcov'
-
     results = []
     file_re = re.compile(r"File '(.*?)'")
     lines_re = re.compile(r"Lines executed:(.*?)% of (\d+)")
@@ -56,13 +51,70 @@ def parse_gcov_output(output):
     return results
 
 
+def get_all_src_files():
+    src_files = []
+    for root, _, files in os.walk("src/c"):
+        for file in files:
+            if file.endswith(".c"):
+                path = os.path.join(root, file)
+                # Normalize path to match gcov output (usually relative to project root)
+                src_files.append(os.path.relpath(path, "."))
+    return src_files
+
+
+def estimate_total_lines(file_path):
+    """Simple estimation of instrumentable lines by counting non-empty, non-comment lines."""
+    try:
+        with open(file_path, "r") as f:
+            lines = f.readlines()
+
+        count = 0
+        in_block_comment = False
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+
+            if in_block_comment:
+                if "*/" in line:
+                    in_block_comment = False
+                continue
+
+            if line.startswith("/*"):
+                if "*/" not in line:
+                    in_block_comment = True
+                continue
+
+            if line.startswith("//"):
+                continue
+
+            count += 1
+        return count
+    except Exception:
+        return 0
+
+
 def print_table(results):
     if not results:
         print_color("No coverage data found for src/c/ files.", "yellow")
         return
 
-    # Sort by coverage descending
-    results.sort(key=lambda x: x["coverage"], reverse=True)
+    # Add missing files with 0 coverage
+    all_files = get_all_src_files()
+    covered_files = {res["file"] for res in results}
+
+    for file in all_files:
+        if file not in covered_files:
+            total_lines = estimate_total_lines(file)
+            results.append({
+                "file": file,
+                "coverage": 0.0,
+                "executed": 0,
+                "total": total_lines
+            })
+
+    # Sort by coverage descending, then by name
+    results.sort(key=lambda x: (-x["coverage"], x["file"]))
 
     header = f"{'File':<40} | {'Executed':>10} | {'Total':>10} | {'Coverage':>10}"
     separator = "-" * len(header)
