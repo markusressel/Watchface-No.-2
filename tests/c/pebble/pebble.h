@@ -563,6 +563,10 @@ static inline void graphics_fill_rect(GContext *ctx, GRect rect, uint16_t corner
     }
 }
 
+static inline void graphics_draw_rect(GContext *ctx, GRect rect) {
+    (void) ctx; (void) rect;
+}
+
 static inline void reset_graphics_fill_rect_calls() {
     s_graphics_fill_rect_call_count = 0;
     s_current_fill_color = (GColor){.argb = 0};
@@ -605,3 +609,33 @@ static inline void reset_graphics_draw_line_calls() {
 
 static inline GraphicsDrawLineCall *get_graphics_draw_line_calls() { return s_graphics_draw_line_calls; }
 static inline int get_graphics_draw_line_call_count() { return s_graphics_draw_line_call_count; }
+
+// Animation mocks
+typedef void Animation;
+typedef uint32_t AnimationProgress;
+#define ANIMATION_NORMALIZED_MAX 65535
+#define ANIMATION_DURATION_INFINITE 0xFFFFFFFF
+
+typedef enum {
+    AnimationCurveLinear,
+    AnimationCurveEaseIn,
+    AnimationCurveEaseOut,
+    AnimationCurveEaseInOut,
+} AnimationCurve;
+
+typedef void (*AnimationUpdateImplementation)(Animation *animation, const AnimationProgress progress);
+
+typedef struct {
+    AnimationUpdateImplementation update;
+} AnimationImplementation;
+
+static inline Animation *animation_create() { return (Animation *)malloc(1); }
+static inline void animation_destroy(Animation *animation) { if (animation) free(animation); }
+static inline void animation_set_duration(Animation *animation, uint32_t duration_ms) { (void)animation; (void)duration_ms; }
+static inline void animation_set_delay(Animation *animation, uint32_t delay_ms) { (void)animation; (void)delay_ms; }
+static inline void animation_set_curve(Animation *animation, AnimationCurve curve) { (void)animation; (void)curve; }
+static inline void animation_set_implementation(Animation *animation, AnimationImplementation *implementation) { (void)animation; (void)implementation; }
+static inline void animation_set_play_count(Animation *animation, uint32_t play_count) { (void)animation; (void)play_count; }
+static inline void animation_schedule(Animation *animation) { (void)animation; }
+static inline void animation_unschedule(Animation *animation) { (void)animation; }
+
