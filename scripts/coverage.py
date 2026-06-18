@@ -105,7 +105,7 @@ def main():
     clean_coverage()
 
     print("Running tests with coverage...")
-    run_command(["./scripts/tests.py", "--coverage"], check=True, capture_output=False)
+    test_result = run_command(["./scripts/tests.py", "--coverage"], check=False, capture_output=False)
 
     print("\nProcessing coverage data...")
     # Find all gcda files
@@ -144,6 +144,10 @@ def main():
         print_color(f"HTML report generated at build/coverage/index.html", "cyan")
     else:
         print_color("Tip: Install gcovr ('pip install gcovr') for a better summary and HTML reports.", "yellow")
+
+    if test_result.returncode != 0:
+        print_color("\nNote: Tests failed, but coverage data was processed.", "yellow")
+        sys.exit(test_result.returncode)
 
 
 if __name__ == "__main__":

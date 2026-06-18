@@ -18,10 +18,10 @@ def run_c_host_tests(coverage=False):
             if file.endswith("_test.c"):
                 test_files.append(os.path.join(root, file))
 
-    all_tests_passed = True
-    total_tests = 0
-    total_failures = 0
+    total_passed = 0
+    total_failed = 0
     total_ignored = 0
+    total_errors = 0
 
     unity_re = re.compile(r'(\d+) Tests (\d+) Failures (\d+) Ignored')
 
@@ -31,7 +31,7 @@ def run_c_host_tests(coverage=False):
 
         output_executable = os.path.join(build_dir, f"{test_name}_test")
 
-        print(f"--- Compiling and running {test_name} tests ---")
+        print(f"--- {test_name} ---")
 
         # Compile the test file, the Unity runner, and include paths for mocks and Unity headers
         compile_command = [
@@ -49,13 +49,11 @@ def run_c_host_tests(coverage=False):
         # Compile test
         try:
             subprocess.run(compile_command, check=True, capture_output=True, text=True)
-            print(f"Compilation successful for {test_name}.")
         except subprocess.CalledProcessError as e:
-            print(f"Compilation FAILED for {test_name}:")
+            print_color(f"  Compilation FAILED", "red")
             print(e.stdout)
             print(e.stderr)
-            all_tests_passed = False
-            print("")
+            total_errors += 1
             continue
 
         # Run test
@@ -63,30 +61,44 @@ def run_c_host_tests(coverage=False):
         try:
             result = subprocess.run([output_executable], check=True, capture_output=True, text=True)
             stdout = result.stdout
-            print(stdout)
+            print(stdout.strip())
         except subprocess.CalledProcessError as e:
             stdout = e.stdout
-            print(stdout)
-            print(e.stderr)
-            print(f"{test_name} tests: FAILED (Execution Error)")
-            all_tests_passed = False
+            print(stdout.strip())
+            if e.stderr:
+                print(e.stderr.strip())
+            print_color(f"  Execution FAILED", "red")
 
         match = unity_re.search(stdout)
         if match:
-            total_tests += int(match.group(1))
-            total_failures += int(match.group(2))
-            total_ignored += int(match.group(3))
+            num_tests = int(match.group(1))
+            num_fail = int(match.group(2))
+            num_ignored = int(match.group(3))
 
-        print("")  # Newline for readability
-
-    if all_tests_passed:
-        if total_tests > 0:
-            print_color(f"All {total_tests} C host tests PASSED", "green")
+            total_failed += num_fail
+            total_ignored += num_ignored
+            total_passed += (num_tests - num_fail - num_ignored)
         else:
-            print_color("No C host tests were found or run", "red")
+            # If no Unity summary found but it failed/crashed
+            total_errors += 1
+
+    print_color("\n--- C Test Summary ---", "bold")
+
+    summary_color = "green"
+    if total_failed > 0 or total_errors > 0:
+        summary_color = "red"
+    elif total_passed == 0:
+        summary_color = "yellow"
+
+    print_color(f"PASSED: {total_passed}", summary_color)
+    print_color(f"IGNORED: {total_ignored}", "yellow" if total_ignored > 0 else None)
+    print_color(f"FAILED: {total_failed}", "red" if total_failed > 0 else None)
+    if total_errors > 0:
+        print_color(f"ERRORS: {total_errors} (crashes or compilation failures)", "red")
+
+    if total_failed == 0 and total_errors == 0 and total_passed > 0:
         return 0
     else:
-        print_color(f"Some C host tests FAILED ({total_failures} failed out of {total_tests})", "red")
         return 1
 
 
