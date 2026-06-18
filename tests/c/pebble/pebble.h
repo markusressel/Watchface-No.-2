@@ -312,6 +312,72 @@ static inline GColor GColorFromHEX(int hex) {
     return (GColor){.argb = (uint8_t) hex};
 }
 
+// Battery mocks
+typedef struct BatteryChargeState {
+    uint8_t charge_percent;
+    bool is_charging;
+    bool is_plugged;
+} BatteryChargeState;
+
+typedef void (*BatteryHandler)(BatteryChargeState charge);
+
+static BatteryHandler s_battery_handler = NULL;
+static BatteryChargeState s_battery_state = {100, false, false};
+
+static inline void battery_state_service_subscribe(BatteryHandler handler) {
+    s_battery_handler = handler;
+}
+
+static inline void battery_state_service_unsubscribe() {
+    s_battery_handler = NULL;
+}
+
+static inline BatteryChargeState battery_state_service_peek() {
+    return s_battery_state;
+}
+
+// Health mocks
+#define PBL_HEALTH 1
+
+typedef enum {
+    HealthEventSignificantUpdate,
+    HealthEventMovementUpdate,
+    HealthEventSleepUpdate,
+    HealthEventHeartRateUpdate,
+    HealthEventMetricAlert
+} HealthEventType;
+
+typedef enum {
+    HealthMetricHeartRateBPM,
+    HealthMetricStepCount
+} HealthMetric;
+
+typedef void (*HealthEventHandler)(HealthEventType event, void *context);
+
+static HealthEventHandler s_health_handler = NULL;
+static int s_mock_step_count = 0;
+static int s_mock_heart_rate = 0;
+
+static inline bool health_service_events_subscribe(HealthEventHandler handler, void *context) {
+    s_health_handler = handler;
+    return true;
+}
+
+static inline void health_service_events_unsubscribe() {
+    s_health_handler = NULL;
+}
+
+static inline int health_service_peek_current_value(HealthMetric metric) {
+    if (metric == HealthMetricHeartRateBPM) return s_mock_heart_rate;
+    if (metric == HealthMetricStepCount) return s_mock_step_count;
+    return 0;
+}
+
+static inline int health_service_sum_today(HealthMetric metric) {
+    if (metric == HealthMetricStepCount) return s_mock_step_count;
+    return 0;
+}
+
 typedef void (*AppMessageInboxReceived)(DictionaryIterator *iterator, void *context);
 
 typedef void (*AppMessageInboxDropped)(AppMessageResult reason, void *context);
