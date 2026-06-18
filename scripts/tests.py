@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import re
 import subprocess
 import sys
 
@@ -25,6 +26,11 @@ def run_c_host_tests(coverage=False):
                 test_files.append(os.path.join(root, file))
 
     all_tests_passed = True
+    total_tests = 0
+    total_failures = 0
+    total_ignored = 0
+
+    unity_re = re.compile(r'(\d+) Tests (\d+) Failures (\d+) Ignored')
 
     for test_file in test_files:
         filename = os.path.basename(test_file)
@@ -60,22 +66,34 @@ def run_c_host_tests(coverage=False):
             continue
 
         # Run test
+        stdout = ""
         try:
             result = subprocess.run([output_executable], check=True, capture_output=True, text=True)
-            print(result.stdout)
-            # Unity prints its own PASS/FAIL summary, so we don't need to print it here
+            stdout = result.stdout
+            print(stdout)
         except subprocess.CalledProcessError as e:
-            print(e.stdout)
+            stdout = e.stdout
+            print(stdout)
             print(e.stderr)
             print(f"{test_name} tests: FAILED (Execution Error)")
             all_tests_passed = False
+
+        match = unity_re.search(stdout)
+        if match:
+            total_tests += int(match.group(1))
+            total_failures += int(match.group(2))
+            total_ignored += int(match.group(3))
+
         print("")  # Newline for readability
 
     if all_tests_passed:
-        print_color("All C host tests PASSED", "green")
+        if total_tests > 0:
+            print_color(f"All {total_tests} C host tests PASSED", "green")
+        else:
+            print_color("No C host tests were found or run", "red")
         return 0
     else:
-        print_color("Some C host tests FAILED", "red")
+        print_color(f"Some C host tests FAILED ({total_failures} failed out of {total_tests})", "red")
         return 1
 
 
