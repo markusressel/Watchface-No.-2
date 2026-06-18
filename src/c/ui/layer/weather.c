@@ -171,6 +171,7 @@ static void restore_saved_weather_data() {
     strncpy(s_weather_data.CurrentConditions, persisted.CurrentConditions, sizeof(s_weather_data.CurrentConditions) - 1);
     s_weather_data.CurrentConditions[sizeof(s_weather_data.CurrentConditions) - 1] = '\0';
     sanitize_weather_data();
+    s_weather_data.is_dirty = false;
     s_weather_data_initialized = true;
 }
 
@@ -228,16 +229,21 @@ void weather_tick_update() {
 
 
 static void save_current_weather_data(WeatherData *weather_data) {
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "saving current weather data: %p", weather_data);
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "saving current weather data: %p (dirty=%d)", weather_data, weather_data ? weather_data->is_dirty : 0);
 
     if (clay_get_settings()->WeatherUseSimulation) {
         APP_LOG(APP_LOG_LEVEL_DEBUG, "skipping saving weather data in simulation mode");
         return;
     }
 
-    if (weather_data == NULL) {
-        APP_LOG(APP_LOG_LEVEL_WARNING, "cannot save NULL weather data");
+    if (weather_data == NULL || weather_data->ForecastStartTimestamp <= 0) {
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "weather data is NULL or empty, deleting persisted data");
         weather_delete_persisted_data();
+        return;
+    }
+
+    if (!weather_data->is_dirty) {
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "weather data not dirty, skipping save");
         return;
     }
 
@@ -291,6 +297,7 @@ static void save_current_weather_data(WeatherData *weather_data) {
     }
 
     free(persisted);
+    weather_data->is_dirty = false;
     APP_LOG(APP_LOG_LEVEL_DEBUG, "saved fragmented weather data");
 }
 
@@ -560,9 +567,6 @@ static void update_weather_ui() {
 void update_weather() {
     WeatherData *data = weather_get_data();
     if (data != NULL) {
-        // persist current data for fast access when opening the watchface
-        save_current_weather_data(data);
-
         APP_LOG(
             APP_LOG_LEVEL_DEBUG,
             "weather rain update: next_1h=%d.%dmm pop=%d%%",
@@ -653,6 +657,8 @@ void destroy_weather_layer(Layer *layer) {
 }
 
 void deinit_weather_data() {
+    save_current_weather_data(&s_weather_data);
+
     if (s_weather_data.is_temp_forecast_dynamic_alloc && s_weather_data.TemperatureForecast) {
         free(s_weather_data.TemperatureForecast);
         s_weather_data.is_temp_forecast_dynamic_alloc = false;

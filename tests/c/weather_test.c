@@ -218,7 +218,8 @@ void test_weather_persistence_save_restore(void) {
         .ForecastStartTimestamp = s_mock_time - 3600,
         .TemperatureForecastCount = 70, // > 64 to test fragmentation
         .RainForecastMmX10Count = 10,
-        .CurrentConditions = "Sunny"
+        .CurrentConditions = "Sunny",
+        .is_dirty = true
     };
     int temp_forecast[70];
     for (int i = 0; i < 70; i++) temp_forecast[i] = i;
@@ -340,13 +341,13 @@ void test_update_weather(void) {
     s_weather_data.CurrentTemperature = 30;
     s_weather_data.ForecastStartTimestamp = s_mock_time;
 
-    // update_weather saves data to persist
+    // update_weather NO LONGER saves data to persist immediately
     update_weather();
 
-    // Verify it was saved by checking mock storage
-    PersistedWeatherData persisted;
+    // Verify it was NOT saved
+    PersistedWeatherData persisted = {0};
     persist_read_data(WEATHER_DATA_KEY, &persisted, sizeof(PersistedWeatherData));
-    TEST_ASSERT_EQUAL_INT(30, persisted.CurrentTemperature);
+    TEST_ASSERT_NOT_EQUAL(30, persisted.CurrentTemperature);
 }
 
 void test_weather_delete_persisted_data(void) {
@@ -370,17 +371,45 @@ void test_weather_layer_create_destroy(void) {
 }
 
 void test_weather_deinit_data(void) {
+    s_weather_data.CurrentTemperature = 35;
+    s_weather_data.ForecastStartTimestamp = s_mock_time;
+    s_weather_data.is_dirty = true;
     s_weather_data.TemperatureForecast = malloc(10 * sizeof(int));
     s_weather_data.is_temp_forecast_dynamic_alloc = true;
     s_weather_data.RainForecastMmX10 = malloc(10 * sizeof(int));
     s_weather_data.is_rain_forecast_dynamic_alloc = true;
 
+    // deinit_weather_data should now save to persist because is_dirty is true
     deinit_weather_data();
+
+    PersistedWeatherData persisted = {0};
+    persist_read_data(WEATHER_DATA_KEY, &persisted, sizeof(PersistedWeatherData));
+    TEST_ASSERT_EQUAL_INT(35, persisted.CurrentTemperature);
 
     TEST_ASSERT_NULL(s_weather_data.TemperatureForecast);
     TEST_ASSERT_NULL(s_weather_data.RainForecastMmX10);
     TEST_ASSERT_FALSE(s_weather_data.is_temp_forecast_dynamic_alloc);
     TEST_ASSERT_FALSE(s_weather_data.is_rain_forecast_dynamic_alloc);
+    TEST_ASSERT_FALSE(s_weather_data.is_dirty);
+}
+
+void test_weather_deinit_data_not_dirty(void) {
+    // 1. Setup mock storage with some data
+    PersistedWeatherData persisted_initial = {.CurrentTemperature = 20, .Version = WEATHER_DATA_PERSIST_VERSION, .ForecastStartTimestamp = s_mock_time};
+    persist_write_data(WEATHER_DATA_KEY, &persisted_initial, sizeof(PersistedWeatherData));
+
+    // 2. Setup runtime data but NOT dirty
+    s_weather_data.CurrentTemperature = 35; // Different from storage
+    s_weather_data.ForecastStartTimestamp = s_mock_time;
+    s_weather_data.is_dirty = false;
+
+    // 3. Deinit should NOT save because it's not dirty
+    deinit_weather_data();
+
+    // 4. Verify storage still has the old data
+    PersistedWeatherData persisted_after = {0};
+    persist_read_data(WEATHER_DATA_KEY, &persisted_after, sizeof(PersistedWeatherData));
+    TEST_ASSERT_EQUAL_INT(20, persisted_after.CurrentTemperature);
 }
 
 void test_weather_simulation_mode(void) {
@@ -411,6 +440,7 @@ int main() {
     RUN_TEST(test_weather_delete_persisted_data);
     RUN_TEST(test_weather_layer_create_destroy);
     RUN_TEST(test_weather_deinit_data);
+    RUN_TEST(test_weather_deinit_data_not_dirty);
     RUN_TEST(test_weather_simulation_mode);
     return UNITY_END();
 }
