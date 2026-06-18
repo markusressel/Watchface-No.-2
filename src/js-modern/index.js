@@ -1,3 +1,4 @@
+import {logger} from './logger.js';
 import Clay from '@rebble/clay';
 import clayConfig from './config/configPage';
 import customClay from './config/custom-clay';
@@ -29,7 +30,7 @@ Pebble.addEventListener('webviewclosed', function (e) {
         config.saveClaySettings(settings);
 
         if (settingsJson.ClearWeatherCache) {
-            console.log("ClearWeatherCache flag detected, clearing weather data.");
+            logger.info("ClearWeatherCache flag detected, clearing weather data.");
             weather.clearWeatherData();
         }
 
@@ -40,12 +41,12 @@ Pebble.addEventListener('webviewclosed', function (e) {
 // Listen for when the watchface is opened
 Pebble.addEventListener('ready',
     function (e) {
-        console.log("PebbleKit JS ready!");
+        logger.info("PebbleKit JS ready!");
 
         // ==========================================
         // TEMPORARY RESET CODE
         // ==========================================
-        // console.log("Wiping Clay settings...");
+        // logger.info("Wiping Clay settings...");
         // localStorage.clear();
 
         // We no longer send weather here immediately. We wait for the AppReady message,
@@ -68,7 +69,7 @@ Pebble.addEventListener('appmessage',
         // Get the dictionary from the message
         const dict = e.payload;
 
-        console.log('AppMessage received: ' + JSON.stringify(dict));
+        logger.info('AppMessage received: ' + JSON.stringify(dict));
 
         if ("AppReady" in dict) {
             onAppReady();
@@ -83,7 +84,7 @@ Pebble.addEventListener('appmessage',
 );
 
 function onAppReady() {
-    console.log("Watchface is ready!");
+    logger.info("Watchface is ready!");
     isPebbleReady = true;
 }
 

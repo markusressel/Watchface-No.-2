@@ -1,3 +1,5 @@
+import {logger} from '../../logger.js';
+
 /**
  * Fetches weather data from the OpenMeteo API.
  * @param {number} latitude - The latitude coordinate for weather data.
@@ -18,7 +20,7 @@ export async function fetchWeatherData(latitude, longitude, forecast_hours) {
     };
     const url = createUrl(baseUrl, queryParams);
 
-    console.log("Weather request URL is: " + url);
+    logger.info("Weather request URL is: " + url);
 
     // Send request to OpenMeteo
     const responseText = await xhrRequest(url, 'GET');
@@ -54,7 +56,7 @@ const xhrRequest = async function (url, type) {
             resolve(this.responseText);
         };
         xhr.onerror = function () {
-            console.log("Network error");
+            logger.error("Network error");
             reject(new Error("Network error"));
         };
         xhr.open(type, url);

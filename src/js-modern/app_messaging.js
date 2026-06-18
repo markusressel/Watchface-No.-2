@@ -1,3 +1,5 @@
+import {logger} from './logger.js';
+
 /**
  * Sends a dictionary to the watch and logs the result.
  * @param dictionary {object}
@@ -8,10 +10,10 @@ export function sendDictToWatch(dictionary, successMessage, errorMessage) {
     Pebble.sendAppMessage(
         dictionary,
         function (e) {
-            console.log(successMessage);
+            logger.info(successMessage);
         },
         function (e) {
-            console.log(errorMessage);
+            logger.info(errorMessage);
         }
     );
 }
