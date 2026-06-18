@@ -83,24 +83,20 @@ def run_c_host_tests(coverage=False):
             total_errors += 1
 
     print_color("\n--- C Test Summary ---", "bold")
+    total_tests = total_passed + total_failed + total_ignored
 
-    summary_color = "green"
-    if total_failed > 0 or total_errors > 0:
-        summary_color = "red"
-    elif total_passed == 0:
-        summary_color = "yellow"
-
-    print_color(f"PASSED: {total_passed}", summary_color)
-    print_color(f"IGNORED: {total_ignored}", "yellow" if total_ignored > 0 else None)
-    print_color(f"FAILED: {total_failed}", "red" if total_failed > 0 else None)
-    if total_errors > 0:
-        print_color(f"ERRORS: {total_errors} (crashes or compilation failures)", "red")
+    print("-----------------------")
+    print(f"{total_tests} Tests {total_failed} Failures {total_ignored} Ignored")
 
     if total_failed == 0 and total_errors == 0 and total_passed > 0:
+        print_color("OK", "green")
         return 0
     else:
+        if total_errors > 0:
+            print_color(f"FAIL ({total_errors} crashes or compilation failures)", "red")
+        else:
+            print_color("FAIL", "red")
         return 1
-
 
 if __name__ == "__main__":
     coverage_requested = "--coverage" in sys.argv
