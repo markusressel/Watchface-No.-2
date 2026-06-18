@@ -151,6 +151,65 @@ void test_set_theme_show_seconds_false(void) {
     TEST_ASSERT_NOT_NULL(theme->TimeFont);
 }
 
+// Test apply_theme_from_settings with LIGHT theme
+void test_apply_theme_from_settings_light(void) {
+    ClaySettings settings;
+    memset(&settings, 0, sizeof(ClaySettings));
+    strcpy(settings.ThemeValue, THEME_LIGHT_STR);
+    settings.ShowSeconds = false;
+
+    apply_theme_from_settings(&settings, NULL);
+    Theme *theme = theme_get_theme();
+
+    TEST_ASSERT_EQUAL(LIGHT, theme->CurrentThemeEnum);
+    TEST_ASSERT_EQUAL_HEX(GColorWhite.argb, theme->BackgroundColor.argb);
+}
+
+// Test apply_theme_from_settings with DARK theme
+void test_apply_theme_from_settings_dark(void) {
+    ClaySettings settings;
+    memset(&settings, 0, sizeof(ClaySettings));
+    strcpy(settings.ThemeValue, THEME_DARK_STR);
+    settings.ShowSeconds = true;
+
+    apply_theme_from_settings(&settings, NULL);
+    Theme *theme = theme_get_theme();
+
+    TEST_ASSERT_EQUAL(DARK, theme->CurrentThemeEnum);
+    TEST_ASSERT_EQUAL_HEX(GColorBlack.argb, theme->BackgroundColor.argb);
+}
+
+// Test apply_theme_from_settings with CUSTOM theme
+void test_apply_theme_from_settings_custom(void) {
+    ClaySettings settings;
+    memset(&settings, 0, sizeof(ClaySettings));
+    strcpy(settings.ThemeValue, THEME_CUSTOM_STR);
+    settings.BackgroundColor = GColorRed;
+    settings.TimeTextColor = GColorGreen;
+    settings.ShowSeconds = false;
+
+    apply_theme_from_settings(&settings, NULL);
+    Theme *theme = theme_get_theme();
+
+    TEST_ASSERT_EQUAL(CUSTOM, theme->CurrentThemeEnum);
+    TEST_ASSERT_EQUAL_HEX(GColorRed.argb, theme->BackgroundColor.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorGreen.argb, theme->TimeTextColor.argb);
+}
+
+// Test apply_theme_from_settings with default (empty) theme value
+void test_apply_theme_from_settings_default(void) {
+    ClaySettings settings;
+    memset(&settings, 0, sizeof(ClaySettings));
+    settings.ThemeValue[0] = '\0';
+
+    apply_theme_from_settings(&settings, NULL);
+    Theme *theme = theme_get_theme();
+
+    // Should fallback to LIGHT according to theme.c logic
+    TEST_ASSERT_EQUAL(LIGHT, theme->CurrentThemeEnum);
+    TEST_ASSERT_EQUAL_STRING(THEME_LIGHT_STR, settings.ThemeValue);
+}
+
 
 int main() {
     UNITY_BEGIN();
@@ -159,5 +218,9 @@ int main() {
     RUN_TEST(test_init_custom_theme);
     RUN_TEST(test_set_theme_show_seconds_true);
     RUN_TEST(test_set_theme_show_seconds_false);
+    RUN_TEST(test_apply_theme_from_settings_light);
+    RUN_TEST(test_apply_theme_from_settings_dark);
+    RUN_TEST(test_apply_theme_from_settings_custom);
+    RUN_TEST(test_apply_theme_from_settings_default);
     return UNITY_END();
 }
