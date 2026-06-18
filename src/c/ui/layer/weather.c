@@ -235,8 +235,8 @@ static void save_current_weather_data(WeatherData *weather_data) {
         return;
     }
 
-    if (weather_data == NULL) {
-        APP_LOG(APP_LOG_LEVEL_WARNING, "cannot save NULL weather data");
+    if (weather_data == NULL || weather_data->ForecastStartTimestamp <= 0) {
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "weather data is NULL or empty, deleting persisted data");
         weather_delete_persisted_data();
         return;
     }
@@ -560,9 +560,6 @@ static void update_weather_ui() {
 void update_weather() {
     WeatherData *data = weather_get_data();
     if (data != NULL) {
-        // persist current data for fast access when opening the watchface
-        save_current_weather_data(data);
-
         APP_LOG(
             APP_LOG_LEVEL_DEBUG,
             "weather rain update: next_1h=%d.%dmm pop=%d%%",
@@ -653,6 +650,8 @@ void destroy_weather_layer(Layer *layer) {
 }
 
 void deinit_weather_data() {
+    save_current_weather_data(&s_weather_data);
+
     if (s_weather_data.is_temp_forecast_dynamic_alloc && s_weather_data.TemperatureForecast) {
         free(s_weather_data.TemperatureForecast);
         s_weather_data.is_temp_forecast_dynamic_alloc = false;

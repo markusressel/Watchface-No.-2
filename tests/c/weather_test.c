@@ -340,13 +340,13 @@ void test_update_weather(void) {
     s_weather_data.CurrentTemperature = 30;
     s_weather_data.ForecastStartTimestamp = s_mock_time;
 
-    // update_weather saves data to persist
+    // update_weather NO LONGER saves data to persist immediately
     update_weather();
 
-    // Verify it was saved by checking mock storage
-    PersistedWeatherData persisted;
+    // Verify it was NOT saved
+    PersistedWeatherData persisted = {0};
     persist_read_data(WEATHER_DATA_KEY, &persisted, sizeof(PersistedWeatherData));
-    TEST_ASSERT_EQUAL_INT(30, persisted.CurrentTemperature);
+    TEST_ASSERT_NOT_EQUAL(30, persisted.CurrentTemperature);
 }
 
 void test_weather_delete_persisted_data(void) {
@@ -370,12 +370,19 @@ void test_weather_layer_create_destroy(void) {
 }
 
 void test_weather_deinit_data(void) {
+    s_weather_data.CurrentTemperature = 35;
+    s_weather_data.ForecastStartTimestamp = s_mock_time;
     s_weather_data.TemperatureForecast = malloc(10 * sizeof(int));
     s_weather_data.is_temp_forecast_dynamic_alloc = true;
     s_weather_data.RainForecastMmX10 = malloc(10 * sizeof(int));
     s_weather_data.is_rain_forecast_dynamic_alloc = true;
 
+    // deinit_weather_data should now save to persist
     deinit_weather_data();
+
+    PersistedWeatherData persisted = {0};
+    persist_read_data(WEATHER_DATA_KEY, &persisted, sizeof(PersistedWeatherData));
+    TEST_ASSERT_EQUAL_INT(35, persisted.CurrentTemperature);
 
     TEST_ASSERT_NULL(s_weather_data.TemperatureForecast);
     TEST_ASSERT_NULL(s_weather_data.RainForecastMmX10);
