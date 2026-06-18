@@ -1,3 +1,5 @@
+import {logger} from '../logger.js';
+
 export default function (minified) {
     var clayConfig = this;
     var _ = minified._;
@@ -50,7 +52,7 @@ export default function (minified) {
         var hiddenClearCacheToggle = clayConfig.getItemById('hidden_clear_cache');
 
         if (!clearWeatherButton || !hiddenClearCacheToggle) {
-            console.error("Could not find components for weather cache clearing");
+            logger.error("Could not find components for weather cache clearing");
             return;
         }
 
@@ -69,7 +71,7 @@ export default function (minified) {
                 // Optional: change button text to indicate it's queued
                 // clearWeatherButton.set("Cache will clear on Save");
             } catch (e) {
-                console.error("Error queueing weather cache clear: " + e);
+                logger.error("Error queueing weather cache clear: " + e);
                 alert("Failed to queue cache clear: " + e.message);
             }
         });

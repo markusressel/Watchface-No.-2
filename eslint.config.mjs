@@ -24,6 +24,7 @@ export default defineConfig([{
             ...globals.browser,
             ...globals.node,
             Pebble: "readonly",
+            __PEBBLE_RELEASE__: "readonly",
         },
 
         parser: babelParser,

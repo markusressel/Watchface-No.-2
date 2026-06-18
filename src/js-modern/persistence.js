@@ -1,3 +1,5 @@
+import {logger} from './logger.js';
+
 /**
  * @enum {string}
  */
@@ -30,7 +32,7 @@ class Persistence {
             const rawValue = localStorage.getItem(key)
             return rawValue ? JSON.parse(rawValue) : null;
         } catch (e) {
-            console.error('Error retrieving JSON from localStorage:', e);
+            logger.error('Error retrieving JSON from localStorage:', e);
             return null;
         }
     }

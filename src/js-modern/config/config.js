@@ -1,3 +1,4 @@
+import {logger} from '../logger.js';
 import Settings from '../generated/settings';
 import Persistence, {StorageKeys} from '../persistence';
 import {clearWeatherData} from '../weather/weather';
@@ -51,7 +52,7 @@ export function saveClaySettings(settings) {
         Persistence.putJson(StorageKeys.CLAY_SETTINGS_KEY, settings.toJSON());
         clearWeatherData();
     } catch (e) {
-        console.log('Could not save clay settings: ' + e);
+        logger.error('Could not save clay settings: ' + e);
     }
 }
 

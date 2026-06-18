@@ -1,3 +1,4 @@
+import {logger} from '../logger.js';
 import * as config from '../config/config';
 import {WidgetId} from '../config/config';
 import * as appMessaging from '../app_messaging';
@@ -79,7 +80,7 @@ export function cacheWeatherData(weatherData) {
         Persistence.putJson(StorageKeys.WEATHER_LAST_DATA_KEY, weatherData.toDict());
         Persistence.putString(StorageKeys.WEATHER_LAST_FETCH_KEY, String(Date.now()));
     } catch (e) {
-        console.log('Could not cache weather data: ' + e);
+        logger.error('Could not cache weather data: ' + e);
     }
 }
 
@@ -90,12 +91,12 @@ export function cacheWeatherData(weatherData) {
  */
 export function processTimelinePayload(json, sourceLabel) {
     if (!json || !json.data || json.data.length === 0) {
-        console.log('No timeline data available from ' + sourceLabel + '.');
+        logger.info('No timeline data available from ' + sourceLabel + '.');
         return;
     }
 
-    console.log('Weather source: ' + sourceLabel);
-    console.log('JSON response is: ' + JSON.stringify(json));
+    logger.info('Weather source: ' + sourceLabel);
+    logger.info('JSON response is: ' + JSON.stringify(json));
 
     const timeline = json.data || [];
     const current = pickClosestEntryToNow(timeline) || timeline[0] || {};
@@ -105,11 +106,11 @@ export function processTimelinePayload(json, sourceLabel) {
 
     // Temperature in Kelvin requires adjustment
     const temperatureCurrent = kelvinToCelsius(current.temp);
-    console.log('Current Temperature is ' + temperatureCurrent);
+    logger.info('Current Temperature is ' + temperatureCurrent);
     const temperatureMin = kelvinToCelsius(minKelvin);
-    console.log('Min Temperature is ' + temperatureMin);
+    logger.info('Min Temperature is ' + temperatureMin);
     const temperatureMax = kelvinToCelsius(maxKelvin);
-    console.log('Max Temperature is ' + temperatureMax);
+    logger.info('Max Temperature is ' + temperatureMax);
 
     // Conditions
     // Ignore for now
@@ -118,7 +119,7 @@ export function processTimelinePayload(json, sourceLabel) {
     // Rain forecast based on selected 15-minute entry
     const rainMm = (current.rain !== null) ? current.rain : 0;
     const popPercent = typeof current.pop === 'number' ? Math.round(current.pop * 100) : 0;
-    console.log('Rain from selected entry (mm/h): ' + rainMm + ', pop (%): ' + popPercent);
+    logger.info('Rain from selected entry (mm/h): ' + rainMm + ', pop (%): ' + popPercent);
 
     const claySettings = config.getClaySettings();
     const forecastPointCount = claySettings.SliderWeatherForecastPreviewHoursCount * 4;
@@ -143,8 +144,8 @@ export function processTimelinePayload(json, sourceLabel) {
         forecastPointCount
     );
 
-    console.log('Temperature forecast series: ' + temperatureForecastSeries);
-    console.log('Rain forecast series: ' + rainForecastSeries);
+    logger.info('Temperature forecast series: ' + temperatureForecastSeries);
+    logger.info('Rain forecast series: ' + rainForecastSeries);
 
     // Assemble a dictionary using our keys
     return new WeatherData(
@@ -162,7 +163,7 @@ export function processTimelinePayload(json, sourceLabel) {
 
 function processOpenMeteoPayload(json, sourceLabel) {
     if (!json || (!json.minutely_15 && !json.hourly)) {
-        console.log('No timeline data available from ' + sourceLabel + '.');
+        logger.info('No timeline data available from ' + sourceLabel + '.');
         return;
     }
 
@@ -382,7 +383,7 @@ async function fetchWeatherData(latitude, longitude) {
         const json = await openmeteo.fetchWeatherData(latitude, longitude, forecast_hours);
         return processOpenMeteoPayload(json, 'api/openmeteo');
     } catch (error) {
-        console.log('Error during API weather request or processing: ' + error);
+        logger.error('Error during API weather request or processing: ' + error);
     }
     return null;
 }
@@ -416,7 +417,7 @@ export function clearCache() {
 
 export function isAnyWeatherWidgetActive() {
     const claySettings = config.getClaySettings();
-    console.log('Checking if any weather widget is active. Settings: ' + JSON.stringify(claySettings));
+    logger.info('Checking if any weather widget is active. Settings: ' + JSON.stringify(claySettings));
     const weatherWidgetTypes = [WidgetId.Weather, WidgetId.WeatherForecast]
     let activeRowTypes = [
         claySettings.Row0Widget,
@@ -446,12 +447,12 @@ export function isAnyWeatherWidgetActive() {
 export function getWeather(force = false) {
     // check if any row is set to a widget that requires weather data
     if (!isAnyWeatherWidgetActive()) {
-        console.log('No weather widgets active, skipping weather data fetch.');
+        logger.info('No weather widgets active, skipping weather data fetch.');
         return;
     }
 
     if (config.isWeatherSimulationEnabled()) {
-        console.log('Simulation mode enabled. Using timeline.json weather data.');
+        logger.info('Simulation mode enabled. Using timeline.json weather data.');
         requestSimulatedWeatherData();
         return;
     }
@@ -459,7 +460,7 @@ export function getWeather(force = false) {
     if (!force && !shouldFetchWeatherFromApi()) {
         const cachedDictionary = getCachedWeatherData();
         if (cachedDictionary) {
-            console.log('Using cached weather data, skipping API call.');
+            logger.info('Using cached weather data, skipping API call.');
             sendWeatherToWatch(
                 cachedDictionary,
                 'Cached weather data sent to Pebble successfully!',
@@ -473,7 +474,7 @@ export function getWeather(force = false) {
         function (pos) {
             fetchWeatherData(pos.coords.latitude, pos.coords.longitude)
                 .then(weatherData => {
-                    console.log('Weather fetch process completed.');
+                    logger.info('Weather fetch process completed.');
                     if (weatherData) {
                         cacheWeatherData(weatherData);
                         sendWeatherToWatch(
@@ -484,11 +485,11 @@ export function getWeather(force = false) {
                     }
                 })
                 .catch(e => {
-                    console.log('Error in weather fetch process: ' + e)
+                    logger.error('Error in weather fetch process: ' + e)
                 });
         },
         function (err) {
-            console.log("Error requesting location!");
+            logger.error("Error requesting location!");
         },
         {timeout: 15.0.seconds, maximumAge: 60.0.seconds}
     );
