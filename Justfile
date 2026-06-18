@@ -55,6 +55,8 @@ clean:
     pebble clean
     find . -name "*.gcda" -delete
     find . -name "*.gcno" -delete
+    find . -name "*.gcov" -delete
+    rm -rf build/coverage
     rm -f coverage.html coverage.css
 
 test: test-c test-js
@@ -71,6 +73,9 @@ coverage:
     # Clean old coverage data
     find . -name "*.gcda" -delete
     find . -name "*.gcno" -delete
+    find . -name "*.gcov" -delete
+    rm -rf build/coverage
+    mkdir -p build/coverage
     
     # Run tests with coverage
     ./scripts/tests.py --coverage
@@ -78,12 +83,13 @@ coverage:
     echo ""
     echo "--- Coverage Report ---"
     if command -v gcovr >/dev/null 2>&1; then
-      gcovr -r . --filter src/c --print-summary --html --html-details -o coverage.html
-      echo "HTML report generated at coverage.html"
+      gcovr -r . --filter src/c --print-summary --html --html-details -o build/coverage/index.html
+      echo "HTML report generated at build/coverage/index.html"
     else
       echo "gcovr not found, falling back to basic gcov..."
       # Run gcov on all data files found in tests/build and filter for src/c files
-      find tests/build -name "*.gcda" -exec gcov -n -o tests/build/ {} + | grep -A 1 "File 'src/c/" || true
+      find tests/build -name "*.gcda" -exec gcov -o tests/build/ {} + | grep -A 1 "File 'src/c/" || true
+      mv *.gcov build/coverage/ 2>/dev/null || true
       echo ""
       echo "Tip: Install gcovr (e.g. 'pip install gcovr') for a better summary and HTML reports."
     fi
