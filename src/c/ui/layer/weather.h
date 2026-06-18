@@ -25,6 +25,7 @@ typedef struct WeatherData {
     int *RainForecastMmX10;
     bool is_temp_forecast_dynamic_alloc;
     bool is_rain_forecast_dynamic_alloc;
+    bool is_dirty;
     char CurrentConditions[48];
 } WeatherData;
 

@@ -297,6 +297,7 @@ static void read_weather_data(DictionaryIterator *iterator) {
     static int s_forecast_scratch[WEATHER_FORECAST_MAX_POINTS];
 
     if (temp_cur_tuple && temp_min_tuple && temp_max_tuple && condition_tuple) {
+        weather_init_data(); // Ensure initialized flag is set if it wasn't already
         WeatherData *weatherData = weather_get_data();
 
         weatherData->CurrentTemperature = tuple_to_int(temp_cur_tuple);
@@ -387,7 +388,7 @@ static void read_weather_data(DictionaryIterator *iterator) {
             weatherData->RainForecastMmX10Count
         );
 
-        weather_init_data(); // Ensure initialized flag is set if it wasn't already
+        weatherData->is_dirty = true;
         update_weather();
         update_weather_forecast();
     }
