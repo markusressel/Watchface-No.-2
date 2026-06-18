@@ -3,6 +3,7 @@ import os
 import re
 import shutil
 import sys
+from concurrent.futures import ThreadPoolExecutor
 
 from utils import print_color, run_command
 
@@ -102,10 +103,13 @@ def print_table(results):
     # Add missing files with 0 coverage
     all_files = get_all_src_files()
     covered_files = {res["file"] for res in results}
+    missing_files = [f for f in all_files if f not in covered_files]
 
-    for file in all_files:
-        if file not in covered_files:
-            total_lines = estimate_total_lines(file)
+    if missing_files:
+        with ThreadPoolExecutor() as executor:
+            total_lines_list = list(executor.map(estimate_total_lines, missing_files))
+
+        for file, total_lines in zip(missing_files, total_lines_list):
             results.append({
                 "file": file,
                 "coverage": 0.0,
@@ -185,9 +189,10 @@ def main():
 
     # Try gcovr if available
     if shutil.which("gcovr"):
-        print("Generating HTML report with gcovr...")
+        print("Generating HTML report with gcovr (in parallel)...")
         gcovr_command = [
             "gcovr", "-r", ".",
+            "-j", str(os.cpu_count() or 2),
             "--filter", "src/c",
             "--html", "--html-details",
             "-o", "build/coverage/index.html"
