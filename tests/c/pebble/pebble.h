@@ -256,13 +256,12 @@ typedef int AppMessageResult;
 typedef struct Tuple {
     uint32_t message_key;
     uint8_t type;
-
-    union {
-        int32_t int32;
-        char cstring[100]; // Example size
-    } value;
-
     uint16_t length;
+
+    struct {
+        int32_t int32;
+        char cstring[512]; // Larger buffer for forecast strings
+    } value[1]; // Use array of size 1 to allow tuple->value->field access
 } Tuple;
 
 #define TUPLE_CSTRING 1
@@ -270,18 +269,21 @@ typedef struct Tuple {
 
 typedef struct DictionaryIterator DictionaryIterator; // Opaque type
 
-static Tuple *dict_find(DictionaryIterator *iter, uint32_t key) {
-    (void) iter;
-    (void) key;
-    return NULL; // Mock: always return NULL for now, implement if needed
+typedef Tuple *(*DictFindFunc)(const DictionaryIterator *, uint32_t);
+
+static DictFindFunc s_dict_find_func = NULL;
+
+static inline Tuple *dict_find(const DictionaryIterator *iter, uint32_t key) {
+    if (s_dict_find_func) return s_dict_find_func(iter, key);
+    return NULL;
 }
 
-static AppMessageResult app_message_outbox_begin(DictionaryIterator **iter) {
-    (void) iter;
+static inline AppMessageResult app_message_outbox_begin(DictionaryIterator **iter) {
+    if (iter) *iter = (DictionaryIterator *) 1;
     return APP_MSG_OK;
 }
 
-static void dict_write_int(DictionaryIterator *iter, uint32_t key, const void *value, size_t size, bool signed_val) {
+static inline void dict_write_int(DictionaryIterator *iter, uint32_t key, const void *value, size_t size, bool signed_val) {
     (void) iter;
     (void) key;
     (void) value;
@@ -289,10 +291,25 @@ static void dict_write_int(DictionaryIterator *iter, uint32_t key, const void *v
     (void) signed_val;
 }
 
+static inline void dict_write_uint8(DictionaryIterator *iter, uint32_t key, uint8_t value) {
+    (void) iter;
+    (void) key;
+    (void) value;
+}
+
+static inline void dict_write_end(DictionaryIterator *iter) {
+    (void) iter;
+}
+
 static int s_app_message_outbox_send_count = 0;
-static AppMessageResult app_message_outbox_send() {
+
+static inline AppMessageResult app_message_outbox_send() {
     s_app_message_outbox_send_count++;
     return APP_MSG_OK;
+}
+
+static inline GColor GColorFromHEX(int hex) {
+    return (GColor){.argb = (uint8_t) hex};
 }
 
 typedef void (*AppMessageInboxReceived)(DictionaryIterator *iterator, void *context);
