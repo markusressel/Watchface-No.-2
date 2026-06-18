@@ -90,6 +90,7 @@ Modifying settings is a multi-step process:
 
 - **Stack Size**: Extremely limited. Avoid large local arrays and deep recursion. Use heap allocation (`malloc`) for large structures.
 - **Memory**: Be mindful of heap fragmentation.
+- **Persistence**: Data per key must be limited to 256 bytes.
 
 ## App-Side (JavaScript)
 
