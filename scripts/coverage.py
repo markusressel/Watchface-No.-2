@@ -2,37 +2,9 @@
 import os
 import re
 import shutil
-import subprocess
 import sys
 
-
-def print_color(text, color=None):
-    colors = {
-        "green": "\033[92m",
-        "red": "\033[91m",
-        "yellow": "\033[93m",
-        "blue": "\033[94m",
-        "magenta": "\033[95m",
-        "cyan": "\033[96m",
-        "bold": "\033[1m",
-        "reset": "\033[0m"
-    }
-    if color in colors:
-        print(f"{colors[color]}{text}{colors['reset']}")
-    else:
-        print(text)
-
-
-def run_command(command, check=True, capture_output=True):
-    try:
-        return subprocess.run(command, check=check, capture_output=capture_output, text=True)
-    except subprocess.CalledProcessError as e:
-        if check:
-            print_color(f"Command failed: {' '.join(command)}", "red")
-            if e.stdout: print(e.stdout)
-            if e.stderr: print(e.stderr)
-            sys.exit(1)
-        return e
+from utils import print_color, run_command
 
 
 def clean_coverage():
@@ -149,7 +121,7 @@ def main():
 
     # Run gcov on all data files
     gcov_command = ["gcov", "-o", "tests/build/"] + gcda_files
-    result = run_command(gcov_command)
+    result = run_command(gcov_command, capture_output=True)
 
     results = parse_gcov_output(result.stdout)
     print_table(results)

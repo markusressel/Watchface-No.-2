@@ -4,14 +4,7 @@ import re
 import subprocess
 import sys
 
-
-def print_color(text, color=None):
-    if color == "green":
-        print(f"\033[92m{text}\033[0m")
-    elif color == "red":
-        print(f"\033[91m{text}\033[0m")
-    else:
-        print(text)
+from utils import print_color
 
 
 def run_c_host_tests(coverage=False):

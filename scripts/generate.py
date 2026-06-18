@@ -21,9 +21,8 @@ def extract_config_items(config):
             items.extend(extract_config_items(config['items']))
     return items
 
-def generate_settings_js():
-    print("Generating src/js-modern/generated/settings.js from src/js-modern/config/configPage.js...")
 
+def read_and_parse_config():
     with open('src/js-modern/config/configPage.js', 'r') as f:
         content = f.read()
 
@@ -36,13 +35,13 @@ def generate_settings_js():
     json_content = re.sub(r',\s*([\]}])', r'\1', json_content)
 
     try:
-        config = json.loads(json_content)
+        return json.loads(json_content)
     except json.JSONDecodeError as e:
         print(f"Error decoding JSON from configPage.js: {e}")
         exit(1)
 
-    items = extract_config_items(config)
 
+def generate_js_content(items):
     defaults_lines = []
     getters_setters_lines = []
     coerce_lines = []
@@ -79,7 +78,6 @@ def generate_settings_js():
         getters_setters_lines.append("")
         coerce_lines.append(f"        this._settings.{key} = {js_type}(this._settings.{key});")
 
-
     js_lines = [
         AUTO_GENERATED_HEADER,
         "",
@@ -90,9 +88,7 @@ def generate_settings_js():
         "export default class Settings {",
         "    _DEFAULTS = {",
     ]
-
     js_lines.extend(defaults_lines)
-
     js_lines.extend([
         "    };",
         "",
@@ -101,30 +97,36 @@ def generate_settings_js():
         "    constructor(persistedSettings) {",
         "        this._settings = Object.assign({}, this._DEFAULTS, persistedSettings || {});",
     ])
-
     js_lines.extend(coerce_lines)
-
     js_lines.extend([
         "    }",
         ""
     ])
-
     js_lines.extend(getters_setters_lines)
-
     js_lines.extend([
         "    toJSON() {",
         "        return this._settings;",
         "    }",
         "}"
     ])
+    return js_lines
 
-    # Write the file to the src/js-modern/generated directory
+
+def write_settings_js(js_lines):
     out_dir = os.path.join('src', 'js-modern', 'generated')
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
     with open(os.path.join(out_dir, 'settings.js'), 'w') as f:
         f.write('\n'.join(js_lines))
+
+
+def generate_settings_js():
+    print("Generating src/js-modern/generated/settings.js from src/js-modern/config/configPage.js...")
+    config = read_and_parse_config()
+    items = extract_config_items(config)
+    js_lines = generate_js_content(items)
+    write_settings_js(js_lines)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate code and settings")

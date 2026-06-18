@@ -1,17 +1,9 @@
 #!/usr/bin/env python3
 import argparse
 import os
-import subprocess
 
-def run_command(command, env=None):
-    """Runs a command and prints its output."""
-    if env is None:
-        env = os.environ.copy()
-    process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
-    for line in iter(process.stdout.readline, b''):
-        print(line.decode().strip())
-    process.stdout.close()
-    return process.wait()
+from utils import run_command
+
 
 def main():
     """Main function to build and optionally minify the project."""
@@ -31,7 +23,7 @@ def main():
 
     # The pebble build command creates the 'build' directory and transpiles the code.
     print("Running pebble build...")
-    if run_command("pebble build", env=env) != 0:
+    if run_command("pebble build", env=env, check=False, stream_output=True) != 0:
         print("Pebble build command failed.")
         exit(1)
 
@@ -48,7 +40,7 @@ def main():
                     filepath = os.path.join(root, filename)
                     print(f"Minifying {filepath}...")
                     # Use npx to ensure terser is found
-                    if run_command(f"npx terser {filepath} -o {filepath} -c -m", env=env) != 0:
+                    if run_command(f"npx terser {filepath} -o {filepath} -c -m", env=env, check=False, stream_output=True) != 0:
                         print(f"Minification failed for {filepath}")
                         exit(1)
                     else:
