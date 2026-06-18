@@ -4,6 +4,8 @@
 #include <stdint.h> // For uint32_t (if needed by other Pebble types)
 #include <stdbool.h> // For bool
 #include <string.h>
+#include <time.h>
+typedef struct tm tm;
 
 // Define PBL_COLOR for testing color-dependent functions
 #define PBL_COLOR
@@ -310,6 +312,31 @@ static inline AppMessageResult app_message_outbox_send() {
 
 static inline GColor GColorFromHEX(int hex) {
     return (GColor){.argb = (uint8_t) hex};
+}
+
+// Tick Timer Service mocks
+typedef enum {
+    SECOND_UNIT = 1 << 0,
+    MINUTE_UNIT = 1 << 1,
+    HOUR_UNIT = 1 << 2,
+    DAY_UNIT = 1 << 3,
+    MONTH_UNIT = 1 << 4,
+    YEAR_UNIT = 1 << 5
+} TimeUnits;
+
+typedef void (*TickHandler)(struct tm *tick_time, TimeUnits units_changed);
+
+static TickHandler s_tick_handler = NULL;
+static TimeUnits s_tick_units = 0;
+
+static inline void tick_timer_service_subscribe(TimeUnits tick_units, TickHandler handler) {
+    s_tick_handler = handler;
+    s_tick_units = tick_units;
+}
+
+static inline void tick_timer_service_unsubscribe() {
+    s_tick_handler = NULL;
+    s_tick_units = 0;
 }
 
 // Connection Service mocks
