@@ -312,6 +312,29 @@ static inline GColor GColorFromHEX(int hex) {
     return (GColor){.argb = (uint8_t) hex};
 }
 
+// Connection Service mocks
+typedef void (*PebbleAppConnectionHandler)(bool connected);
+
+typedef struct {
+    PebbleAppConnectionHandler pebble_app_connection_handler;
+    void *pebblekit_connection_handler; // unused in this project
+} ConnectionHandlers;
+
+static PebbleAppConnectionHandler s_connection_handler = NULL;
+static bool s_mock_connected = true;
+
+static inline bool connection_service_peek_pebble_app_connection() {
+    return s_mock_connected;
+}
+
+static inline void connection_service_subscribe(ConnectionHandlers handlers) {
+    s_connection_handler = handlers.pebble_app_connection_handler;
+}
+
+static inline void connection_service_unsubscribe() {
+    s_connection_handler = NULL;
+}
+
 // Battery mocks
 typedef struct BatteryChargeState {
     uint8_t charge_percent;

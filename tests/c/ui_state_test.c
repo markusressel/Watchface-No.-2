@@ -79,26 +79,54 @@ void test_ui_state_create_destroy_layers(void) {
     ui_state_init(window);
 
     WatchLayout layout;
-    layout.row_count = 3;
+    layout.row_count = 7;
     layout.rows[0].widget = WIDGET_TIME;
     layout.rows[1].widget = WIDGET_DATE;
     layout.rows[2].widget = WIDGET_WEATHER;
+    layout.rows[3].widget = WIDGET_STEPCOUNT;
+    layout.rows[4].widget = WIDGET_HEARTRATE;
+    layout.rows[5].widget = WIDGET_WEATHER_FORECAST;
+    layout.rows[6].widget = WIDGET_BATTERY_BAR;
 
     ui_state_create_layers(&layout);
 
-    TEST_ASSERT_EQUAL_INT(3, ui_state_get_row_count());
+    TEST_ASSERT_EQUAL_INT(7, ui_state_get_row_count());
     TEST_ASSERT_EQUAL_PTR((Layer *) 1, ui_state_get_layer(0));
     TEST_ASSERT_EQUAL_PTR((Layer *) 2, ui_state_get_layer(1));
     TEST_ASSERT_EQUAL_PTR((Layer *) 3, ui_state_get_layer(2));
+    TEST_ASSERT_EQUAL_PTR((Layer *) 4, ui_state_get_layer(3));
+    TEST_ASSERT_EQUAL_PTR((Layer *) 5, ui_state_get_layer(4));
+    TEST_ASSERT_EQUAL_PTR((Layer *) 6, ui_state_get_layer(5));
+    TEST_ASSERT_EQUAL_PTR((Layer *) 7, ui_state_get_layer(6));
 
     TEST_ASSERT_EQUAL(WIDGET_TIME, ui_state_get_widget_id(0));
     TEST_ASSERT_EQUAL(WIDGET_DATE, ui_state_get_widget_id(1));
     TEST_ASSERT_EQUAL(WIDGET_WEATHER, ui_state_get_widget_id(2));
+    TEST_ASSERT_EQUAL(WIDGET_STEPCOUNT, ui_state_get_widget_id(3));
+    TEST_ASSERT_EQUAL(WIDGET_HEARTRATE, ui_state_get_widget_id(4));
+    TEST_ASSERT_EQUAL(WIDGET_WEATHER_FORECAST, ui_state_get_widget_id(5));
+    TEST_ASSERT_EQUAL(WIDGET_BATTERY_BAR, ui_state_get_widget_id(6));
 
     ui_state_destroy_layers();
 
     TEST_ASSERT_EQUAL_INT(0, ui_state_get_row_count());
     TEST_ASSERT_NULL(ui_state_get_layer(0));
+}
+
+void test_ui_state_deinit(void) {
+    Window *window = (Window *) 0x1234;
+    ui_state_init(window);
+
+    WatchLayout layout;
+    layout.row_count = 1;
+    layout.rows[0].widget = WIDGET_TIME;
+    ui_state_create_layers(&layout);
+
+    TEST_ASSERT_EQUAL_INT(1, ui_state_get_row_count());
+
+    ui_state_deinit();
+
+    TEST_ASSERT_EQUAL_INT(0, ui_state_get_row_count());
 }
 
 void test_ui_state_get_bounds_check(void) {
@@ -113,6 +141,7 @@ int main() {
     UNITY_BEGIN();
     RUN_TEST(test_ui_state_init);
     RUN_TEST(test_ui_state_create_destroy_layers);
+    RUN_TEST(test_ui_state_deinit);
     RUN_TEST(test_ui_state_get_bounds_check);
     return UNITY_END();
 }
