@@ -648,4 +648,16 @@ typedef void Window;
 static inline Window *window_create() { return (Window *)malloc(1); }
 static inline void window_destroy(Window *window) { free(window); }
 static inline Layer *window_get_root_layer(const Window *window) { return (Layer *)window; }
+static inline void window_stack_push(Window *window, bool animated) { (void)window; (void)animated; }
+typedef struct {
+    void (*load)(Window *window);
+    void (*unload)(Window *window);
+    void (*appear)(Window *window);
+    void (*disappear)(Window *window);
+} WindowHandlers;
+static inline void window_set_window_handlers(Window *window, WindowHandlers handlers) { (void)window; (void)handlers; }
+
+// App lifecycle mocks
+static inline void app_event_loop() {}
+static inline void light_enable(bool enable) { (void)enable; }
 
