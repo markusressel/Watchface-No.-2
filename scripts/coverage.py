@@ -160,10 +160,18 @@ def print_table(results):
 def main():
     clean_coverage()
 
-    print("Running tests with coverage...")
-    test_result = run_command(["./scripts/tests.py", "--coverage"], check=False, capture_output=False)
+    print("Running C tests with coverage...")
+    c_test_result = run_command(["./scripts/tests.py", "--coverage"], check=False, capture_output=False)
 
-    print("\nProcessing coverage data...")
+    print("\nRunning JS tests with coverage...")
+    js_test_result = run_command([
+        "./node_modules/.bin/jest", "tests/js",
+        "--coverage",
+        "--collectCoverageFrom=src/js-modern/**/*.js",
+        "--coverageDirectory=build/coverage/js"
+    ], check=False, capture_output=False)
+
+    print("\nProcessing C coverage data...")
     # Find all gcda files
     gcda_files = []
     for root, _, files in os.walk("tests/build"):
@@ -172,39 +180,41 @@ def main():
                 gcda_files.append(os.path.join(root, file))
 
     if not gcda_files:
-        print_color("No .gcda files found in tests/build. Did tests run correctly?", "red")
-        sys.exit(1)
-
-    # Run gcov on all data files
-    gcov_command = ["gcov", "-o", "tests/build/"] + gcda_files
-    result = run_command(gcov_command, capture_output=True)
-
-    results = parse_gcov_output(result.stdout)
-    print_table(results)
-
-    # Move gcov files to build/coverage
-    for f in os.listdir("."):
-        if f.endswith(".gcov"):
-            shutil.move(f, os.path.join("build/coverage", f))
-
-    # Try gcovr if available
-    if shutil.which("gcovr"):
-        print("Generating HTML report with gcovr (in parallel)...")
-        gcovr_command = [
-            "gcovr", "-r", ".",
-            "-j", str(os.cpu_count() or 2),
-            "--filter", "src/c",
-            "--html", "--html-details",
-            "-o", "build/coverage/index.html"
-        ]
-        run_command(gcovr_command)
-        print_color(f"HTML report generated at build/coverage/index.html", "cyan")
+        print_color("No .gcda files found in tests/build. Did C tests run correctly?", "red")
     else:
-        print_color("Tip: Install gcovr ('pip install gcovr') for a better summary and HTML reports.", "yellow")
+        # Run gcov on all data files
+        gcov_command = ["gcov", "-o", "tests/build/"] + gcda_files
+        result = run_command(gcov_command, capture_output=True)
 
-    if test_result.returncode != 0:
-        print_color("\nNote: Tests failed, but coverage data was processed.", "yellow")
-        sys.exit(test_result.returncode)
+        results = parse_gcov_output(result.stdout)
+        print_table(results)
+
+        # Move gcov files to build/coverage
+        for f in os.listdir("."):
+            if f.endswith(".gcov"):
+                shutil.move(f, os.path.join("build/coverage", f))
+
+        # Try gcovr if available
+        if shutil.which("gcovr"):
+            print("Generating HTML report with gcovr (in parallel)...")
+            gcovr_command = [
+                "gcovr", "-r", ".",
+                "-j", str(os.cpu_count() or 2),
+                "--filter", "src/c",
+                "--html", "--html-details",
+                "-o", "build/coverage/index.html"
+            ]
+            run_command(gcovr_command)
+            print_color(f"C HTML report generated at build/coverage/index.html", "cyan")
+        else:
+            print_color("Tip: Install gcovr ('pip install gcovr') for a better C coverage summary and HTML reports.", "yellow")
+
+    if os.path.exists("build/coverage/js/lcov-report/index.html"):
+        print_color(f"JS HTML report generated at build/coverage/js/lcov-report/index.html", "cyan")
+
+    if c_test_result.returncode != 0 or js_test_result.returncode != 0:
+        print_color("\nNote: Some tests failed, but coverage data was processed.", "yellow")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
