@@ -45,9 +45,6 @@ void destroy_battery_bar_layer(Layer *layer) {
 void debug_layer_destroy_all_borders() {
 }
 
-// Mock window_get_root_layer
-Layer *window_get_root_layer(const Window *window) { return (Layer *) 100; }
-
 // Mock watch_layout_make_builder
 LayerBuilder watch_layout_make_builder(const WatchLayout *layout, Layer *parent, int row_index) {
     return (LayerBuilder)

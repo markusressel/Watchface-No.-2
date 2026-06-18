@@ -643,3 +643,9 @@ static inline void animation_unschedule(Animation *animation) { (void)animation;
 static bool s_clock_is_24h_style = true;
 static inline bool clock_is_24h_style() { return s_clock_is_24h_style; }
 
+// Window mocks
+typedef void Window;
+static inline Window *window_create() { return (Window *)malloc(1); }
+static inline void window_destroy(Window *window) { free(window); }
+static inline Layer *window_get_root_layer(const Window *window) { return (Layer *)window; }
+
