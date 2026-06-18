@@ -46,6 +46,7 @@ DottedTextLayer *layer_factory_create_dotted_text_layer(LayerBuilder builder, GC
 void setUp(void) {
     memset(&s_settings, 0, sizeof(ClaySettings));
     s_settings.DotScaleFactor = 1.0f;
+    s_settings.DateZeroPadding = true;
     s_row_count = 0;
     memset(s_last_dotted_text, 0, sizeof(s_last_dotted_text));
 }
@@ -115,6 +116,69 @@ void test_update_date_triggers_from_ui_state(void) {
     destroy_date_layer(layer);
 }
 
+void test_update_date_format_unpadded_basic(void) {
+    s_settings.ShowWeekdayAbbreviation = false;
+    s_settings.ShowYear = false;
+    s_settings.DateZeroPadding = false;
+
+    LayerBuilder builder = { .bounds = GRect(0, 0, 144, 30) };
+    Layer *layer = create_date_layer(builder);
+
+    time_t temp = time(NULL);
+    struct tm *tick_time = localtime(&temp);
+    char expected[16];
+    snprintf(expected, sizeof(expected), "%d.%d", tick_time->tm_mday, tick_time->tm_mon + 1);
+
+    TEST_ASSERT_EQUAL_STRING(expected, s_last_dotted_text);
+
+    destroy_date_layer(layer);
+}
+
+void test_update_date_format_unpadded_with_year(void) {
+    s_settings.ShowWeekdayAbbreviation = false;
+    s_settings.ShowYear = true;
+    s_settings.DateZeroPadding = false;
+
+    LayerBuilder builder = { .bounds = GRect(0, 0, 144, 30) };
+    Layer *layer = create_date_layer(builder);
+
+    time_t temp = time(NULL);
+    struct tm *tick_time = localtime(&temp);
+    char expected[16];
+    snprintf(expected, sizeof(expected), "%d.%d.%02d", tick_time->tm_mday, tick_time->tm_mon + 1, tick_time->tm_year % 100);
+
+    TEST_ASSERT_EQUAL_STRING(expected, s_last_dotted_text);
+
+    destroy_date_layer(layer);
+}
+
+void test_update_date_format_unpadded_with_weekday(void) {
+    s_settings.ShowWeekdayAbbreviation = true;
+    s_settings.ShowYear = false;
+    s_settings.WeekdayAbbreviationUppercase = true;
+    s_settings.DateZeroPadding = false;
+
+    LayerBuilder builder = { .bounds = GRect(0, 0, 144, 30) };
+    Layer *layer = create_date_layer(builder);
+
+    time_t temp = time(NULL);
+    struct tm *tick_time = localtime(&temp);
+    char weekday_part[8] = "";
+    strftime(weekday_part, sizeof(weekday_part), "%a ", tick_time);
+    int idxToDel = 2;
+    memmove(&weekday_part[idxToDel], &weekday_part[idxToDel + 1], strlen(weekday_part) - idxToDel);
+    for (int j = 0; j < 2; j++) {
+        weekday_part[j] = upper(weekday_part[j]);
+    }
+
+    char expected[32];
+    snprintf(expected, sizeof(expected), "%s%d.%d", weekday_part, tick_time->tm_mday, tick_time->tm_mon + 1);
+
+    TEST_ASSERT_EQUAL_STRING(expected, s_last_dotted_text);
+
+    destroy_date_layer(layer);
+}
+
 int main() {
     UNITY_BEGIN();
     RUN_TEST(test_date_layer_create_destroy);
@@ -122,5 +186,8 @@ int main() {
     RUN_TEST(test_update_date_format_with_year);
     RUN_TEST(test_update_date_format_with_weekday);
     RUN_TEST(test_update_date_triggers_from_ui_state);
+    RUN_TEST(test_update_date_format_unpadded_basic);
+    RUN_TEST(test_update_date_format_unpadded_with_year);
+    RUN_TEST(test_update_date_format_unpadded_with_weekday);
     return UNITY_END();
 }

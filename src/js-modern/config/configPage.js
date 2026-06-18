@@ -180,6 +180,12 @@ export default [
                 "defaultValue": false
             },
             {
+                "type": "toggle",
+                "messageKey": "DateZeroPadding",
+                "label": "Zero Padding of Date Values (e.g., 01.01.26 vs. 1.1.26)",
+                "defaultValue": true
+            },
+            {
                 "type": "subheader",
                 "defaultValue": "Weather"
             },

@@ -22,31 +22,57 @@ static void update_date_for_layer(DottedTextLayer *date_layer) {
     struct tm *tick_time = localtime(&temp);
 
     // Write the current day, month and year into a buffer
-    static char s_buffer[16];
-    char date_format[32];
-    strcpy(date_format, "");
-    if (clay_get_settings()->ShowWeekdayAbbreviation) {
-        strcat(date_format, "%a ");
-    }
+    static char s_buffer[32];
+    if (clay_get_settings()->DateZeroPadding) {
+        char date_format[32];
+        strcpy(date_format, "");
+        if (clay_get_settings()->ShowWeekdayAbbreviation) {
+            strcat(date_format, "%a ");
+        }
 
-    strcat(date_format, "%d.%m");
+        strcat(date_format, "%d.%m");
 
-    if (clay_get_settings()->ShowYear) {
-        strcat(date_format, ".%y");
-    }
+        if (clay_get_settings()->ShowYear) {
+            strcat(date_format, ".%y");
+        }
 
-    strftime(s_buffer, sizeof(s_buffer), date_format, tick_time);
+        strftime(s_buffer, sizeof(s_buffer), date_format, tick_time);
 
-    // Remove the third character of weekday abbreviation
-    if (clay_get_settings()->ShowWeekdayAbbreviation) {
-        int idxToDel = 2;
-        memmove(&s_buffer[idxToDel], &s_buffer[idxToDel + 1], strlen(s_buffer) - idxToDel);
+        // Remove the third character of weekday abbreviation
+        if (clay_get_settings()->ShowWeekdayAbbreviation) {
+            int idxToDel = 2;
+            memmove(&s_buffer[idxToDel], &s_buffer[idxToDel + 1], strlen(s_buffer) - idxToDel);
 
-        // Convert to uppercase (if enabled)
-        if (clay_get_settings()->WeekdayAbbreviationUppercase) {
-            for (int j = 0; j < 2; j++) {
-                s_buffer[j] = upper(s_buffer[j]);
+            // Convert to uppercase (if enabled)
+            if (clay_get_settings()->WeekdayAbbreviationUppercase) {
+                for (int j = 0; j < 2; j++) {
+                    s_buffer[j] = upper(s_buffer[j]);
+                }
             }
+        }
+    } else {
+        char weekday_part[8] = "";
+        if (clay_get_settings()->ShowWeekdayAbbreviation) {
+            strftime(weekday_part, sizeof(weekday_part), "%a ", tick_time);
+            int idxToDel = 2;
+            memmove(&weekday_part[idxToDel], &weekday_part[idxToDel + 1], strlen(weekday_part) - idxToDel);
+            if (clay_get_settings()->WeekdayAbbreviationUppercase) {
+                for (int j = 0; j < 2; j++) {
+                    weekday_part[j] = upper(weekday_part[j]);
+                }
+            }
+        }
+        if (clay_get_settings()->ShowYear) {
+            snprintf(s_buffer, sizeof(s_buffer), "%s%d.%d.%02d",
+                     weekday_part,
+                     tick_time->tm_mday,
+                     tick_time->tm_mon + 1,
+                     tick_time->tm_year % 100);
+        } else {
+            snprintf(s_buffer, sizeof(s_buffer), "%s%d.%d",
+                     weekday_part,
+                     tick_time->tm_mday,
+                     tick_time->tm_mon + 1);
         }
     }
 

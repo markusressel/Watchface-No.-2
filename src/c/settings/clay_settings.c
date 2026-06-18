@@ -19,13 +19,14 @@ void clay_log_settings_debug(const char *context_label, ClaySettings *settings) 
 
     APP_LOG(
         APP_LOG_LEVEL_DEBUG,
-        "%s theme=%s show_seconds=%d show_year=%d show_weekday=%d weekday_upper=%d",
+        "%s theme=%s show_seconds=%d show_year=%d show_weekday=%d weekday_upper=%d date_zero_padding=%d",
         label,
         settings->ThemeValue,
         settings->ShowSeconds,
         settings->ShowYear,
         settings->ShowWeekdayAbbreviation,
-        settings->WeekdayAbbreviationUppercase
+        settings->WeekdayAbbreviationUppercase,
+        settings->DateZeroPadding
     );
 
     APP_LOG(
@@ -253,6 +254,7 @@ static ClaySettings *clay_reset_to_default_settings() {
     settings->ShowSeconds = false;
     settings->ShowWeekdayAbbreviation = false;
     settings->WeekdayAbbreviationUppercase = false;
+    settings->DateZeroPadding = true;
     strcpy(settings->ThemeValue, THEME_DEFAULT);
 
     settings->DigitWidth = 4;
