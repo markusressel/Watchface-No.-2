@@ -53,6 +53,11 @@ logs platform:
 
 clean:
     pebble clean
+    find . -name "*.gcda" -delete
+    find . -name "*.gcno" -delete
+    find . -name "*.gcov" -delete
+    rm -rf build/coverage
+    rm -f coverage.html coverage.css
 
 test: test-c test-js
 
@@ -61,3 +66,6 @@ test-js:
 
 test-c:
     ./scripts/tests.py
+
+coverage:
+    ./scripts/coverage.py

@@ -78,14 +78,22 @@ void test_interpolate_color(void) {
     // Midpoint should be (127,127,127) approx
     // channel8_to_2(127) = 1
     // So ARGB 0b11010101
-    GColor expected_mid_bw = (GColor){.argb = 0b11010101};
+    GColor expected_mid_bw = (GColor)
+    {
+        .
+        argb = 0b11010101
+    };
     TEST_ASSERT_EQUAL_GCOLOR(expected_mid_bw, interpolate_color(from, to, 500, false, 0, 0));
 
     // Test with specific colors
     from = GColorRed; // 0b11110000 (A=3, R=3, G=0, B=0)
     to = GColorBlue; // 0b11000011 (A=3, R=0, G=0, B=3)
     // t=500: A=3, R=2, G=0, B=1 -> 0b11100001 (calculated: out_r=128 -> channel8_to_2(128)=2)
-    GColor expected_mid_rb = (GColor){.argb = 0b11100001};
+    GColor expected_mid_rb = (GColor)
+    {
+        .
+        argb = 0b11100001
+    };
     TEST_ASSERT_EQUAL_GCOLOR(expected_mid_rb, interpolate_color(from, to, 500, false, 0, 0));
 }
 
@@ -258,7 +266,8 @@ void test_graph_color_for_stops_multiple_stops_with_interpolation(void) {
 
     TEST_ASSERT_EQUAL_GCOLOR(GColorBlack, graph_color_for_stops(&config, -10, 0, 0, false));
     TEST_ASSERT_EQUAL_GCOLOR(GColorBlack, graph_color_for_stops(&config, 0, 0, 0, false));
-    TEST_ASSERT_EQUAL_GCOLOR((GColor){.argb = 0b11010101}, graph_color_for_stops(&config, 50, 0, 0, false)); // Interpolated mid
+    TEST_ASSERT_EQUAL_GCOLOR((GColor){.argb = 0b11010101}, graph_color_for_stops(&config, 50, 0, 0, false))
+    ; // Interpolated mid
     TEST_ASSERT_EQUAL_GCOLOR(GColorWhite, graph_color_for_stops(&config, 100, 0, 0, false));
     TEST_ASSERT_EQUAL_GCOLOR(GColorWhite, graph_color_for_stops(&config, 110, 0, 0, false));
 }
@@ -680,6 +689,60 @@ void test_graph_instance_draw_axis_ticks(void) {
     TEST_ASSERT_EQUAL_GCOLOR(GColorRed, line_calls[2].stroke_color);
 }
 
+void test_graph_instance_draw_line_filled(void) {
+    GContext *ctx = (GContext *) 1;
+    GRect bounds = GRect(0, 0, 10, 10);
+    int values[] = {50};
+    GraphDataSeries data = {.values = values, .value_count = 1};
+
+    GraphSeriesConfig s_config;
+    memset(&s_config, 0, sizeof(GraphSeriesConfig));
+    s_config.graph_type = GRAPH_TYPE_LINE;
+    s_config.dot_size = 1;
+    s_config.default_color = GColorBlue;
+    s_config.fill_area_under_line = true;
+    s_config.min_interpolated_dot_distance_px = 2;
+
+    GraphDrawConfig d_config = {
+        .series = &s_config,
+        .series_count = 1,
+        .axis = {0}
+    };
+
+    GraphInstance instance;
+    graph_instance_init(&instance, &data, 1, &d_config);
+
+    graph_instance_draw(&instance, ctx, bounds);
+
+    // With value 50 in 0-10 bounds, drawable_height is 9.
+    // min_value=0, max_value=50.
+    // y = 9 - (50-0)*9/(50-0) = 0.
+    // So y_start = 0.
+    // draw_line_fill_column will draw dots from y=0 to y=9.
+    // Total 10 dots (fill_rect calls).
+    // Plus 1 for the point itself (since it's a single point line).
+    // Wait, draw_single_series for GRAPH_TYPE_LINE with fill_area_under_line:
+    // If value_count == 1, it enters the "Pass 2" single point block.
+    // But "Pass 1" (filled area) also runs.
+
+    // Let's use 2 points to be sure.
+    int values2[] = {50, 50};
+    data.values = values2;
+    data.value_count = 2;
+
+    reset_graphics_fill_rect_calls();
+    graph_instance_draw(&instance, ctx, bounds);
+
+    // Pass 1: Filled Area. x0=0, x1=9. v0=50, v1=50.
+    // interpolation_steps = interpolation_steps_for_segment(0, 9, 2) = (9/2)-1 = 3.
+    // steps 0, 1, 2, 3 -> x=0, 2, 4, 6, 8 (wait, interpolation_steps+1 = 4).
+    // x = 0 + 9*step/4 -> x=0, 2, 4, 6.
+    // And the last point x_last = 9.
+    // Total 5 columns. Each column from y=0 to y=9 is 10 dots.
+    // 5 * 10 = 50 dots.
+    TEST_ASSERT_EQUAL(50, get_graphics_fill_rect_call_count());
+}
+
 int main() {
     UNITY_BEGIN();
 
@@ -722,6 +785,7 @@ int main() {
     RUN_TEST(test_graph_instance_draw_line_single_point_suppress_zero);
     RUN_TEST(test_graph_instance_y_axis_scaling);
     RUN_TEST(test_graph_instance_draw_axis_ticks);
+    RUN_TEST(test_graph_instance_draw_line_filled);
 
     return UNITY_END();
 }

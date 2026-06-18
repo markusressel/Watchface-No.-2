@@ -58,8 +58,10 @@ static const WeatherData s_mock_weather_data_template = {
     .CurrentConditions = "Mock",
 };
 
-static int weather_get_current_temp(WeatherData *data);
+static int weather_get_current_temp(WeatherData * data);
+
 static void update_weather_ui();
+
 static void weather_clear_data();
 
 static void ensure_runtime_forecast_storage() {
@@ -344,7 +346,10 @@ static void schedule_next_update(const int interval, AppTimerCallback callback) 
  * @return
  */
 static int compute_next_weather_update_request_ms() {
-    const int interval_mins = clay_get_settings()->WeatherUpdateIntervalMinutes;
+    int interval_mins = clay_get_settings()->WeatherUpdateIntervalMinutes;
+    if (interval_mins <= 0) {
+        interval_mins = 15;
+    }
     const time_t now = time(NULL);
     const struct tm *time_now = localtime(&now);
 

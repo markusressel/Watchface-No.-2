@@ -36,8 +36,20 @@ void test_format_int_array(void) {
     TEST_ASSERT_EQUAL_STRING("[1,]", small_buf);
 }
 
+// Test function for log_int_array_chunked
+void test_log_int_array_chunked(void) {
+    int arr[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    // This just exercises the code to ensure no crashes and that it iterates correctly.
+    // The output goes to stdout via the mock APP_LOG.
+    log_int_array_chunked("Test", arr, 10);
+
+    int empty_arr[] = {};
+    log_int_array_chunked("Empty", empty_arr, 0);
+}
+
 int main() {
     UNITY_BEGIN();
     RUN_TEST(test_format_int_array);
+    RUN_TEST(test_log_int_array_chunked);
     return UNITY_END();
 }

@@ -48,12 +48,12 @@ int ui_state_get_row_count() { return 0; }
 WidgetId ui_state_get_widget_id(int row) { return 0; }
 Layer *ui_state_get_layer(int row) { return NULL; }
 
-void *layer_get_data(const Layer *layer) { return NULL; }
+static int s_layer_data_size = 0;
 
 void layer_set_frame(Layer *layer, GRect frame) {
 }
 
-int dotted_text_layer_get_content_width(DottedTextLayer *layer) { return 0; }
+int dotted_text_layer_get_content_width(DottedTextLayer *layer) { return 10; }
 
 void dotted_text_layer_set_text(DottedTextLayer *layer, char *text) {
 }
@@ -70,10 +70,13 @@ void dotted_text_layer_set_scale_factor(DottedTextLayer *layer, float scale) {
 void dotted_text_layer_destroy(DottedTextLayer *layer) {
 }
 
-Layer *layer_factory_create_custom_layer_with_data(LayerBuilder builder, LayerUpdateProc update_proc, size_t data_size) { return NULL; }
+Layer *layer_factory_create_custom_layer_with_data(LayerBuilder builder, LayerUpdateProc update_proc, size_t data_size) {
+    s_layer_data_size = (int) data_size;
+    return (Layer *) malloc(data_size > 0 ? data_size : 1);
+}
 
 DottedTextLayer *layer_factory_create_dotted_text_layer(LayerBuilder builder, GColor color, HorizontalAlignment horizontal_alignment, VerticalAlignment vertical_alignment,
-                                                        const char *text) { return NULL; }
+                                                        const char *text) { return (DottedTextLayer *) malloc(1); }
 
 LayerBuilder layer_builder_from_rect(Layer *parent, GRect bounds) {
     return (LayerBuilder)
@@ -109,6 +112,7 @@ void weather_forecast_tick_update() {
 void setUp(void) {
     s_mock_time = 1000000; // Arbitrary start time
     memset(&s_settings, 0, sizeof(ClaySettings));
+    s_settings.WeatherUpdateIntervalMinutes = 15;
     memset(&s_theme, 0, sizeof(Theme));
     mock_storage_reset();
 }
@@ -300,6 +304,94 @@ void test_weather_init_data_valid(void) {
     TEST_ASSERT_EQUAL_INT(0, s_app_message_outbox_send_count);
 }
 
+void test_weather_request_update(void) {
+    s_app_message_outbox_send_count = 0;
+    weather_request_update();
+    TEST_ASSERT_EQUAL_INT(1, s_app_message_outbox_send_count);
+}
+
+void test_weather_tick_update_expired(void) {
+    // Setup data that is expired
+    s_weather_data.ForecastStartTimestamp = s_mock_time - (24 * 3600);
+    s_settings.SliderWeatherForecastPreviewHoursCount = 6;
+    s_weather_data.CurrentTemperature = 25;
+
+    weather_tick_update();
+
+    // Should be cleared
+    TEST_ASSERT_EQUAL_INT(0, s_weather_data.CurrentTemperature);
+    TEST_ASSERT_EQUAL_INT(0, s_weather_data.ForecastStartTimestamp);
+}
+
+void test_weather_tick_update_valid(void) {
+    // Setup data that is valid
+    s_weather_data.ForecastStartTimestamp = s_mock_time - (1 * 3600);
+    s_settings.SliderWeatherForecastPreviewHoursCount = 6;
+    s_weather_data.CurrentTemperature = 25;
+
+    weather_tick_update();
+
+    // Should NOT be cleared
+    TEST_ASSERT_EQUAL_INT(25, s_weather_data.CurrentTemperature);
+    TEST_ASSERT_NOT_EQUAL(0, s_weather_data.ForecastStartTimestamp);
+}
+
+void test_update_weather(void) {
+    s_weather_data.CurrentTemperature = 30;
+    s_weather_data.ForecastStartTimestamp = s_mock_time;
+
+    // update_weather saves data to persist
+    update_weather();
+
+    // Verify it was saved by checking mock storage
+    PersistedWeatherData persisted;
+    persist_read_data(WEATHER_DATA_KEY, &persisted, sizeof(PersistedWeatherData));
+    TEST_ASSERT_EQUAL_INT(30, persisted.CurrentTemperature);
+}
+
+void test_weather_delete_persisted_data(void) {
+    // Write some data
+    PersistedWeatherData persisted = {.CurrentTemperature = 25};
+    persist_write_data(WEATHER_DATA_KEY, &persisted, sizeof(PersistedWeatherData));
+    TEST_ASSERT_TRUE(persist_exists(WEATHER_DATA_KEY));
+
+    weather_delete_persisted_data();
+
+    TEST_ASSERT_FALSE(persist_exists(WEATHER_DATA_KEY));
+}
+
+void test_weather_layer_create_destroy(void) {
+    LayerBuilder builder = {0};
+    Layer *layer = create_weather_layer(builder);
+    TEST_ASSERT_NOT_NULL(layer);
+    TEST_ASSERT_EQUAL_INT(sizeof(WeatherLayerData), s_layer_data_size);
+
+    destroy_weather_layer(layer);
+}
+
+void test_weather_deinit_data(void) {
+    s_weather_data.TemperatureForecast = malloc(10 * sizeof(int));
+    s_weather_data.is_temp_forecast_dynamic_alloc = true;
+    s_weather_data.RainForecastMmX10 = malloc(10 * sizeof(int));
+    s_weather_data.is_rain_forecast_dynamic_alloc = true;
+
+    deinit_weather_data();
+
+    TEST_ASSERT_NULL(s_weather_data.TemperatureForecast);
+    TEST_ASSERT_NULL(s_weather_data.RainForecastMmX10);
+    TEST_ASSERT_FALSE(s_weather_data.is_temp_forecast_dynamic_alloc);
+    TEST_ASSERT_FALSE(s_weather_data.is_rain_forecast_dynamic_alloc);
+}
+
+void test_weather_simulation_mode(void) {
+    s_settings.WeatherUseSimulation = true;
+    WeatherData *data = weather_get_data();
+    TEST_ASSERT_NOT_NULL(data);
+    TEST_ASSERT_EQUAL_INT(26, data->CurrentTemperature);
+    TEST_ASSERT_EQUAL_STRING("Mock", data->CurrentConditions);
+    s_settings.WeatherUseSimulation = false;
+}
+
 int main() {
     UNITY_BEGIN();
     RUN_TEST(test_weather_get_current_temp_no_forecast);
@@ -312,5 +404,13 @@ int main() {
     RUN_TEST(test_weather_persistence_save_restore);
     RUN_TEST(test_weather_init_data_expired);
     RUN_TEST(test_weather_init_data_valid);
+    RUN_TEST(test_weather_request_update);
+    RUN_TEST(test_weather_tick_update_expired);
+    RUN_TEST(test_weather_tick_update_valid);
+    RUN_TEST(test_update_weather);
+    RUN_TEST(test_weather_delete_persisted_data);
+    RUN_TEST(test_weather_layer_create_destroy);
+    RUN_TEST(test_weather_deinit_data);
+    RUN_TEST(test_weather_simulation_mode);
     return UNITY_END();
 }
