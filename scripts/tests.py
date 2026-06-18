@@ -12,7 +12,8 @@ def print_color(text, color=None):
     else:
         print(text)
 
-def run_c_host_tests():
+
+def run_c_host_tests(coverage=False):
     print("Running C host tests...")
     build_dir = "tests/build"
     os.makedirs(build_dir, exist_ok=True)
@@ -42,6 +43,9 @@ def run_c_host_tests():
             test_file,  # Your test file (which includes the production .c file)
             "-o", output_executable
         ]
+
+        if coverage:
+            compile_command.append("--coverage")
 
         # Compile test
         try:
@@ -76,4 +80,5 @@ def run_c_host_tests():
 
 
 if __name__ == "__main__":
-    sys.exit(run_c_host_tests())
+    coverage_requested = "--coverage" in sys.argv
+    sys.exit(run_c_host_tests(coverage=coverage_requested))

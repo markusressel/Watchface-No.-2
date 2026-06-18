@@ -46,6 +46,36 @@ After saving your modified settings, the watchface will reload automatically.
 
 <img src="/screenshots/Settings1.png" width="300"><img src="/screenshots/Settings2.png" width="306">
 
+# Development
+
+## Testing
+
+You can run both C and JS tests using the provided `Justfile`:
+
+```shell
+# Run all tests
+just test
+
+# Run only C tests
+just test-c
+
+# Run only JS tests
+just test-js
+```
+
+## Code Coverage (C)
+
+To check the code coverage of the C implementation, run:
+
+```shell
+just coverage
+```
+
+This will run all C tests with coverage instrumentation and provide a summary in the terminal.
+
+**Recommendation:** Install `gcovr` (e.g., via `pip install gcovr`) to get a more detailed summary and an HTML report (`coverage.html`). If `gcovr` is not installed, it will fall
+back to the basic `gcov` tool.
+
 # Behind the scenes
 
 The "dotted font" in this watchface actually isn't a font. Each character - `0-9`, some special characters like `.` and `/` and selected letters for displaying weekdays - is
