@@ -4,22 +4,10 @@
 #include "pebble/pebble.h"
 
 // Mock dependencies
+#include "../../src/c/ui/layer/dotted_text_layer.h"
+
 void debug_layer_add_border(Layer *layer) {
 }
-
-typedef Layer DottedTextLayer;
-
-typedef enum HorizontalAlignment {
-    HORIZONTAL_ALIGN_LEFT = 0,
-    HORIZONTAL_ALIGN_CENTER = 1,
-    HORIZONTAL_ALIGN_RIGHT = 2,
-} HorizontalAlignment;
-
-typedef enum VerticalAlignment {
-    VERTICAL_ALIGN_TOP = 0,
-    VERTICAL_ALIGN_CENTER = 1,
-    VERTICAL_ALIGN_BOTTOM = 2,
-} VerticalAlignment;
 
 DottedTextLayer *dotted_text_layer_create(GRect bounds) { return (DottedTextLayer *) malloc(1); }
 
