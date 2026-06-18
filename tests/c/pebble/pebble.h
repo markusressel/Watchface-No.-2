@@ -639,3 +639,7 @@ static inline void animation_set_play_count(Animation *animation, uint32_t play_
 static inline void animation_schedule(Animation *animation) { (void)animation; }
 static inline void animation_unschedule(Animation *animation) { (void)animation; }
 
+// Clock mocks
+static bool s_clock_is_24h_style = true;
+static inline bool clock_is_24h_style() { return s_clock_is_24h_style; }
+
