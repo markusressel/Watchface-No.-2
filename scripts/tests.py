@@ -3,12 +3,61 @@ import os
 import re
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor
 
 from utils import print_color
 
 
+def run_single_test(test_file, build_dir, coverage=False):
+    filename = os.path.basename(test_file)
+    test_name = filename.replace("_test.c", "")
+    output_executable = os.path.join(build_dir, f"{test_name}_test")
+
+    # Compile the test file, the Unity runner, and include paths for mocks and Unity headers
+    compile_command = [
+        "gcc",
+        "-Itests/c/pebble",  # For mock pebble.h
+        "-Itests/c/unity",  # For official unity.h and unity_internals.h
+        "tests/c/unity/unity.c",  # The Unity framework implementation
+        test_file,  # Your test file (which includes the production .c file)
+        "-o", output_executable
+    ]
+
+    if coverage:
+        compile_command.append("--coverage")
+
+    result = {
+        "test_name": test_name,
+        "compile_success": False,
+        "execution_success": False,
+        "stdout": "",
+        "stderr": "",
+        "error_msg": ""
+    }
+
+    # Compile test
+    try:
+        subprocess.run(compile_command, check=True, capture_output=True, text=True)
+        result["compile_success"] = True
+    except subprocess.CalledProcessError as e:
+        result["stdout"] = e.stdout
+        result["stderr"] = e.stderr
+        return result
+
+    # Run test
+    try:
+        proc_result = subprocess.run([output_executable], check=True, capture_output=True, text=True)
+        result["stdout"] = proc_result.stdout
+        result["execution_success"] = True
+    except subprocess.CalledProcessError as e:
+        result["stdout"] = e.stdout
+        result["stderr"] = e.stderr
+
+    return result
+
+
 def run_c_host_tests(coverage=False):
-    print("Running C host tests...")
+    print("Running C host tests (in parallel)...")
     build_dir = "tests/build"
     os.makedirs(build_dir, exist_ok=True)
 
@@ -18,6 +67,9 @@ def run_c_host_tests(coverage=False):
             if file.endswith("_test.c"):
                 test_files.append(os.path.join(root, file))
 
+    # Sort test files to ensure deterministic output order
+    test_files.sort()
+
     total_passed = 0
     total_failed = 0
     total_ignored = 0
@@ -25,51 +77,30 @@ def run_c_host_tests(coverage=False):
 
     unity_re = re.compile(r'(\d+) Tests (\d+) Failures (\d+) Ignored')
 
-    for test_file in test_files:
-        filename = os.path.basename(test_file)
-        test_name = filename.replace("_test.c", "")
+    # Run tests in parallel
+    with ThreadPoolExecutor() as executor:
+        # map ensures results are returned in the same order as test_files
+        results = list(executor.map(lambda f: run_single_test(f, build_dir, coverage), test_files))
 
-        output_executable = os.path.join(build_dir, f"{test_name}_test")
+    # Process results in order
+    for result in results:
+        print(f"--- {result['test_name']} ---")
 
-        print(f"--- {test_name} ---")
-
-        # Compile the test file, the Unity runner, and include paths for mocks and Unity headers
-        compile_command = [
-            "gcc",
-            "-Itests/c/pebble",  # For mock pebble.h
-            "-Itests/c/unity",  # For official unity.h and unity_internals.h
-            "tests/c/unity/unity.c",  # The Unity framework implementation
-            test_file,  # Your test file (which includes the production .c file)
-            "-o", output_executable
-        ]
-
-        if coverage:
-            compile_command.append("--coverage")
-
-        # Compile test
-        try:
-            subprocess.run(compile_command, check=True, capture_output=True, text=True)
-        except subprocess.CalledProcessError as e:
+        if not result["compile_success"]:
             print_color(f"  Compilation FAILED", "red")
-            print(e.stdout)
-            print(e.stderr)
+            print(result["stdout"])
+            print(result["stderr"])
             total_errors += 1
             continue
 
-        # Run test
-        stdout = ""
-        try:
-            result = subprocess.run([output_executable], check=True, capture_output=True, text=True)
-            stdout = result.stdout
-            print(stdout.strip())
-        except subprocess.CalledProcessError as e:
-            stdout = e.stdout
-            print(stdout.strip())
-            if e.stderr:
-                print(e.stderr.strip())
+        print(result["stdout"].strip())
+
+        if not result["execution_success"]:
+            if result["stderr"]:
+                print(result["stderr"].strip())
             print_color(f"  Execution FAILED", "red")
 
-        match = unity_re.search(stdout)
+        match = unity_re.search(result["stdout"])
         if match:
             num_tests = int(match.group(1))
             num_fail = int(match.group(2))
@@ -97,6 +128,7 @@ def run_c_host_tests(coverage=False):
         else:
             print_color("FAIL", "red")
         return 1
+
 
 if __name__ == "__main__":
     coverage_requested = "--coverage" in sys.argv
