@@ -5,6 +5,7 @@
 #include <stdbool.h> // For bool
 #include <string.h>
 #include <time.h>
+#include <stdlib.h>
 typedef struct tm tm;
 
 // Define PBL_COLOR for testing color-dependent functions
@@ -56,6 +57,10 @@ static inline bool gcolor_equal(GColor c1, GColor c2) {
     return c1.argb == c2.argb;
 }
 
+static inline GColor GColorFromHEX(int hex) {
+    return (GColor){.argb = (uint8_t) hex};
+}
+
 // Mock GFont
 typedef void *GFont; // A simple void pointer for testing purposes
 
@@ -69,6 +74,116 @@ static inline GFont fonts_get_system_font(const char *font_key) {
     return (GFont) 123; // Return a dummy non-NULL value
 }
 
+// Corrected GPoint and GSize definitions
+typedef struct GPoint {
+    int16_t x;
+    int16_t y;
+} GPoint;
+
+typedef struct GSize {
+    int16_t w;
+    int16_t h;
+} GSize;
+
+typedef struct GRect {
+    GPoint origin;
+    GSize size;
+} GRect;
+
+static inline GPoint GPoint_construct(int16_t x, int16_t y) {
+    return (GPoint){.x = x, .y = y};
+}
+
+#define GPoint(x, y) GPoint_construct(x, y)
+
+static inline GRect GRect_construct(int16_t x, int16_t y, int16_t w, int16_t h) {
+    return (GRect){.origin = {.x = x, .y = y}, .size = {.w = w, .h = h}};
+}
+
+#define GRect(x, y, w, h) GRect_construct(x, y, w, h)
+
+
+// Layer mocks
+typedef void Layer;
+typedef void GContext;
+typedef void Window;
+
+typedef void (*LayerUpdateProc)(Layer *layer, GContext *ctx);
+
+static inline void window_set_background_color(Window *window, GColor color) {
+    (void) window;
+    (void) color;
+}
+
+static inline Layer *layer_create(GRect bounds) {
+    return (Layer *) malloc(1); // Return dummy heap pointer
+}
+
+static inline Layer *layer_create_with_data(GRect bounds, size_t data_size) {
+    return (Layer *) malloc(data_size > 0 ? data_size : 1);
+}
+
+static inline void layer_set_update_proc(Layer *layer, LayerUpdateProc update_proc) {
+    (void) layer;
+    (void) update_proc;
+}
+
+static inline void layer_add_child(Layer *parent, Layer *child) {
+    (void) parent;
+    (void) child;
+}
+
+static inline void *layer_get_data(const Layer *layer) {
+    return (void *) layer;
+}
+
+static inline GRect layer_get_bounds(const Layer *layer) {
+    (void) layer;
+    return (GRect){.origin = {.x = 0, .y = 0}, .size = {.w = 144, .h = 168}}; // Dummy bounds
+}
+
+static inline void layer_mark_dirty(Layer *layer) { (void) layer; }
+static inline void layer_destroy(Layer *layer) { (void) free(layer); }
+
+// TextLayer mocks
+typedef enum {
+    GTextAlignmentLeft,
+    GTextAlignmentCenter,
+    GTextAlignmentRight,
+} GTextAlignment;
+
+typedef Layer TextLayer;
+
+#define text_layer_get_layer(text_layer) (Layer *)(text_layer)
+#define bitmap_layer_get_layer(bitmap_layer) (Layer *)(bitmap_layer)
+
+static inline TextLayer *text_layer_create(GRect bounds) {
+    return (TextLayer *) layer_create(bounds);
+}
+
+static inline void text_layer_set_background_color(TextLayer *layer, GColor color) {
+    (void) layer;
+    (void) color;
+}
+
+static inline void text_layer_set_text_color(TextLayer *layer, GColor color) {
+    (void) layer;
+    (void) color;
+}
+
+static inline void text_layer_set_font(TextLayer *layer, GFont font) {
+    (void) layer;
+    (void) font;
+}
+
+static inline void text_layer_set_text_alignment(TextLayer *layer, GTextAlignment alignment) {
+    (void) layer;
+    (void) alignment;
+}
+
+static inline void text_layer_destroy(TextLayer *layer) { free(layer); }
+
+
 // --- Stateful Mocks for Persistent Storage ---
 typedef int32_t status_t;
 
@@ -76,53 +191,21 @@ typedef int32_t status_t;
 typedef enum StatusCode {
     //! Operation completed successfully.
     S_SUCCESS = 0,
-
-    //! An error occurred (no description).
     E_ERROR = -1,
-
-    //! No idea what went wrong.
     E_UNKNOWN = -2,
-
-    //! There was a generic internal logic error.
     E_INTERNAL = -3,
-
-    //! The function was not called correctly.
     E_INVALID_ARGUMENT = -4,
-
-    //! Insufficient allocatable memory available.
     E_OUT_OF_MEMORY = -5,
-
-    //! Insufficient long-term storage available.
     E_OUT_OF_STORAGE = -6,
-
-    //! Insufficient resources available.
     E_OUT_OF_RESOURCES = -7,
-
-    //! Argument out of range (may be dynamic).
     E_RANGE = -8,
-
-    //! Target of operation does not exist.
     E_DOES_NOT_EXIST = -9,
-
-    //! Operation not allowed (may depend on state).
     E_INVALID_OPERATION = -10,
-
-    //! Another operation prevented this one.
     E_BUSY = -11,
-
-    //! Operation not completed; try again.
     E_AGAIN = -12,
-
-    //! Equivalent of boolean true.
     S_TRUE = 1,
-
-    //! Equivalent of boolean false.
     S_FALSE = 0,
-
-    //! For list-style requests.  At end of list.
     S_NO_MORE_ITEMS = 2,
-
-    //! No action was taken as none was required.
     S_NO_ACTION_REQUIRED = 3,
 } StatusCode;
 
@@ -143,11 +226,11 @@ typedef struct {
 static MockStorage global_mock_storage;
 
 // Test helper functions to manipulate the mock storage
-static void mock_storage_reset() {
+static inline void mock_storage_reset() {
     memset(&global_mock_storage, 0, sizeof(MockStorage));
 }
 
-static MockStorageEntry *find_entry(uint32_t key, bool create_if_missing) {
+static inline MockStorageEntry *find_entry(uint32_t key, bool create_if_missing) {
     for (int i = 0; i < MAX_MOCK_STORAGE_ENTRIES; i++) {
         if (global_mock_storage.entries[i].exists && global_mock_storage.entries[i].key == key) {
             return &global_mock_storage.entries[i];
@@ -165,7 +248,7 @@ static MockStorageEntry *find_entry(uint32_t key, bool create_if_missing) {
     return NULL;
 }
 
-static void mock_storage_set_version(int version) {
+static inline void mock_storage_set_version(int version) {
     MockStorageEntry *entry = find_entry(2, true); // PERSIST_KEY_SETTINGS_VERSION
     if (entry) {
         memcpy(entry->data, &version, sizeof(int));
@@ -173,7 +256,7 @@ static void mock_storage_set_version(int version) {
     }
 }
 
-static int mock_storage_get_version() {
+static inline int mock_storage_get_version() {
     MockStorageEntry *entry = find_entry(2, false);
     if (entry && entry->size == sizeof(int)) {
         int val;
@@ -183,7 +266,7 @@ static int mock_storage_get_version() {
     return 0;
 }
 
-static void mock_storage_set_data(void *data, size_t size) {
+static inline void mock_storage_set_data(void *data, size_t size) {
     MockStorageEntry *entry = find_entry(1, true); // PERSIST_KEY_SETTINGS
     if (entry) {
         memcpy(entry->data, data, size);
@@ -192,12 +275,11 @@ static void mock_storage_set_data(void *data, size_t size) {
 }
 
 // The mock implementations of the Pebble SDK functions
-static bool persist_exists(const uint32_t key) {
+static inline bool persist_exists(const uint32_t key) {
     return find_entry(key, false) != NULL;
 }
 
-//! @return S_TRUE if successful, E_DOES_NOT_EXIST if a value was not set, or another error value from \ref StatusCode.
-static status_t persist_delete(const uint32_t key) {
+static inline status_t persist_delete(const uint32_t key) {
     MockStorageEntry *entry = find_entry(key, false);
     if (entry) {
         entry->exists = false;
@@ -206,7 +288,7 @@ static status_t persist_delete(const uint32_t key) {
     return S_FALSE;
 }
 
-static int persist_read_int(const uint32_t key) {
+static inline int persist_read_int(const uint32_t key) {
     MockStorageEntry *entry = find_entry(key, false);
     if (entry && entry->size == sizeof(int32_t)) {
         int32_t val;
@@ -216,7 +298,7 @@ static int persist_read_int(const uint32_t key) {
     return 0;
 }
 
-static int persist_read_data(const uint32_t key, void *buffer, const size_t size) {
+static inline int persist_read_data(const uint32_t key, void *buffer, const size_t size) {
     MockStorageEntry *entry = find_entry(key, false);
     if (entry) {
         size_t to_copy = size < entry->size ? size : entry->size;
@@ -226,7 +308,7 @@ static int persist_read_data(const uint32_t key, void *buffer, const size_t size
     return 0;
 }
 
-static int persist_write_data(const uint32_t key, const void *data, const size_t size) {
+static inline int persist_write_data(const uint32_t key, const void *data, const size_t size) {
     if (size > 256) return E_OUT_OF_RESOURCES; // Simulate Pebble limit!
     MockStorageEntry *entry = find_entry(key, true);
     if (entry) {
@@ -237,7 +319,7 @@ static int persist_write_data(const uint32_t key, const void *data, const size_t
     return 0;
 }
 
-static status_t persist_write_int(const uint32_t key, const int32_t value) {
+static inline status_t persist_write_int(const uint32_t key, const int32_t value) {
     MockStorageEntry *entry = find_entry(key, true);
     if (entry) {
         memcpy(entry->data, &value, sizeof(int32_t));
@@ -250,7 +332,7 @@ static status_t persist_write_int(const uint32_t key, const int32_t value) {
 // --- End of Storage Mocks ---
 
 
-// AppMessage mocks (if needed for app_messaging.c tests)
+// AppMessage mocks
 typedef int AppMessageResult;
 #define APP_MSG_OK 0
 #define APP_MSG_INTERNAL_ERROR 1
@@ -288,15 +370,11 @@ static inline AppMessageResult app_message_outbox_begin(DictionaryIterator **ite
 static inline void dict_write_int(DictionaryIterator *iter, uint32_t key, const void *value, size_t size, bool signed_val) {
     (void) iter;
     (void) key;
-    (void) value;
-    (void) size;
-    (void) signed_val;
+    (void) value; (void) size; (void) signed_val;
 }
 
 static inline void dict_write_uint8(DictionaryIterator *iter, uint32_t key, uint8_t value) {
-    (void) iter;
-    (void) key;
-    (void) value;
+    (void) iter; (void) key; (void) value;
 }
 
 static inline void dict_write_end(DictionaryIterator *iter) {
@@ -308,10 +386,6 @@ static int s_app_message_outbox_send_count = 0;
 static inline AppMessageResult app_message_outbox_send() {
     s_app_message_outbox_send_count++;
     return APP_MSG_OK;
-}
-
-static inline GColor GColorFromHEX(int hex) {
-    return (GColor){.argb = (uint8_t) hex};
 }
 
 // Tick Timer Service mocks
@@ -429,195 +503,105 @@ static inline int health_service_sum_today(HealthMetric metric) {
 }
 
 typedef void (*AppMessageInboxReceived)(DictionaryIterator *iterator, void *context);
-
 typedef void (*AppMessageInboxDropped)(AppMessageResult reason, void *context);
-
 typedef void (*AppMessageOutboxFailed)(DictionaryIterator *iterator, AppMessageResult reason, void *context);
-
 typedef void (*AppMessageOutboxSent)(DictionaryIterator *iterator, void *context);
 
-static void app_message_register_inbox_received(AppMessageInboxReceived handler) { (void) handler; }
-static void app_message_register_inbox_dropped(AppMessageInboxDropped handler) { (void) handler; }
-static void app_message_register_outbox_failed(AppMessageOutboxFailed handler) { (void) handler; }
-static void app_message_register_outbox_sent(AppMessageOutboxSent handler) { (void) handler; }
+static inline void app_message_register_inbox_received(AppMessageInboxReceived handler) { (void) handler; }
+static inline void app_message_register_inbox_dropped(AppMessageInboxDropped handler) { (void) handler; }
+static inline void app_message_register_outbox_failed(AppMessageOutboxFailed handler) { (void) handler; }
+static inline void app_message_register_outbox_sent(AppMessageOutboxSent handler) { (void) handler; }
 
-static AppMessageResult app_message_open(uint32_t inbox_size, uint32_t outbox_size) {
-    (void) inbox_size;
-    (void) outbox_size;
+static inline AppMessageResult app_message_open(uint32_t inbox_size, uint32_t outbox_size) {
+    (void) inbox_size; (void) outbox_size;
     return APP_MSG_OK;
 }
 
 // AppTimer mocks
 typedef void AppTimer;
-
 typedef void (*AppTimerCallback)(void *data);
 
-static AppTimer *app_timer_register(uint32_t timeout_ms, AppTimerCallback callback, void *data) {
-    (void) timeout_ms;
-    (void) callback;
-    (void) data;
+static inline AppTimer *app_timer_register(uint32_t timeout_ms, AppTimerCallback callback, void *data) {
+    (void) timeout_ms; (void) callback; (void) data;
     return (AppTimer *) 1; // Return a dummy non-NULL timer
 }
 
-static bool app_timer_cancel(AppTimer *timer) {
+static inline bool app_timer_cancel(AppTimer *timer) {
     (void) timer;
     return true;
 }
-
-// Layer mocks
-typedef void Layer;
-typedef void GContext;
-typedef void Window;
-
-static inline void window_set_background_color(Window *window, GColor color) {
-    (void) window;
-    (void) color;
-}
-
-// New mocks for missing types
-typedef enum {
-    GTextAlignmentLeft,
-    GTextAlignmentCenter,
-    GTextAlignmentRight,
-} GTextAlignment;
-
-typedef Layer TextLayer; // Mock TextLayer as a Layer
-
-#define text_layer_get_layer(text_layer) (Layer *)(text_layer)
-#define bitmap_layer_get_layer(bitmap_layer) (Layer *)(bitmap_layer)
-
-typedef void (*LayerUpdateProc)(Layer *layer, GContext *ctx);
-
-
-// Corrected GPoint and GSize definitions
-typedef struct GPoint {
-    int16_t x;
-    int16_t y;
-} GPoint;
-
-typedef struct GSize {
-    int16_t w;
-    int16_t h;
-} GSize;
-
-typedef struct GRect {
-    GPoint origin;
-    GSize size;
-} GRect;
-
-static GPoint GPoint_construct(int16_t x, int16_t y) {
-    return (GPoint){.x = x, .y = y};
-}
-
-#define GPoint(x, y) GPoint_construct(x, y)
-
-static GRect GRect_construct(int16_t x, int16_t y, int16_t w, int16_t h) {
-    return (GRect){.origin = {.x = x, .y = y}, .size = {.w = w, .h = h}};
-}
-
-#define GRect(x, y, w, h) GRect_construct(x, y, w, h)
-
-
-static GRect layer_get_bounds(Layer *layer) {
-    (void) layer;
-    return (GRect){.origin = {.x = 0, .y = 0}, .size = {.w = 144, .h = 168}}; // Dummy bounds
-}
-
-static void layer_mark_dirty(Layer *layer) { (void) layer; }
-static void layer_destroy(Layer *layer) { (void) layer; }
 
 // Graphics mocks for pixel_matrix_drawer and graph_utils
 typedef uint8_t GCorners;
 #define GCornerNone 0
 
 // --- Mocks for graphics_fill_rect ---
-#define MAX_GRAPHICS_FILL_RECT_CALLS 2000 // Increased buffer size
+#define MAX_GRAPHICS_FILL_RECT_CALLS 2000
 
 typedef struct {
     GRect rect;
     uint16_t corner_radius;
     GCorners corners;
-    GColor fill_color; // Added to record fill color
+    GColor fill_color;
 } GraphicsFillRectCall;
 
 static GraphicsFillRectCall s_graphics_fill_rect_calls[MAX_GRAPHICS_FILL_RECT_CALLS];
 static int s_graphics_fill_rect_call_count = 0;
-static GColor s_current_fill_color = {.argb = 0}; // Default to black/clear
+static GColor s_current_fill_color = {.argb = 0};
 
-static void graphics_context_set_fill_color(GContext *ctx, GColor color) {
+static inline void graphics_context_set_fill_color(GContext *ctx, GColor color) {
     (void) ctx;
     s_current_fill_color = color;
 }
 
-static void graphics_fill_rect(GContext *ctx, GRect rect, uint16_t corner_radius, GCorners corners) {
+static inline void graphics_fill_rect(GContext *ctx, GRect rect, uint16_t corner_radius, GCorners corners) {
     (void) ctx;
     if (s_graphics_fill_rect_call_count < MAX_GRAPHICS_FILL_RECT_CALLS) {
         s_graphics_fill_rect_calls[s_graphics_fill_rect_call_count++] = (GraphicsFillRectCall){
-            .rect = rect,
-            .corner_radius = corner_radius,
-            .corners = corners,
-            .fill_color = s_current_fill_color // Record the current fill color
+            .rect = rect, .corner_radius = corner_radius, .corners = corners, .fill_color = s_current_fill_color
         };
-    } else {
-        APP_LOG(APP_LOG_LEVEL_ERROR, "graphics_fill_rect mock buffer overflow!");
     }
 }
 
-// Helper to reset the mock call count
-static void reset_graphics_fill_rect_calls() {
+static inline void reset_graphics_fill_rect_calls() {
     s_graphics_fill_rect_call_count = 0;
-    s_current_fill_color = (GColor){.argb = 0}; // Reset fill color
+    s_current_fill_color = (GColor){.argb = 0};
 }
 
-// Helper to get the recorded calls
-static GraphicsFillRectCall *get_graphics_fill_rect_calls() {
-    return s_graphics_fill_rect_calls;
-}
-
-static int get_graphics_fill_rect_call_count() {
-    return s_graphics_fill_rect_call_count;
-}
+static inline GraphicsFillRectCall *get_graphics_fill_rect_calls() { return s_graphics_fill_rect_calls; }
+static inline int get_graphics_fill_rect_call_count() { return s_graphics_fill_rect_call_count; }
 
 // --- Mocks for graphics_draw_line ---
-#define MAX_GRAPHICS_DRAW_LINE_CALLS 2000 // Increased buffer size
+#define MAX_GRAPHICS_DRAW_LINE_CALLS 2000
 
 typedef struct {
     GPoint p0;
     GPoint p1;
-    GColor stroke_color; // Added to record stroke color
+    GColor stroke_color;
 } GraphicsDrawLineCall;
 
 static GraphicsDrawLineCall s_graphics_draw_line_calls[MAX_GRAPHICS_DRAW_LINE_CALLS];
 static int s_graphics_draw_line_call_count = 0;
-static GColor s_current_stroke_color = {.argb = 0}; // Default to black/clear
+static GColor s_current_stroke_color = {.argb = 0};
 
-static void graphics_context_set_stroke_color(GContext *ctx, GColor color) {
+static inline void graphics_context_set_stroke_color(GContext *ctx, GColor color) {
     (void) ctx;
     s_current_stroke_color = color;
 }
 
-static void graphics_draw_line(GContext *ctx, GPoint p0, GPoint p1) {
+static inline void graphics_draw_line(GContext *ctx, GPoint p0, GPoint p1) {
     (void) ctx;
     if (s_graphics_draw_line_call_count < MAX_GRAPHICS_DRAW_LINE_CALLS) {
         s_graphics_draw_line_calls[s_graphics_draw_line_call_count++] = (GraphicsDrawLineCall){
-            .p0 = p0,
-            .p1 = p1,
-            .stroke_color = s_current_stroke_color // Record the current stroke color
+            .p0 = p0, .p1 = p1, .stroke_color = s_current_stroke_color
         };
-    } else {
-        APP_LOG(APP_LOG_LEVEL_ERROR, "graphics_draw_line mock buffer overflow!");
     }
 }
 
-static void reset_graphics_draw_line_calls() {
+static inline void reset_graphics_draw_line_calls() {
     s_graphics_draw_line_call_count = 0;
-    s_current_stroke_color = (GColor){.argb = 0}; // Reset stroke color
+    s_current_stroke_color = (GColor){.argb = 0};
 }
 
-static GraphicsDrawLineCall *get_graphics_draw_line_calls() {
-    return s_graphics_draw_line_calls;
-}
-
-static int get_graphics_draw_line_call_count() {
-    return s_graphics_draw_line_call_count;
-}
+static inline GraphicsDrawLineCall *get_graphics_draw_line_calls() { return s_graphics_draw_line_calls; }
+static inline int get_graphics_draw_line_call_count() { return s_graphics_draw_line_call_count; }

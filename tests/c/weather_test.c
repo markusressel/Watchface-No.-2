@@ -50,11 +50,6 @@ Layer *ui_state_get_layer(int row) { return NULL; }
 
 static int s_layer_data_size = 0;
 
-void *layer_get_data(const Layer *layer) {
-    static char data_buf[256];
-    return data_buf;
-}
-
 void layer_set_frame(Layer *layer, GRect frame) {
 }
 
@@ -76,12 +71,12 @@ void dotted_text_layer_destroy(DottedTextLayer *layer) {
 }
 
 Layer *layer_factory_create_custom_layer_with_data(LayerBuilder builder, LayerUpdateProc update_proc, size_t data_size) {
-    s_layer_data_size = data_size;
-    return (Layer *) 0x5555;
+    s_layer_data_size = (int) data_size;
+    return (Layer *) malloc(data_size > 0 ? data_size : 1);
 }
 
 DottedTextLayer *layer_factory_create_dotted_text_layer(LayerBuilder builder, GColor color, HorizontalAlignment horizontal_alignment, VerticalAlignment vertical_alignment,
-                                                        const char *text) { return (DottedTextLayer *) 0x6666; }
+                                                        const char *text) { return (DottedTextLayer *) malloc(1); }
 
 LayerBuilder layer_builder_from_rect(Layer *parent, GRect bounds) {
     return (LayerBuilder)
