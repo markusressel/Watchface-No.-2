@@ -288,6 +288,31 @@ static inline status_t persist_delete(const uint32_t key) {
     return S_FALSE;
 }
 
+static inline int persist_write_string(const uint32_t key, const char *buffer) {
+    size_t size = strlen(buffer) + 1;
+    if (size > 256) return E_OUT_OF_RESOURCES;
+    MockStorageEntry *entry = find_entry(key, true);
+    if (entry) {
+        memcpy(entry->data, buffer, size);
+        entry->size = size;
+        return (int) size;
+    }
+    return 0;
+}
+
+static inline int persist_read_string(const uint32_t key, char *buffer, const size_t size) {
+    MockStorageEntry *entry = find_entry(key, false);
+    if (entry) {
+        size_t to_copy = size < entry->size ? size : entry->size;
+        memcpy(buffer, entry->data, to_copy);
+        if (to_copy > 0) {
+            buffer[to_copy - 1] = '\0';
+        }
+        return (int) to_copy;
+    }
+    return 0;
+}
+
 static inline int persist_read_int(const uint32_t key) {
     MockStorageEntry *entry = find_entry(key, false);
     if (entry && entry->size == sizeof(int32_t)) {

@@ -1,8 +1,10 @@
 #include <pebble.h>
 #include "clay_settings.h"
+#include "../generated/version.h"
 #include "../ui/layer/widget.h"
 #include "../app_messaging/app_messaging.h"
 #include "../ui/watch_layout.h"
+
 
 #ifdef WF_EMULATOR
 const char *THEME_DEFAULT = THEME_DARK_STR;
@@ -314,8 +316,10 @@ ClaySettings *internal_load_settings() {
         );
         // save default settings to persistent storage
         clay_save_settings(settings);
+        persist_write_string(PERSIST_KEY_APP_VERSION, WF_APP_VERSION);
         return settings;
     }
+
 
     if (persist_exists(SETTINGS_KEY)) {
         const int bytes = persist_read_data(SETTINGS_KEY, settings, sizeof(*settings));
@@ -327,8 +331,27 @@ ClaySettings *internal_load_settings() {
     }
 
     settings = clay_sanitize_settings(settings);
+
+    // Check if the watchface has been updated/rebuilt.
+    char stored_version[64] = {0};
+    if (persist_exists(PERSIST_KEY_APP_VERSION)) {
+        persist_read_string(PERSIST_KEY_APP_VERSION, stored_version, sizeof(stored_version));
+    }
+
+    if (strcmp(stored_version, WF_APP_VERSION) != 0) {
+        APP_LOG(
+            APP_LOG_LEVEL_INFO,
+            "App version change detected: '%s' -> '%s'. Resetting InitialSyncDone to request settings from phone.",
+            stored_version, WF_APP_VERSION
+        );
+        settings->InitialSyncDone = false;
+        clay_save_settings(settings);
+        persist_write_string(PERSIST_KEY_APP_VERSION, WF_APP_VERSION);
+    }
+
     clay_log_settings_debug("loaded persisted settings", settings);
     return settings;
+
 }
 
 // Read settings from persistent storage

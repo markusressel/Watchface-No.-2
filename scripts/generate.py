@@ -3,6 +3,8 @@ import argparse
 import json
 import os.path
 import re
+import time
+
 
 AUTO_GENERATED_HEADER = """// ==========================================================
 // AUTO-GENERATED FILE - DO NOT EDIT MANUALLY!
@@ -128,7 +130,39 @@ def generate_settings_js():
     js_lines = generate_js_content(items)
     write_settings_js(js_lines)
 
+def generate_version_h():
+    print("Generating src/c/generated/version.h from package.json...")
+    with open('package.json', 'r') as f:
+        pkg = json.load(f)
+    version = pkg.get('version', '1.0.0')
+
+    # Check if PEBBLE_RELEASE environment variable is set to '1'
+    is_release = os.environ.get('PEBBLE_RELEASE') == '1'
+    if is_release:
+        version_str = version
+    else:
+        # Debug/development build: append timestamp suffix
+        version_str = f"{version}-debug-{int(time.time())}"
+
+    out_dir = os.path.join('src', 'c', 'generated')
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+
+    version_h_content = f"""// ==========================================================
+// AUTO-GENERATED FILE - DO NOT EDIT MANUALLY!
+// This file is generated during compile time from package.json
+// ==========================================================
+#pragma once
+
+#define WF_APP_VERSION "{version_str}"
+"""
+    with open(os.path.join(out_dir, 'version.h'), 'w') as f:
+        f.write(version_h_content)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate code and settings")
     args = parser.parse_args()
     generate_settings_js()
+    generate_version_h()
+
