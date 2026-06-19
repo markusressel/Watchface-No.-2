@@ -225,7 +225,7 @@ static ClaySettings *clay_reset_to_default_settings() {
     settings->WeatherCurrentTempColor = textColor;
     settings->WeatherMinTempColor = GColorPictonBlue;
     settings->WeatherAxisTickColor = GColorDarkGray;
-    settings->WeatherIndicatorColor = textColor;
+    settings->WeatherIndicatorColor = GColorLightGray;
     settings->WeatherSeparatorColor = GColorLightGray;
 
 #if defined(PBL_COLOR)

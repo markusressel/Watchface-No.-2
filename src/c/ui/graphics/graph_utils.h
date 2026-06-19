@@ -55,10 +55,10 @@ typedef struct GraphAxisConfig {
     int tick_interval_x; /**< The interval (in data points) at which to draw a vertical tick mark on the X-axis. Set to 0 to disable. */
     GColor tick_color_x; /**< The color of the X-axis tick marks. */
     int tick_length_y; /**< The height (in pixels) of the X-axis tick marks. */
-    bool show_indicator_line; /**< If true, draw a vertical line at indicator_line_x_index. */
+    bool show_indicator_line; /**< If true, draw a horizontal indicator bar from the left up to indicator_line_x_index. */
     bool interpolate_indicator_line; /**< If true, use fractional part of indicator_line_x_index. If false, snap to nearest integer index. */
-    float indicator_line_x_index; /**< The fractional X-index at which to draw the indicator line. */
-    GColor indicator_line_color; /**< The color of the indicator line. */
+    float indicator_line_x_index; /**< The fractional X-index up to which to draw the indicator bar. */
+    GColor indicator_line_color; /**< The color of the indicator bar. */
 } GraphAxisConfig;
 
 /**

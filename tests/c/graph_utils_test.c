@@ -743,6 +743,73 @@ void test_graph_instance_draw_line_filled(void) {
     TEST_ASSERT_EQUAL(50, get_graphics_fill_rect_call_count());
 }
 
+void test_graph_instance_draw_indicator_bar(void) {
+    GContext *ctx = (GContext *) 1;
+    GRect bounds = GRect(0, 0, 100, 10);
+    int values[] = {10, 20, 30}; // 3 points
+    GraphDataSeries data = {.values = values, .value_count = 3};
+
+    GraphSeriesConfig s_config = {
+        .graph_type = GRAPH_TYPE_LINE,
+        .dot_size = 2,
+        .default_color = GColorBlue,
+        .min_interpolated_dot_distance_px = 1000 // no interpolation
+    };
+
+    GraphDrawConfig d_config = {
+        .series = &s_config,
+        .series_count = 1,
+        .axis = {
+            .tick_interval_x = 1,
+            .tick_color_x = GColorWhite,
+            .tick_length_y = 4,
+            .show_indicator_line = true,
+            .interpolate_indicator_line = true,
+            .indicator_line_x_index = 1.0f, // exactly at middle point (index 1)
+            .indicator_line_color = GColorRed
+        }
+    };
+
+    GraphInstance instance;
+    graph_instance_init(&instance, &data, 1, &d_config);
+
+    reset_graphics_fill_rect_calls();
+    reset_graphics_draw_line_calls();
+
+    graph_instance_draw(&instance, ctx, bounds);
+
+    // Indicator bar:
+    // max_dot_size = 2
+    // x_start = 2 / 2 = 1
+    // x_end for index 1.0: (1.0 * (100 - 2)) / (3 - 1) + 1 = 49 + 1 = 50.
+    // bar_height = 4 / 2 = 2.
+    // So fill_rect: GRect(1, 10 - 2, 50 - 1, 2) -> GRect(1, 8, 49, 2)
+    // with color GColorRed.
+    TEST_ASSERT_EQUAL(1, get_graphics_fill_rect_call_count());
+    GraphicsFillRectCall *fill_calls = get_graphics_fill_rect_calls();
+    TEST_ASSERT_EQUAL(1, fill_calls[0].rect.origin.x);
+    TEST_ASSERT_EQUAL(8, fill_calls[0].rect.origin.y);
+    TEST_ASSERT_EQUAL(49, fill_calls[0].rect.size.w);
+    TEST_ASSERT_EQUAL(2, fill_calls[0].rect.size.h);
+    TEST_ASSERT_EQUAL_GCOLOR(GColorRed, fill_calls[0].fill_color);
+
+    // Ticks: drawn at i=0 (x=1), i=1 (x=50), i=2 (x=99)
+    // with stroke color GColorWhite.
+    TEST_ASSERT_EQUAL(3 + 2, get_graphics_draw_line_call_count()); // 3 ticks + 2 segment lines of series
+    GraphicsDrawLineCall *line_calls = get_graphics_draw_line_calls();
+    TEST_ASSERT_EQUAL_GCOLOR(GColorWhite, line_calls[0].stroke_color);
+    TEST_ASSERT_EQUAL(1, line_calls[0].p0.x);
+    TEST_ASSERT_EQUAL(10, line_calls[0].p0.y);
+    TEST_ASSERT_EQUAL(1, line_calls[0].p1.x);
+    TEST_ASSERT_EQUAL(6, line_calls[0].p1.y);
+
+    TEST_ASSERT_EQUAL_GCOLOR(GColorWhite, line_calls[1].stroke_color);
+    TEST_ASSERT_EQUAL(50, line_calls[1].p0.x);
+    TEST_ASSERT_EQUAL(10, line_calls[1].p0.y);
+    TEST_ASSERT_EQUAL(50, line_calls[1].p1.x);
+    TEST_ASSERT_EQUAL(6, line_calls[1].p1.y);
+}
+
 int main() {
     UNITY_BEGIN();
 
@@ -786,6 +853,7 @@ int main() {
     RUN_TEST(test_graph_instance_y_axis_scaling);
     RUN_TEST(test_graph_instance_draw_axis_ticks);
     RUN_TEST(test_graph_instance_draw_line_filled);
+    RUN_TEST(test_graph_instance_draw_indicator_bar);
 
     return UNITY_END();
 }

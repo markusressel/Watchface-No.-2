@@ -517,7 +517,7 @@ export default [
             {
                 "type": "color",
                 "messageKey": "WeatherIndicatorColor",
-                "defaultValue": "0xFFFFFF",
+                "defaultValue": "0xAAAAAA",
                 "label": "Current Time Indicator"
             },
             {

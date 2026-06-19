@@ -529,16 +529,45 @@ void graph_instance_draw(const GraphInstance *instance, GContext *ctx, const GRe
 
     GRect series_bounds = bounds;
 
-    // Draw x-axis ticks behind the series
-    if (max_points > 0 && instance->config.axis.tick_interval_x > 0 && !gcolor_equal(instance->config.axis.tick_color_x, GColorClear)) {
-        // Find a representative dot size. We can just take the largest dot size from the series.
-        int max_dot_size = 1;
-        for (int s = 0; s < instance->config.series_count; s++) {
-            if (instance->config.series[s].dot_size > max_dot_size) {
-                max_dot_size = instance->config.series[s].dot_size;
+    // Find a representative dot size. We can just take the largest dot size from the series.
+    int max_dot_size = 1;
+    for (int s = 0; s < instance->config.series_count; s++) {
+        if (instance->config.series[s].dot_size > max_dot_size) {
+            max_dot_size = instance->config.series[s].dot_size;
+        }
+    }
+
+    // Draw indicator bar behind the ticks (so ticks are drawn on top of the bar)
+    if (instance->config.axis.show_indicator_line && max_points > 1) {
+        const float x_idx = instance->config.axis.indicator_line_x_index;
+        if (x_idx >= 0 && x_idx < (float) max_points) {
+            float final_x_idx = x_idx;
+            if (!instance->config.axis.interpolate_indicator_line) {
+                final_x_idx = (float) ((int) (x_idx + 0.5f));
+            }
+
+            const int x_start = max_dot_size / 2;
+            const int x_end = (int) ((final_x_idx * (float) (bounds.size.w - max_dot_size)) / (float) (max_points - 1)) + x_start;
+
+            int bar_height = 0;
+            if (instance->config.axis.tick_length_y > 1) {
+                bar_height = instance->config.axis.tick_length_y / 2;
+                if (bar_height < 1) {
+                    bar_height = 1;
+                }
+            } else if (instance->config.axis.tick_length_y == 1) {
+                bar_height = 1;
+            }
+
+            if (bar_height > 0 && x_end > x_start) {
+                graphics_context_set_fill_color(ctx, instance->config.axis.indicator_line_color);
+                graphics_fill_rect(ctx, GRect(x_start, bounds.size.h - bar_height, x_end - x_start, bar_height), 0, GCornerNone);
             }
         }
+    }
 
+    // Draw x-axis ticks behind the series (and on top of the indicator bar)
+    if (max_points > 0 && instance->config.axis.tick_interval_x > 0 && !gcolor_equal(instance->config.axis.tick_color_x, GColorClear)) {
         graphics_context_set_stroke_color(ctx, instance->config.axis.tick_color_x);
         for (int i = 0; i < max_points; i++) {
             if ((i % instance->config.axis.tick_interval_x) == 0) {
@@ -611,30 +640,4 @@ void graph_instance_draw(const GraphInstance *instance, GContext *ctx, const GRe
         }
 
         draw_single_series(ctx, series_bounds, values, value_count, series_cfg, min_value, max_value);
-    }
-
-    // Draw indicator line on top of everything
-    if (instance->config.axis.show_indicator_line && max_points > 1) {
-        int max_dot_size = 1;
-        for (int s = 0; s < instance->config.series_count; s++) {
-            if (instance->config.series[s].dot_size > max_dot_size) {
-                max_dot_size = instance->config.series[s].dot_size;
-            }
-        }
-
-        const float x_idx = instance->config.axis.indicator_line_x_index;
-        if (x_idx >= 0 && x_idx < (float) max_points) {
-            float final_x_idx = x_idx;
-            if (!instance->config.axis.interpolate_indicator_line) {
-                final_x_idx = (float) ((int) (x_idx + 0.5f));
-            }
-
-            const int x = (int) ((final_x_idx * (float) (bounds.size.w - max_dot_size)) / (float) (max_points - 1)) + (max_dot_size / 2);
-            graphics_context_set_stroke_color(ctx, instance->config.axis.indicator_line_color);
-            int y_bottom = bounds.size.h;
-            int y_top = y_bottom - instance->config.axis.tick_length_y;
-            if (y_top < 0) y_top = 0;
-            graphics_draw_line(ctx, GPoint(x, y_bottom), GPoint(x, y_top));
-        }
-    }
-}
+    }}
