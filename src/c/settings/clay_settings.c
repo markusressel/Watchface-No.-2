@@ -314,12 +314,8 @@ ClaySettings *internal_load_settings() {
             "Settings version mismatch: %d != %d. Deleting old settings and requesting new ones.",
             persist_read_int(SETTINGS_VERSION_KEY), SETTINGS_VERSION
         );
-        // save default settings to persistent storage
-        clay_save_settings(settings);
-        persist_write_string(PERSIST_KEY_APP_VERSION, WF_APP_VERSION);
         return settings;
     }
-
 
     if (persist_exists(SETTINGS_KEY)) {
         const int bytes = persist_read_data(SETTINGS_KEY, settings, sizeof(*settings));
@@ -346,12 +342,10 @@ ClaySettings *internal_load_settings() {
         );
         settings->InitialSyncDone = false;
         clay_save_settings(settings);
-        persist_write_string(PERSIST_KEY_APP_VERSION, WF_APP_VERSION);
     }
 
     clay_log_settings_debug("loaded persisted settings", settings);
     return settings;
-
 }
 
 // Read settings from persistent storage
@@ -364,9 +358,11 @@ ClaySettings *clay_load_settings() {
 ClaySettings *clay_save_settings(ClaySettings *settings) {
     persist_delete(SETTINGS_KEY);
     persist_delete(SETTINGS_VERSION_KEY);
+    persist_delete(PERSIST_KEY_APP_VERSION);
     // save ClaySettings struct to persistent storage
     persist_write_int(SETTINGS_VERSION_KEY, SETTINGS_VERSION);
     persist_write_data(SETTINGS_KEY, settings, sizeof(ClaySettings));
+    persist_write_string(PERSIST_KEY_APP_VERSION, WF_APP_VERSION);
 
     return settings;
 }
