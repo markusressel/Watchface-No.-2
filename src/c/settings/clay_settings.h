@@ -75,6 +75,8 @@ typedef struct ClaySettings {
     bool DateZeroPadding: 1;
     bool DotAutoScale: 1;
     bool WeatherUseSimulation: 1;
+
+    // runtime data (internal use only)
     bool InitialSyncDone: 1;
 } __attribute__((__packed__)) ClaySettings;
 
