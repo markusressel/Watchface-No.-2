@@ -7,7 +7,7 @@
 // Persistent storage key
 #define SETTINGS_KEY PERSIST_KEY_SETTINGS
 #define SETTINGS_VERSION_KEY PERSIST_KEY_SETTINGS_VERSION
-#define SETTINGS_VERSION 20
+#define SETTINGS_VERSION 21
 
 // Theme Values
 #define THEME_LIGHT_STR "LIGHT"
@@ -69,6 +69,7 @@ typedef struct ClaySettings {
     bool ShowSeconds: 1;
     bool ShowWeekdayAbbreviation: 1;
     bool WeekdayAbbreviationUppercase: 1;
+    bool DateZeroPadding: 1;
     bool DotAutoScale: 1;
     bool WeatherUseSimulation: 1;
     bool InitialSyncDone: 1;

@@ -22,7 +22,7 @@ static void update_date_for_layer(DottedTextLayer *date_layer) {
     struct tm *tick_time = localtime(&temp);
 
     // Write the current day, month and year into a buffer
-    static char s_buffer[16];
+    static char s_buffer[32];
     char date_format[32];
     strcpy(date_format, "");
     if (clay_get_settings()->ShowWeekdayAbbreviation) {
@@ -46,6 +46,37 @@ static void update_date_for_layer(DottedTextLayer *date_layer) {
         if (clay_get_settings()->WeekdayAbbreviationUppercase) {
             for (int j = 0; j < 2; j++) {
                 s_buffer[j] = upper(s_buffer[j]);
+            }
+        }
+    }
+
+    if (!clay_get_settings()->DateZeroPadding) {
+        char *p = s_buffer;
+        
+        // If there is a weekday, skip it. The weekday is followed by a space.
+        if (clay_get_settings()->ShowWeekdayAbbreviation) {
+            while (*p && *p != ' ') {
+                p++;
+            }
+            if (*p == ' ') {
+                p++;
+            }
+        }
+        
+        // Now p points to the start of the day digits.
+        if (*p == '0') {
+            memmove(p, p + 1, strlen(p + 1) + 1);
+        }
+        
+        // Find the first '.' separator.
+        while (*p && *p != '.') {
+            p++;
+        }
+        
+        if (*p == '.') {
+            p++; // Point to the start of the month digits
+            if (*p == '0') {
+                memmove(p, p + 1, strlen(p + 1) + 1);
             }
         }
     }

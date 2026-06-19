@@ -153,7 +153,7 @@ export default [
             {
                 "type": "toggle",
                 "messageKey": "ShowSeconds",
-                "label": "Enable Seconds",
+                "label": "Show Seconds",
                 "description": "(Discouraged: will cause battery drain)",
                 "defaultValue": false
             },
@@ -170,7 +170,7 @@ export default [
             {
                 "type": "toggle",
                 "messageKey": "ShowWeekdayAbbreviation",
-                "label": "Enable Weekday",
+                "label": "Show Weekday",
                 "defaultValue": false
             },
             {
@@ -178,6 +178,12 @@ export default [
                 "messageKey": "WeekdayAbbreviationUppercase",
                 "label": "Weekday in CAPS (MO, TU, WE, etc.)",
                 "defaultValue": false
+            },
+            {
+                "type": "toggle",
+                "messageKey": "DateZeroPadding",
+                "label": "Zero Padding of Date Values (e.g., 01.01.26 vs. 1.1.26)",
+                "defaultValue": true
             },
             {
                 "type": "subheader",

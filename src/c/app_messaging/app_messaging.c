@@ -65,10 +65,11 @@ static int tuple_to_int(const Tuple *tuple) {
 
     if (tuple->type == TUPLE_CSTRING) {
         // Handle both decimal and hex strings
-        if (tuple->value->cstring[0] == '0' && (tuple->value->cstring[1] == 'x' || tuple->value->cstring[1] == 'X')) {
-            return hex_to_int(tuple->value->cstring);
+        const char *str = tuple->value->cstring;
+        if (str[0] == '0' && (str[1] == 'x' || str[1] == 'X')) {
+            return hex_to_int(str);
         }
-        return atoi(tuple->value->cstring);
+        return atoi(str);
     }
 
     return tuple->value->int32;
@@ -250,6 +251,7 @@ static bool read_configuration_properties(
     APPLY_BOOL(MESSAGE_KEY_ShowSeconds, ShowSeconds);
     APPLY_BOOL(MESSAGE_KEY_ShowWeekdayAbbreviation, ShowWeekdayAbbreviation);
     APPLY_BOOL(MESSAGE_KEY_WeekdayAbbreviationUppercase, WeekdayAbbreviationUppercase);
+    APPLY_BOOL(MESSAGE_KEY_DateZeroPadding, DateZeroPadding);
     APPLY_BOOL(MESSAGE_KEY_WeatherUseSimulation, WeatherUseSimulation);
     APPLY_INT(MESSAGE_KEY_SliderWeatherForecastPreviewHoursCount, SliderWeatherForecastPreviewHoursCount);
     APPLY_INT(MESSAGE_KEY_WeatherUpdateIntervalMinutes, WeatherUpdateIntervalMinutes);

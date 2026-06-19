@@ -45,6 +45,7 @@
             "StepcountTextColor",
             "HeartrateTextColor",
             "ShowYear",
+            "DateZeroPadding",
             "SliderDotWidth",
             "SliderDotHeight",
             "SliderDotHorizontalGap",

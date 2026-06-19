@@ -45,6 +45,7 @@ uint32_t MESSAGE_KEY_SliderDotVerticalGap = 37;
 uint32_t MESSAGE_KEY_ToggleDotAutoScale = 38;
 uint32_t MESSAGE_KEY_SliderDotScaleFactorPercent = 39;
 uint32_t MESSAGE_KEY_ShowYear = 40;
+uint32_t MESSAGE_KEY_DateZeroPadding = 64;
 uint32_t MESSAGE_KEY_ShowSeconds = 41;
 uint32_t MESSAGE_KEY_ShowWeekdayAbbreviation = 42;
 uint32_t MESSAGE_KEY_WeekdayAbbreviationUppercase = 43;
@@ -167,11 +168,13 @@ void test_app_messaging_send_app_ready(void) {
 void test_inbox_received_settings_update(void) {
     add_mock_string_tuple(MESSAGE_KEY_Theme, "DARK");
     add_mock_string_tuple(MESSAGE_KEY_BackgroundColor, "0xFFFFFF");
+    add_mock_int_tuple(MESSAGE_KEY_DateZeroPadding, 1);
 
     inbox_received_callback(NULL, NULL);
 
     TEST_ASSERT_EQUAL_STRING("DARK", s_test_settings.ThemeValue);
     TEST_ASSERT_EQUAL_HEX(0xFF, s_test_settings.BackgroundColor.argb);
+    TEST_ASSERT_TRUE(s_test_settings.DateZeroPadding);
     TEST_ASSERT_TRUE(s_test_settings.InitialSyncDone);
 }
 
