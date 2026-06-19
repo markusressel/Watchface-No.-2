@@ -20,11 +20,38 @@ Theme *theme_get_theme() { return &s_theme; }
 
 // DottedTextLayer mocks
 static char s_last_dotted_text[32];
+static char s_last_weekday_text[16] = "";
+static char s_last_digits_text[16] = "";
+static DottedTextLayer *s_mock_weekday_layer = NULL;
+static DottedTextLayer *s_mock_digits_layer = NULL;
+
 void dotted_text_layer_set_text(DottedTextLayer *dotted_text_layer, char *text) {
-    if (text) strncpy(s_last_dotted_text, text, sizeof(s_last_dotted_text));
+    if (dotted_text_layer == s_mock_weekday_layer) {
+        if (text) {
+            strncpy(s_last_weekday_text, text, sizeof(s_last_weekday_text) - 1);
+            s_last_weekday_text[sizeof(s_last_weekday_text) - 1] = '\0';
+        } else {
+            s_last_weekday_text[0] = '\0';
+        }
+    } else if (dotted_text_layer == s_mock_digits_layer) {
+        if (text) {
+            strncpy(s_last_digits_text, text, sizeof(s_last_digits_text) - 1);
+            s_last_digits_text[sizeof(s_last_digits_text) - 1] = '\0';
+        } else {
+            s_last_digits_text[0] = '\0';
+        }
+    }
+
+    if (s_last_weekday_text[0] != '\0') {
+        snprintf(s_last_dotted_text, sizeof(s_last_dotted_text), "%s %s", s_last_weekday_text, s_last_digits_text);
+    } else {
+        snprintf(s_last_dotted_text, sizeof(s_last_dotted_text), "%s", s_last_digits_text);
+    }
 }
+void dotted_text_layer_set_color(DottedTextLayer *dotted_text_layer, GColor color) {}
 void dotted_text_layer_set_auto_scale(DottedTextLayer *dotted_text_layer, bool enabled) {}
 void dotted_text_layer_set_scale_factor(DottedTextLayer *dotted_text_layer, float scale) {}
+int dotted_text_layer_get_content_width(DottedTextLayer *dotted_text_layer) { return 10; }
 void dotted_text_layer_destroy(DottedTextLayer *dotted_text_layer) { free(dotted_text_layer); }
 
 // ui_state.h mocks
@@ -36,10 +63,27 @@ WidgetId ui_state_get_widget_id(int row) { return s_mock_widgets[row]; }
 Layer* ui_state_get_layer(int row) { return s_mock_layers[row]; }
 
 // layer_factory.h mocks
-DottedTextLayer *layer_factory_create_dotted_text_layer(LayerBuilder builder, GColor color, HorizontalAlignment h_align, VerticalAlignment v_align, const char *text) {
-    DottedTextLayer *layer = layer_create(builder.bounds);
+LayerBuilder layer_builder_from_rect(Layer *parent, GRect bounds) {
+    return (LayerBuilder){
+        .parent = parent,
+        .bounds = bounds,
+    };
+}
+Layer* layer_factory_create_custom_layer_with_data(LayerBuilder builder, LayerUpdateProc update_proc, size_t data_size) {
+    Layer *layer = layer_create_with_data(builder.bounds, data_size);
+    layer_set_update_proc(layer, update_proc);
     return layer;
 }
+DottedTextLayer *layer_factory_create_dotted_text_layer(LayerBuilder builder, GColor color, HorizontalAlignment h_align, VerticalAlignment v_align, const char *text) {
+    DottedTextLayer *layer = (DottedTextLayer *)layer_create(builder.bounds);
+    if (s_mock_weekday_layer == NULL) {
+        s_mock_weekday_layer = layer;
+    } else if (s_mock_digits_layer == NULL) {
+        s_mock_digits_layer = layer;
+    }
+    return layer;
+}
+void layer_set_frame(Layer *layer, GRect frame) {}
 
 #include <time.h>
 
@@ -67,6 +111,10 @@ void setUp(void) {
     s_settings.DateZeroPadding = true;
     s_row_count = 0;
     memset(s_last_dotted_text, 0, sizeof(s_last_dotted_text));
+    memset(s_last_weekday_text, 0, sizeof(s_last_weekday_text));
+    memset(s_last_digits_text, 0, sizeof(s_last_digits_text));
+    s_mock_weekday_layer = NULL;
+    s_mock_digits_layer = NULL;
 
     // Default mock date: January 1, 2026 (Thursday)
     memset(&s_mock_tm_val, 0, sizeof(struct tm));

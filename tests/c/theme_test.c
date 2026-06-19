@@ -24,6 +24,7 @@ void test_set_theme_dark(void) {
     TEST_ASSERT_EQUAL_HEX(GColorBlack.argb, theme->BackgroundColor.argb);
     TEST_ASSERT_EQUAL_HEX(GColorWhite.argb, theme->TimeTextColor.argb);
     TEST_ASSERT_EQUAL_HEX(GColorWhite.argb, theme->DateTextColor.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorWhite.argb, theme->WeekdayTextColor.argb);
     TEST_ASSERT_EQUAL_HEX(GColorWhite.argb, theme->BatteryOutlineColor.argb);
     TEST_ASSERT_EQUAL_HEX(GColorWhite.argb, theme->BatteryFillColor.argb);
     TEST_ASSERT_EQUAL_HEX(GColorRed.argb, theme->BatteryLowColor.argb);
@@ -59,6 +60,7 @@ void test_set_theme_light(void) {
     TEST_ASSERT_EQUAL_HEX(GColorWhite.argb, theme->BackgroundColor.argb);
     TEST_ASSERT_EQUAL_HEX(GColorBlack.argb, theme->TimeTextColor.argb);
     TEST_ASSERT_EQUAL_HEX(GColorBlack.argb, theme->DateTextColor.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorBlack.argb, theme->WeekdayTextColor.argb);
     TEST_ASSERT_EQUAL_HEX(GColorBlack.argb, theme->BatteryOutlineColor.argb);
     TEST_ASSERT_EQUAL_HEX(GColorBlack.argb, theme->BatteryFillColor.argb);
     TEST_ASSERT_EQUAL_HEX(GColorRed.argb, theme->BatteryLowColor.argb);
@@ -92,6 +94,7 @@ void test_init_custom_theme(void) {
     custom_theme.BackgroundColor = GColorRed;
     custom_theme.TimeTextColor = GColorGreen;
     custom_theme.DateTextColor = GColorBlue;
+    custom_theme.WeekdayTextColor = GColorOrange;
     custom_theme.BatteryOutlineColor = GColorYellow;
     custom_theme.BatteryFillColor = GColorCyan;
     custom_theme.BatteryLowColor = GColorVividCerulean;
@@ -125,6 +128,7 @@ void test_init_custom_theme(void) {
     TEST_ASSERT_EQUAL_HEX(GColorRed.argb, theme->BackgroundColor.argb);
     TEST_ASSERT_EQUAL_HEX(GColorGreen.argb, theme->TimeTextColor.argb);
     TEST_ASSERT_EQUAL_HEX(GColorBlue.argb, theme->DateTextColor.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorOrange.argb, theme->WeekdayTextColor.argb);
     TEST_ASSERT_EQUAL_HEX(GColorYellow.argb, theme->BatteryOutlineColor.argb);
     TEST_ASSERT_EQUAL_HEX(GColorCyan.argb, theme->BatteryFillColor.argb);
     TEST_ASSERT_EQUAL_HEX(GColorMagenta.argb, theme->WeatherTextColor.argb);
@@ -186,6 +190,7 @@ void test_apply_theme_from_settings_custom(void) {
     strcpy(settings.ThemeValue, THEME_CUSTOM_STR);
     settings.BackgroundColor = GColorRed;
     settings.TimeTextColor = GColorGreen;
+    settings.WeekdayTextColor = GColorBlue;
     settings.ShowSeconds = false;
 
     apply_theme_from_settings(&settings, NULL);
@@ -194,6 +199,7 @@ void test_apply_theme_from_settings_custom(void) {
     TEST_ASSERT_EQUAL(CUSTOM, theme->CurrentThemeEnum);
     TEST_ASSERT_EQUAL_HEX(GColorRed.argb, theme->BackgroundColor.argb);
     TEST_ASSERT_EQUAL_HEX(GColorGreen.argb, theme->TimeTextColor.argb);
+    TEST_ASSERT_EQUAL_HEX(GColorBlue.argb, theme->WeekdayTextColor.argb);
 }
 
 // Test apply_theme_from_settings with default (empty) theme value

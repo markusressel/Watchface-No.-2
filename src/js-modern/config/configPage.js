@@ -437,6 +437,12 @@ export default [
                 "label": "Date"
             },
             {
+                "type": "color",
+                "messageKey": "WeekdayTextColor",
+                "defaultValue": "0xFFFFFF",
+                "label": "Weekday"
+            },
+            {
                 "type": "subheader",
                 "defaultValue": "Battery"
             },

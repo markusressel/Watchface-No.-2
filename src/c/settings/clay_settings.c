@@ -31,11 +31,12 @@ void clay_log_settings_debug(const char *context_label, ClaySettings *settings) 
 
     APP_LOG(
         APP_LOG_LEVEL_DEBUG,
-        "%s colors bg=%lu time=%lu date=%lu weather=%lu max=%lu cur=%lu min=%lu tick=%lu ind=%lu step=%lu hr=%lu bat_low=%lu",
+        "%s colors bg=%lu time=%lu date=%lu weekday=%lu weather=%lu max=%lu cur=%lu min=%lu tick=%lu ind=%lu step=%lu hr=%lu bat_low=%lu",
         label,
         (unsigned long) settings->BackgroundColor.argb,
         (unsigned long) settings->TimeTextColor.argb,
         (unsigned long) settings->DateTextColor.argb,
+        (unsigned long) settings->WeekdayTextColor.argb,
         (unsigned long) settings->WeatherTextColor.argb,
         (unsigned long) settings->WeatherMaxTempColor.argb,
         (unsigned long) settings->WeatherCurrentTempColor.argb,
@@ -210,6 +211,7 @@ static ClaySettings *clay_reset_to_default_settings() {
     settings->TimeTextColor = textColor;
     // Date Layer
     settings->DateTextColor = textColor;
+    settings->WeekdayTextColor = textColor;
 
     // Battery Bar Layer
     settings->BatteryFrameColor = foregroundColor;

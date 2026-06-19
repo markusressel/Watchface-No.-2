@@ -38,6 +38,7 @@
             "BackgroundColor",
             "TimeTextColor",
             "DateTextColor",
+            "WeekdayTextColor",
             "BatteryFrameColor",
             "BatteryFillColor",
             "ShowSeconds",

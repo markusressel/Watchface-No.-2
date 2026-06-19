@@ -37,6 +37,7 @@ static void set_colors(Theme *theme, enum ThemeEnum themeEnum) {
 
     theme->TimeTextColor = mainTextColor;
     theme->DateTextColor = mainTextColor;
+    theme->WeekdayTextColor = mainTextColor;
 
     theme->BatteryOutlineColor = foregroundColor;
     theme->BatteryFillColor = foregroundColor;
@@ -104,6 +105,7 @@ void apply_theme_from_settings(ClaySettings *settings, Window *window) {
         custom_theme.BackgroundColor = settings->BackgroundColor;
         custom_theme.TimeTextColor = settings->TimeTextColor;
         custom_theme.DateTextColor = settings->DateTextColor;
+        custom_theme.WeekdayTextColor = settings->WeekdayTextColor;
         custom_theme.BatteryOutlineColor = settings->BatteryFrameColor;
         custom_theme.BatteryFillColor = settings->BatteryFillColor;
         custom_theme.BatteryLowColor = settings->BatteryLowColor;
