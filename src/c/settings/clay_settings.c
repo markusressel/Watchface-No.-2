@@ -14,7 +14,6 @@ const char *THEME_DEFAULT = THEME_LIGHT_STR;
 static ClaySettings s_settings;
 
 void clay_log_settings_debug(const char *context_label, ClaySettings *settings) {
-#if !defined(PBL_PLATFORM_APLITE)
     const char *label = context_label ? context_label : "settings";
 
     APP_LOG(
@@ -31,12 +30,13 @@ void clay_log_settings_debug(const char *context_label, ClaySettings *settings) 
 
     APP_LOG(
         APP_LOG_LEVEL_DEBUG,
-        "%s colors bg=%lu time=%lu date=%lu weekday=%lu weather=%lu max=%lu cur=%lu min=%lu tick=%lu ind=%lu step=%lu hr=%lu bat_low=%lu",
+        "%s colors bg=%lu time=%lu date=%lu weekday=%lu separator=%lu weather=%lu max=%lu cur=%lu min=%lu tick=%lu ind=%lu step=%lu hr=%lu bat_low=%lu",
         label,
         (unsigned long) settings->BackgroundColor.argb,
         (unsigned long) settings->TimeTextColor.argb,
         (unsigned long) settings->DateTextColor.argb,
         (unsigned long) settings->WeekdayTextColor.argb,
+        (unsigned long) settings->DateSeparatorColor.argb,
         (unsigned long) settings->WeatherTextColor.argb,
         (unsigned long) settings->WeatherMaxTempColor.argb,
         (unsigned long) settings->WeatherCurrentTempColor.argb,
@@ -119,7 +119,6 @@ void clay_log_settings_debug(const char *context_label, ClaySettings *settings) 
         settings->WeatherUpdateIntervalMinutes,
         (double) settings->TimeRowRatio
     );
-#endif
 }
 
 static bool is_row_widget_valid(const uint8_t widget) {
@@ -212,6 +211,7 @@ static ClaySettings *clay_reset_to_default_settings() {
     // Date Layer
     settings->DateTextColor = textColor;
     settings->WeekdayTextColor = textColor;
+    settings->DateSeparatorColor = textColor;
 
     // Battery Bar Layer
     settings->BatteryFrameColor = foregroundColor;

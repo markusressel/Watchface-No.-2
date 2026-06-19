@@ -20,6 +20,7 @@ typedef struct Theme {
     // Date Layer
     GColor DateTextColor;
     GColor WeekdayTextColor;
+    GColor DateSeparatorColor;
 
     // Battery Bar Layer
     GColor BatteryOutlineColor;

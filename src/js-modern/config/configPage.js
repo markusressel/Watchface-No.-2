@@ -443,6 +443,12 @@ export default [
                 "label": "Weekday"
             },
             {
+                "type": "color",
+                "messageKey": "DateSeparatorColor",
+                "defaultValue": "0xAAAAAA",
+                "label": "Date Separator"
+            },
+            {
                 "type": "subheader",
                 "defaultValue": "Battery"
             },

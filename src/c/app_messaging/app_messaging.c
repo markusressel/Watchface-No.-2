@@ -200,6 +200,7 @@ static bool read_configuration_properties(
     APPLY_COLOR(MESSAGE_KEY_TimeTextColor, TimeTextColor);
     APPLY_COLOR(MESSAGE_KEY_DateTextColor, DateTextColor);
     APPLY_COLOR(MESSAGE_KEY_WeekdayTextColor, WeekdayTextColor);
+    APPLY_COLOR(MESSAGE_KEY_DateSeparatorColor, DateSeparatorColor);
     APPLY_COLOR(MESSAGE_KEY_BatteryFrameColor, BatteryFrameColor);
     APPLY_COLOR(MESSAGE_KEY_BatteryFillColor, BatteryFillColor);
     APPLY_COLOR(MESSAGE_KEY_BatteryLowColor, BatteryLowColor);

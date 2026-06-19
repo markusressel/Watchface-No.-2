@@ -39,6 +39,7 @@
             "TimeTextColor",
             "DateTextColor",
             "WeekdayTextColor",
+            "DateSeparatorColor",
             "BatteryFrameColor",
             "BatteryFillColor",
             "ShowSeconds",
@@ -89,7 +90,6 @@
         },
         "sdkVersion": "3",
         "targetPlatforms": [
-            "aplite",
             "basalt",
             "diorite",
             "flint",

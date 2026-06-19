@@ -7,7 +7,7 @@
 // Persistent storage key
 #define SETTINGS_KEY PERSIST_KEY_SETTINGS
 #define SETTINGS_VERSION_KEY PERSIST_KEY_SETTINGS_VERSION
-#define SETTINGS_VERSION 22
+#define SETTINGS_VERSION 23
 
 // Theme Values
 #define THEME_LIGHT_STR "LIGHT"
@@ -20,6 +20,7 @@ typedef struct ClaySettings {
     GColor TimeTextColor;
     GColor DateTextColor;
     GColor WeekdayTextColor;
+    GColor DateSeparatorColor;
     GColor BatteryFrameColor;
     GColor BatteryFillColor;
     GColor BatteryLowColor;
