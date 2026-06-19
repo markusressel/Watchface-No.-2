@@ -34,6 +34,7 @@ typedef struct Theme {
     GColor WeatherMinTempColor;
     GColor WeatherAxisTickColor;
     GColor WeatherIndicatorColor;
+    GColor WeatherSeparatorColor;
 
 #if defined(PBL_COLOR)
     // Forecast Graph Colors

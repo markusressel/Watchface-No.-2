@@ -476,21 +476,9 @@ export default [
             },
             {
                 "type": "color",
-                "messageKey": "WeatherTextColor",
-                "defaultValue": "0xFFFFFF",
-                "label": "Weather Forecast"
-            },
-            {
-                "type": "color",
-                "messageKey": "WeatherAxisTickColor",
-                "defaultValue": "0x555555",
-                "label": "Hour Ticks"
-            },
-            {
-                "type": "color",
-                "messageKey": "WeatherIndicatorColor",
-                "defaultValue": "0xFFFFFF",
-                "label": "Current Time Indicator"
+                "messageKey": "WeatherSeparatorColor",
+                "defaultValue": "0xAAAAAA",
+                "label": "Separator"
             },
             {
                 "type": "color",
@@ -509,6 +497,28 @@ export default [
                 "messageKey": "WeatherMinTempColor",
                 "defaultValue": "0x00AAFF",
                 "label": "Min Temperature"
+            },
+            {
+                "type": "subheader",
+                "defaultValue": "Weather Forecast"
+            },
+            {
+                "type": "color",
+                "messageKey": "WeatherTextColor",
+                "defaultValue": "0xFFFFFF",
+                "label": "Weather Forecast"
+            },
+            {
+                "type": "color",
+                "messageKey": "WeatherAxisTickColor",
+                "defaultValue": "0x555555",
+                "label": "Hour Ticks"
+            },
+            {
+                "type": "color",
+                "messageKey": "WeatherIndicatorColor",
+                "defaultValue": "0xFFFFFF",
+                "label": "Current Time Indicator"
             },
             {
                 "type": "subheader",

@@ -210,6 +210,7 @@ static bool read_configuration_properties(
     APPLY_COLOR(MESSAGE_KEY_WeatherMinTempColor, WeatherMinTempColor);
     APPLY_COLOR(MESSAGE_KEY_WeatherAxisTickColor, WeatherAxisTickColor);
     APPLY_COLOR(MESSAGE_KEY_WeatherIndicatorColor, WeatherIndicatorColor);
+    APPLY_COLOR(MESSAGE_KEY_WeatherSeparatorColor, WeatherSeparatorColor);
 
 #if defined(PBL_COLOR)
     APPLY_COLOR(MESSAGE_KEY_ForecastTempColorM10, ForecastTempColorM10);

@@ -22,6 +22,7 @@ uint32_t MESSAGE_KEY_WeatherCurrentTempColor = 12;
 uint32_t MESSAGE_KEY_WeatherMinTempColor = 13;
 uint32_t MESSAGE_KEY_WeatherAxisTickColor = 14;
 uint32_t MESSAGE_KEY_WeatherIndicatorColor = 15;
+uint32_t MESSAGE_KEY_WeatherSeparatorColor = 67;
 uint32_t MESSAGE_KEY_ForecastTempColorM10 = 16;
 uint32_t MESSAGE_KEY_ForecastTempColor0 = 17;
 uint32_t MESSAGE_KEY_ForecastTempColor10 = 18;
@@ -172,6 +173,7 @@ void test_inbox_received_settings_update(void) {
     add_mock_string_tuple(MESSAGE_KEY_BackgroundColor, "0xFFFFFF");
     add_mock_string_tuple(MESSAGE_KEY_WeekdayTextColor, "0x0000AA");
     add_mock_string_tuple(MESSAGE_KEY_DateSeparatorColor, "0x000055");
+    add_mock_string_tuple(MESSAGE_KEY_WeatherSeparatorColor, "0x0000FF");
     add_mock_int_tuple(MESSAGE_KEY_DateZeroPadding, 1);
 
     inbox_received_callback(NULL, NULL);
@@ -180,6 +182,7 @@ void test_inbox_received_settings_update(void) {
     TEST_ASSERT_EQUAL_HEX(0xFF, s_test_settings.BackgroundColor.argb);
     TEST_ASSERT_EQUAL_HEX(0xAA, s_test_settings.WeekdayTextColor.argb);
     TEST_ASSERT_EQUAL_HEX(0x55, s_test_settings.DateSeparatorColor.argb);
+    TEST_ASSERT_EQUAL_HEX(0xFF, s_test_settings.WeatherSeparatorColor.argb);
     TEST_ASSERT_TRUE(s_test_settings.DateZeroPadding);
     TEST_ASSERT_TRUE(s_test_settings.InitialSyncDone);
 }

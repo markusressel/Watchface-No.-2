@@ -50,6 +50,7 @@ static void set_colors(Theme *theme, enum ThemeEnum themeEnum) {
     theme->WeatherMinTempColor = GColorPictonBlue;
     theme->WeatherAxisTickColor = GColorDarkGray;
     theme->WeatherIndicatorColor = mainTextColor;
+    theme->WeatherSeparatorColor = GColorLightGray;
 
 #if defined(PBL_COLOR)
     // Forecast Graph Colors
@@ -117,6 +118,7 @@ void apply_theme_from_settings(ClaySettings *settings, Window *window) {
         custom_theme.WeatherMinTempColor = settings->WeatherMinTempColor;
         custom_theme.WeatherAxisTickColor = settings->WeatherAxisTickColor;
         custom_theme.WeatherIndicatorColor = settings->WeatherIndicatorColor;
+        custom_theme.WeatherSeparatorColor = settings->WeatherSeparatorColor;
 
 #if defined(PBL_COLOR)
         custom_theme.ForecastTempColorM10 = settings->ForecastTempColorM10;

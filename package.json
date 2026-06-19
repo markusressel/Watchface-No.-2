@@ -29,6 +29,7 @@
             "WeatherTextColor",
             "WeatherAxisTickColor",
             "WeatherIndicatorColor",
+            "WeatherSeparatorColor",
             "WeatherMaxTempColor",
             "WeatherCurrentTempColor",
             "WeatherMinTempColor",
