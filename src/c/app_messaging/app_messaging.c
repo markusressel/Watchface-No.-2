@@ -199,6 +199,8 @@ static bool read_configuration_properties(
     APPLY_COLOR(MESSAGE_KEY_BackgroundColor, BackgroundColor);
     APPLY_COLOR(MESSAGE_KEY_TimeTextColor, TimeTextColor);
     APPLY_COLOR(MESSAGE_KEY_DateTextColor, DateTextColor);
+    APPLY_COLOR(MESSAGE_KEY_WeekdayTextColor, WeekdayTextColor);
+    APPLY_COLOR(MESSAGE_KEY_DateSeparatorColor, DateSeparatorColor);
     APPLY_COLOR(MESSAGE_KEY_BatteryFrameColor, BatteryFrameColor);
     APPLY_COLOR(MESSAGE_KEY_BatteryFillColor, BatteryFillColor);
     APPLY_COLOR(MESSAGE_KEY_BatteryLowColor, BatteryLowColor);
@@ -208,6 +210,7 @@ static bool read_configuration_properties(
     APPLY_COLOR(MESSAGE_KEY_WeatherMinTempColor, WeatherMinTempColor);
     APPLY_COLOR(MESSAGE_KEY_WeatherAxisTickColor, WeatherAxisTickColor);
     APPLY_COLOR(MESSAGE_KEY_WeatherIndicatorColor, WeatherIndicatorColor);
+    APPLY_COLOR(MESSAGE_KEY_WeatherSeparatorColor, WeatherSeparatorColor);
 
 #if defined(PBL_COLOR)
     APPLY_COLOR(MESSAGE_KEY_ForecastTempColorM10, ForecastTempColorM10);

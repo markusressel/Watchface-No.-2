@@ -437,6 +437,18 @@ export default [
                 "label": "Date"
             },
             {
+                "type": "color",
+                "messageKey": "WeekdayTextColor",
+                "defaultValue": "0xFFFFFF",
+                "label": "Weekday"
+            },
+            {
+                "type": "color",
+                "messageKey": "DateSeparatorColor",
+                "defaultValue": "0xAAAAAA",
+                "label": "Date Separator"
+            },
+            {
                 "type": "subheader",
                 "defaultValue": "Battery"
             },
@@ -464,24 +476,6 @@ export default [
             },
             {
                 "type": "color",
-                "messageKey": "WeatherTextColor",
-                "defaultValue": "0xFFFFFF",
-                "label": "Weather Forecast"
-            },
-            {
-                "type": "color",
-                "messageKey": "WeatherAxisTickColor",
-                "defaultValue": "0x555555",
-                "label": "Hour Ticks"
-            },
-            {
-                "type": "color",
-                "messageKey": "WeatherIndicatorColor",
-                "defaultValue": "0xFFFFFF",
-                "label": "Current Time Indicator"
-            },
-            {
-                "type": "color",
                 "messageKey": "WeatherMaxTempColor",
                 "defaultValue": "0xFF0000",
                 "label": "Max Temperature"
@@ -497,6 +491,34 @@ export default [
                 "messageKey": "WeatherMinTempColor",
                 "defaultValue": "0x00AAFF",
                 "label": "Min Temperature"
+            },
+            {
+                "type": "color",
+                "messageKey": "WeatherSeparatorColor",
+                "defaultValue": "0xAAAAAA",
+                "label": "Separator"
+            },
+            {
+                "type": "subheader",
+                "defaultValue": "Weather Forecast"
+            },
+            {
+                "type": "color",
+                "messageKey": "WeatherTextColor",
+                "defaultValue": "0xFFFFFF",
+                "label": "Weather Forecast"
+            },
+            {
+                "type": "color",
+                "messageKey": "WeatherAxisTickColor",
+                "defaultValue": "0x555555",
+                "label": "Hour Ticks"
+            },
+            {
+                "type": "color",
+                "messageKey": "WeatherIndicatorColor",
+                "defaultValue": "0xFFFFFF",
+                "label": "Current Time Indicator"
             },
             {
                 "type": "subheader",

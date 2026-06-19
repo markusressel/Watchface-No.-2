@@ -516,6 +516,12 @@ static void update_weather_for_layer(Layer *weather_container_layer) {
         }
     }
 
+    for (int i = 0; i < 2; i++) {
+        if (layer_data->separators[i] != NULL) {
+            dotted_text_layer_set_color(layer_data->separators[i], theme->WeatherSeparatorColor);
+        }
+    }
+
     layer_mark_dirty(weather_container_layer);
 }
 
@@ -608,7 +614,7 @@ Layer *create_weather_layer(LayerBuilder builder) {
         if (i < 2) {
             data->separators[i] = layer_factory_create_dotted_text_layer(
                 child_builder,
-                GColorLightGray,
+                theme->WeatherSeparatorColor,
                 HORIZONTAL_ALIGN_LEFT,
                 VERTICAL_ALIGN_TOP,
                 NULL

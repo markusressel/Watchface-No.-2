@@ -20,11 +20,77 @@ Theme *theme_get_theme() { return &s_theme; }
 
 // DottedTextLayer mocks
 static char s_last_dotted_text[32];
+static char s_last_weekday_text[16] = "";
+static char s_last_day_text[8] = "";
+static char s_last_sep1_text[4] = "";
+static char s_last_month_text[8] = "";
+static char s_last_sep2_text[4] = "";
+static char s_last_year_text[8] = "";
+
+static DottedTextLayer *s_mock_weekday_layer = NULL;
+static DottedTextLayer *s_mock_day_layer = NULL;
+static DottedTextLayer *s_mock_sep1_layer = NULL;
+static DottedTextLayer *s_mock_month_layer = NULL;
+static DottedTextLayer *s_mock_sep2_layer = NULL;
+static DottedTextLayer *s_mock_year_layer = NULL;
+
 void dotted_text_layer_set_text(DottedTextLayer *dotted_text_layer, char *text) {
-    if (text) strncpy(s_last_dotted_text, text, sizeof(s_last_dotted_text));
+    char *dest = NULL;
+    size_t size = 0;
+    if (dotted_text_layer == s_mock_weekday_layer) {
+        dest = s_last_weekday_text;
+        size = sizeof(s_last_weekday_text);
+    } else if (dotted_text_layer == s_mock_day_layer) {
+        dest = s_last_day_text;
+        size = sizeof(s_last_day_text);
+    } else if (dotted_text_layer == s_mock_sep1_layer) {
+        dest = s_last_sep1_text;
+        size = sizeof(s_last_sep1_text);
+    } else if (dotted_text_layer == s_mock_month_layer) {
+        dest = s_last_month_text;
+        size = sizeof(s_last_month_text);
+    } else if (dotted_text_layer == s_mock_sep2_layer) {
+        dest = s_last_sep2_text;
+        size = sizeof(s_last_sep2_text);
+    } else if (dotted_text_layer == s_mock_year_layer) {
+        dest = s_last_year_text;
+        size = sizeof(s_last_year_text);
+    }
+
+    if (dest) {
+        if (text) {
+            strncpy(dest, text, size - 1);
+            dest[size - 1] = '\0';
+        } else {
+            dest[0] = '\0';
+        }
+    }
+
+    s_last_dotted_text[0] = '\0';
+    if (s_last_weekday_text[0] != '\0') {
+        strcat(s_last_dotted_text, s_last_weekday_text);
+        strcat(s_last_dotted_text, " ");
+    }
+    if (s_last_day_text[0] != '\0') {
+        strcat(s_last_dotted_text, s_last_day_text);
+    }
+    if (s_last_sep1_text[0] != '\0') {
+        strcat(s_last_dotted_text, s_last_sep1_text);
+    }
+    if (s_last_month_text[0] != '\0') {
+        strcat(s_last_dotted_text, s_last_month_text);
+    }
+    if (s_last_sep2_text[0] != '\0') {
+        strcat(s_last_dotted_text, s_last_sep2_text);
+    }
+    if (s_last_year_text[0] != '\0') {
+        strcat(s_last_dotted_text, s_last_year_text);
+    }
 }
+void dotted_text_layer_set_color(DottedTextLayer *dotted_text_layer, GColor color) {}
 void dotted_text_layer_set_auto_scale(DottedTextLayer *dotted_text_layer, bool enabled) {}
 void dotted_text_layer_set_scale_factor(DottedTextLayer *dotted_text_layer, float scale) {}
+int dotted_text_layer_get_content_width(DottedTextLayer *dotted_text_layer) { return 10; }
 void dotted_text_layer_destroy(DottedTextLayer *dotted_text_layer) { free(dotted_text_layer); }
 
 // ui_state.h mocks
@@ -36,10 +102,38 @@ WidgetId ui_state_get_widget_id(int row) { return s_mock_widgets[row]; }
 Layer* ui_state_get_layer(int row) { return s_mock_layers[row]; }
 
 // layer_factory.h mocks
-DottedTextLayer *layer_factory_create_dotted_text_layer(LayerBuilder builder, GColor color, HorizontalAlignment h_align, VerticalAlignment v_align, const char *text) {
-    DottedTextLayer *layer = layer_create(builder.bounds);
+LayerBuilder layer_builder_from_rect(Layer *parent, GRect bounds) {
+    return (LayerBuilder){
+        .parent = parent,
+        .bounds = bounds,
+    };
+}
+Layer* layer_factory_create_custom_layer_with_data(LayerBuilder builder, LayerUpdateProc update_proc, size_t data_size) {
+    Layer *layer = layer_create_with_data(builder.bounds, data_size);
+    layer_set_update_proc(layer, update_proc);
     return layer;
 }
+DottedTextLayer *layer_factory_create_dotted_text_layer(LayerBuilder builder, GColor color, HorizontalAlignment h_align, VerticalAlignment v_align, const char *text) {
+    DottedTextLayer *layer = (DottedTextLayer *)layer_create(builder.bounds);
+    if (s_mock_weekday_layer == NULL) {
+        s_mock_weekday_layer = layer;
+    } else if (s_mock_day_layer == NULL) {
+        s_mock_day_layer = layer;
+    } else if (s_mock_sep1_layer == NULL) {
+        s_mock_sep1_layer = layer;
+    } else if (s_mock_month_layer == NULL) {
+        s_mock_month_layer = layer;
+    } else if (s_mock_sep2_layer == NULL) {
+        s_mock_sep2_layer = layer;
+    } else if (s_mock_year_layer == NULL) {
+        s_mock_year_layer = layer;
+    }
+    if (text) {
+        dotted_text_layer_set_text(layer, (char *)text);
+    }
+    return layer;
+}
+void layer_set_frame(Layer *layer, GRect frame) {}
 
 #include <time.h>
 
@@ -67,6 +161,18 @@ void setUp(void) {
     s_settings.DateZeroPadding = true;
     s_row_count = 0;
     memset(s_last_dotted_text, 0, sizeof(s_last_dotted_text));
+    memset(s_last_weekday_text, 0, sizeof(s_last_weekday_text));
+    memset(s_last_day_text, 0, sizeof(s_last_day_text));
+    memset(s_last_sep1_text, 0, sizeof(s_last_sep1_text));
+    memset(s_last_month_text, 0, sizeof(s_last_month_text));
+    memset(s_last_sep2_text, 0, sizeof(s_last_sep2_text));
+    memset(s_last_year_text, 0, sizeof(s_last_year_text));
+    s_mock_weekday_layer = NULL;
+    s_mock_day_layer = NULL;
+    s_mock_sep1_layer = NULL;
+    s_mock_month_layer = NULL;
+    s_mock_sep2_layer = NULL;
+    s_mock_year_layer = NULL;
 
     // Default mock date: January 1, 2026 (Thursday)
     memset(&s_mock_tm_val, 0, sizeof(struct tm));
@@ -101,7 +207,7 @@ static void get_expected_date(char *dest, size_t dest_size, bool show_weekday, b
         memmove(&dest[idxToDel], &dest[idxToDel + 1], strlen(dest) - idxToDel);
         if (weekday_upper) {
             for (int j = 0; j < 2; j++) {
-                dest[j] = upper(dest[j]);
+                dest[j] = UPPER(dest[j]);
             }
         }
     }

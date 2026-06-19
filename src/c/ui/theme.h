@@ -19,6 +19,8 @@ typedef struct Theme {
     GColor TimeTextColor;
     // Date Layer
     GColor DateTextColor;
+    GColor WeekdayTextColor;
+    GColor DateSeparatorColor;
 
     // Battery Bar Layer
     GColor BatteryOutlineColor;
@@ -32,6 +34,7 @@ typedef struct Theme {
     GColor WeatherMinTempColor;
     GColor WeatherAxisTickColor;
     GColor WeatherIndicatorColor;
+    GColor WeatherSeparatorColor;
 
 #if defined(PBL_COLOR)
     // Forecast Graph Colors
