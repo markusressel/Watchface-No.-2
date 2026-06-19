@@ -476,12 +476,6 @@ export default [
             },
             {
                 "type": "color",
-                "messageKey": "WeatherSeparatorColor",
-                "defaultValue": "0xAAAAAA",
-                "label": "Separator"
-            },
-            {
-                "type": "color",
                 "messageKey": "WeatherMaxTempColor",
                 "defaultValue": "0xFF0000",
                 "label": "Max Temperature"
@@ -497,6 +491,12 @@ export default [
                 "messageKey": "WeatherMinTempColor",
                 "defaultValue": "0x00AAFF",
                 "label": "Min Temperature"
+            },
+            {
+                "type": "color",
+                "messageKey": "WeatherSeparatorColor",
+                "defaultValue": "0xAAAAAA",
+                "label": "Separator"
             },
             {
                 "type": "subheader",
