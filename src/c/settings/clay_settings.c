@@ -72,9 +72,10 @@ void clay_log_settings_debug(const char *context_label, ClaySettings *settings) 
 
     APP_LOG(
         APP_LOG_LEVEL_DEBUG,
-        "%s battery threshold: %d",
+        "%s battery threshold: %d width: %d",
         label,
-        settings->LowBatteryThreshold
+        settings->LowBatteryThreshold,
+        settings->BatteryWidth
     );
 
     APP_LOG(
@@ -156,6 +157,10 @@ ClaySettings *clay_sanitize_settings(ClaySettings *settings) {
 
     if (settings->LowBatteryThreshold > 30) {
         settings->LowBatteryThreshold = 30;
+    }
+
+    if (settings->BatteryWidth < 1 || settings->BatteryWidth > 100) {
+        settings->BatteryWidth = 100;
     }
 
     if (settings->DotWidth < 1 || settings->DotWidth > 5) settings->DotWidth = 3;
@@ -271,6 +276,7 @@ static ClaySettings *clay_reset_to_default_settings(ClaySettings *settings) {
 
     settings->DigitWidth = 4;
     settings->LowBatteryThreshold = 30;
+    settings->BatteryWidth = 100;
 
     settings->DotWidth = 3;
     settings->DotHeight = 3;

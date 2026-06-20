@@ -390,6 +390,9 @@ static void handle_settings_message(DictionaryIterator *iterator) {
         } else if (key == MESSAGE_KEY_LowBatteryThreshold) {
             settings->LowBatteryThreshold = tuple_to_int(t);
             has_settings_update = true;
+        } else if (key == MESSAGE_KEY_BatteryWidth) {
+            settings->BatteryWidth = tuple_to_int(t);
+            has_settings_update = true;
         } else if (key == MESSAGE_KEY_SliderDigitWidth) {
             settings->DigitWidth = tuple_to_int(t);
             has_settings_update = true;

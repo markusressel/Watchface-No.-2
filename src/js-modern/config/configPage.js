@@ -266,6 +266,16 @@ export default [
                 "min": 0,
                 "max": 30,
                 "step": 5
+            },
+            {
+                "type": "slider",
+                "messageKey": "BatteryWidth",
+                "defaultValue": 100,
+                "label": "Battery Widget Width (%)",
+                "description": "Select the percentage of available width to utilize for the battery bar.",
+                "min": 1,
+                "max": 100,
+                "step": 1
             }
         ]
     },

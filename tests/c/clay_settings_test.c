@@ -67,6 +67,7 @@ void test_clay_battery_settings_defaults(void) {
 
     // Assert
     TEST_ASSERT_EQUAL_INT(30, settings->LowBatteryThreshold);
+    TEST_ASSERT_EQUAL_INT(100, settings->BatteryWidth);
     TEST_ASSERT_EQUAL_UINT8(GColorRed.argb, settings->BatteryLowColor.argb);
 
 #if defined(PBL_COLOR)

@@ -33,7 +33,9 @@ Layer* ui_state_get_layer(int row) { return s_mock_layers[row]; }
 
 // layer_factory.h mocks
 #include "../../src/c/ui/layer_factory.h"
+static GRect s_last_builder_bounds;
 Layer* layer_factory_create_custom_layer_with_data(LayerBuilder builder, LayerUpdateProc update_proc, size_t data_size) {
+    s_last_builder_bounds = builder.bounds;
     Layer *layer = layer_create_with_data(builder.bounds, data_size);
     layer_set_update_proc(layer, update_proc);
     return layer;
@@ -133,6 +135,31 @@ void test_update_battery_bar_triggers_mark_dirty(void) {
     destroy_battery_bar_layer(layer);
 }
 
+void test_battery_bar_layer_bounds_by_width(void) {
+    LayerBuilder builder = { .bounds = GRect(0, 0, 140, 30) };
+    
+    // Default / Full (100)
+    s_settings.BatteryWidth = 100;
+    Layer *layer_full = create_battery_bar_layer(builder);
+    TEST_ASSERT_EQUAL_INT(140, s_last_builder_bounds.size.w);
+    TEST_ASSERT_EQUAL_INT(0, s_last_builder_bounds.origin.x);
+    destroy_battery_bar_layer(layer_full);
+
+    // Half (50)
+    s_settings.BatteryWidth = 50;
+    Layer *layer_half = create_battery_bar_layer(builder);
+    TEST_ASSERT_EQUAL_INT(70, s_last_builder_bounds.size.w);
+    TEST_ASSERT_EQUAL_INT(70, s_last_builder_bounds.origin.x);
+    destroy_battery_bar_layer(layer_half);
+
+    // Quarter (25)
+    s_settings.BatteryWidth = 25;
+    Layer *layer_quarter = create_battery_bar_layer(builder);
+    TEST_ASSERT_EQUAL_INT(35, s_last_builder_bounds.size.w);
+    TEST_ASSERT_EQUAL_INT(105, s_last_builder_bounds.origin.x);
+    destroy_battery_bar_layer(layer_quarter);
+}
+
 int main() {
     UNITY_BEGIN();
     RUN_TEST(test_battery_bar_layer_create_destroy);
@@ -140,5 +167,6 @@ int main() {
     RUN_TEST(test_battery_bar_update_proc_full);
     RUN_TEST(test_battery_bar_animation_state);
     RUN_TEST(test_update_battery_bar_triggers_mark_dirty);
+    RUN_TEST(test_battery_bar_layer_bounds_by_width);
     return UNITY_END();
 }
