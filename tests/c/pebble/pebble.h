@@ -51,6 +51,10 @@ typedef struct GColor {
 #define GColorLightGray  ((GColor){.argb = 0b11101010}) // Mock Light Gray
 #define GColorDukeBlue   ((GColor){.argb = 0b11000010}) // Mock Duke Blue
 #define GColorClear     ((GColor){.argb = 0b00000000}) // Mock GColorClear
+#define GColorPastelYellow ((GColor){.argb = 0b11111110})
+#define GColorMintGreen   ((GColor){.argb = 0b11101110})
+#define GColorBrilliantRose ((GColor){.argb = 0b11110010})
+#define GColorRajah       ((GColor){.argb = 0b11111010})
 
 // Mock gcolor_equal function
 static inline bool gcolor_equal(GColor c1, GColor c2) {
@@ -288,6 +292,31 @@ static inline status_t persist_delete(const uint32_t key) {
     return S_FALSE;
 }
 
+static inline int persist_write_string(const uint32_t key, const char *buffer) {
+    size_t size = strlen(buffer) + 1;
+    if (size > 256) return E_OUT_OF_RESOURCES;
+    MockStorageEntry *entry = find_entry(key, true);
+    if (entry) {
+        memcpy(entry->data, buffer, size);
+        entry->size = size;
+        return (int) size;
+    }
+    return 0;
+}
+
+static inline int persist_read_string(const uint32_t key, char *buffer, const size_t size) {
+    MockStorageEntry *entry = find_entry(key, false);
+    if (entry) {
+        size_t to_copy = size < entry->size ? size : entry->size;
+        memcpy(buffer, entry->data, to_copy);
+        if (to_copy > 0) {
+            buffer[to_copy - 1] = '\0';
+        }
+        return (int) to_copy;
+    }
+    return 0;
+}
+
 static inline int persist_read_int(const uint32_t key) {
     MockStorageEntry *entry = find_entry(key, false);
     if (entry && entry->size == sizeof(int32_t)) {
@@ -338,7 +367,7 @@ typedef int AppMessageResult;
 #define APP_MSG_INTERNAL_ERROR 1
 
 typedef struct Tuple {
-    uint32_t message_key;
+    uint32_t key;
     uint8_t type;
     uint16_t length;
 
@@ -352,6 +381,29 @@ typedef struct Tuple {
 #define TUPLE_INT 2
 
 typedef struct DictionaryIterator DictionaryIterator; // Opaque type
+
+#define MAX_TUPLES 100
+static Tuple s_mock_tuples[MAX_TUPLES];
+static int s_mock_tuple_count = 0;
+static int s_mock_dict_iter_index = 0;
+
+static inline Tuple *dict_read_first(DictionaryIterator *iter) {
+    (void)iter;
+    s_mock_dict_iter_index = 0;
+    if (s_mock_tuple_count > 0) {
+        return &s_mock_tuples[0];
+    }
+    return NULL;
+}
+
+static inline Tuple *dict_read_next(DictionaryIterator *iter) {
+    (void)iter;
+    s_mock_dict_iter_index++;
+    if (s_mock_dict_iter_index < s_mock_tuple_count) {
+        return &s_mock_tuples[s_mock_dict_iter_index];
+    }
+    return NULL;
+}
 
 typedef Tuple *(*DictFindFunc)(const DictionaryIterator *, uint32_t);
 

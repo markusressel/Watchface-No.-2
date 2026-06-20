@@ -110,11 +110,6 @@ void update_weather_forecast() {
 void clay_log_settings_debug(const char *label, ClaySettings *s) {
 }
 
-// Mock Dictionary Iterator and Tuples
-#define MAX_TUPLES 100
-static Tuple s_mock_tuples[MAX_TUPLES];
-static int s_mock_tuple_count = 0;
-
 void reset_mock_dict() {
     s_mock_tuple_count = 0;
     memset(s_mock_tuples, 0, sizeof(s_mock_tuples));
@@ -122,7 +117,7 @@ void reset_mock_dict() {
 
 void add_mock_int_tuple(uint32_t key, int32_t value) {
     if (s_mock_tuple_count < MAX_TUPLES) {
-        s_mock_tuples[s_mock_tuple_count].message_key = key;
+        s_mock_tuples[s_mock_tuple_count].key = key;
         s_mock_tuples[s_mock_tuple_count].type = TUPLE_INT;
         s_mock_tuples[s_mock_tuple_count].value[0].int32 = value;
         s_mock_tuple_count++;
@@ -131,7 +126,7 @@ void add_mock_int_tuple(uint32_t key, int32_t value) {
 
 void add_mock_string_tuple(uint32_t key, const char *value) {
     if (s_mock_tuple_count < MAX_TUPLES) {
-        s_mock_tuples[s_mock_tuple_count].message_key = key;
+        s_mock_tuples[s_mock_tuple_count].key = key;
         s_mock_tuples[s_mock_tuple_count].type = TUPLE_CSTRING;
         strncpy(s_mock_tuples[s_mock_tuple_count].value[0].cstring, value, sizeof(s_mock_tuples[s_mock_tuple_count].value[0].cstring));
         s_mock_tuples[s_mock_tuple_count].length = strlen(value) + 1;
@@ -142,7 +137,7 @@ void add_mock_string_tuple(uint32_t key, const char *value) {
 // Custom dict_find for the test
 Tuple *my_dict_find(const DictionaryIterator *iter, uint32_t key) {
     for (int i = 0; i < s_mock_tuple_count; i++) {
-        if (s_mock_tuples[i].message_key == key) {
+        if (s_mock_tuples[i].key == key) {
             return &s_mock_tuples[i];
         }
     }
@@ -213,6 +208,19 @@ void test_inbox_received_weather_data(void) {
     }
 }
 
+void test_inbox_received_weather_does_not_clear_sync_pending(void) {
+    // Start with sync pending
+    s_test_settings.InitialSyncDone = false;
+
+    // Simulate only weather keys are in the message
+    add_mock_int_tuple(MESSAGE_KEY_WEATHER_TEMPERATURE_CURRENT, 22);
+
+    inbox_received_callback(NULL, NULL);
+
+    // Sync should still be pending because we didn't receive any settings keys
+    TEST_ASSERT_FALSE(s_test_settings.InitialSyncDone);
+}
+
 void test_app_messaging_initialize(void) {
     // Should call app_message_open and return success if mock returns OK
     app_messaging_initialize();
@@ -223,6 +231,8 @@ int main() {
     RUN_TEST(test_app_messaging_send_app_ready);
     RUN_TEST(test_inbox_received_settings_update);
     RUN_TEST(test_inbox_received_weather_data);
+    RUN_TEST(test_inbox_received_weather_does_not_clear_sync_pending);
     RUN_TEST(test_app_messaging_initialize);
     return UNITY_END();
 }
+

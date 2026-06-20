@@ -1,8 +1,10 @@
 #include <pebble.h>
 #include "clay_settings.h"
+#include "../generated/version.h"
 #include "../ui/layer/widget.h"
 #include "../app_messaging/app_messaging.h"
 #include "../ui/watch_layout.h"
+
 
 #ifdef WF_EMULATOR
 const char *THEME_DEFAULT = THEME_DARK_STR;
@@ -199,24 +201,30 @@ ClaySettings *clay_sanitize_settings(ClaySettings *settings) {
 
 // Initialize the default settings
 // Note: Defaults are also set in the configPage.json, keep them in sync!
-static ClaySettings *clay_reset_to_default_settings() {
-    ClaySettings *settings = clay_get_settings();
-
+static ClaySettings *clay_reset_to_default_settings(ClaySettings *settings) {
+    // TODO: this method mixes what the user has set as a theme in the config and what the
+    //   default values are for each of the theme selection options (light, dark, custom).
+    //   We need separate default values for each of the theme selection options,
+    //   where light and dark don't use any colors except black and white, and
+    //   custom uses a colorful default with all the color options in the config available
+    //   to change by the user. Additionally, we also need to consider whether the current
+    //   hardware actually supports color, and set different defaults based on that. Although
+    //   I wonder how useful the weather forecast layer can be on a watch that doesn't support
+    //   color...
     const bool is_dark = strcmp(THEME_DEFAULT, THEME_DARK_STR) == 0;
     settings->BackgroundColor = is_dark ? GColorBlack : GColorWhite;
-    GColor foregroundColor = is_dark ? GColorWhite : GColorBlack;
     GColor textColor = is_dark ? GColorWhite : GColorBlack;
 
     // Time Layer
     settings->TimeTextColor = textColor;
     // Date Layer
-    settings->DateTextColor = textColor;
-    settings->WeekdayTextColor = textColor;
-    settings->DateSeparatorColor = textColor;
+    settings->DateTextColor = GColorWhite;
+    settings->WeekdayTextColor = GColorRajah;
+    settings->DateSeparatorColor = GColorLightGray;
 
     // Battery Bar Layer
-    settings->BatteryFrameColor = foregroundColor;
-    settings->BatteryFillColor = foregroundColor;
+    settings->BatteryFrameColor = textColor;
+    settings->BatteryFillColor = GColorPastelYellow;
     settings->BatteryLowColor = GColorRed;
 
     // Weather Layer
@@ -249,10 +257,10 @@ static ClaySettings *clay_reset_to_default_settings() {
     settings->WeatherSlot3 = 3; // Min
 
     // Stepcount layer
-    settings->StepcountTextColor = textColor;
+    settings->StepcountTextColor = GColorMintGreen;
 
     // Heartrate layer
-    settings->HeartrateTextColor = textColor;
+    settings->HeartrateTextColor = GColorBrilliantRose;
 
     settings->ShowYear = false;
     settings->ShowSeconds = false;
@@ -300,9 +308,17 @@ ClaySettings *clay_get_settings() {
     return &s_settings;
 }
 
+ClaySettings *clay_delete_saved_settings() {
+    persist_delete(SETTINGS_KEY);
+    persist_delete(SETTINGS_VERSION_KEY);
+    persist_delete(PERSIST_KEY_APP_VERSION);
+    return clay_reset_to_default_settings(clay_get_settings());
+}
+
 ClaySettings *internal_load_settings() {
-    // Load the default settings
-    ClaySettings *settings = clay_reset_to_default_settings();
+    // Start out with the default settings
+    ClaySettings *settings = clay_get_settings();
+    settings = clay_reset_to_default_settings(settings);
 
     // Migrate/reset settings when the struct layout changes across versions.
     if (!persist_exists(SETTINGS_VERSION_KEY) ||
@@ -312,21 +328,39 @@ ClaySettings *internal_load_settings() {
             "Settings version mismatch: %d != %d. Deleting old settings and requesting new ones.",
             persist_read_int(SETTINGS_VERSION_KEY), SETTINGS_VERSION
         );
-        // save default settings to persistent storage
-        clay_save_settings(settings);
+        clay_delete_saved_settings();
         return settings;
     }
 
+    // attempt to load the persisted data
     if (persist_exists(SETTINGS_KEY)) {
         const int bytes = persist_read_data(SETTINGS_KEY, settings, sizeof(*settings));
         if (bytes != sizeof(*settings)) {
             APP_LOG(APP_LOG_LEVEL_WARNING, "Could not read settings, using defaults.");
-            settings = clay_reset_to_default_settings();
+            clay_delete_saved_settings();
             return settings;
         }
     }
 
+    // settings now contains the persisted data
     settings = clay_sanitize_settings(settings);
+
+    // Check if the watchface has been updated/rebuilt.
+    char stored_version[64] = {0};
+    if (persist_exists(PERSIST_KEY_APP_VERSION)) {
+        persist_read_string(PERSIST_KEY_APP_VERSION, stored_version, sizeof(stored_version));
+    }
+
+    if (strcmp(stored_version, WF_APP_VERSION) != 0) {
+        APP_LOG(
+            APP_LOG_LEVEL_INFO,
+            "App version change detected: '%s' -> '%s'. Resetting InitialSyncDone to request settings from phone.",
+            stored_version, WF_APP_VERSION
+        );
+        settings->InitialSyncDone = false;
+        clay_save_settings(settings);
+    }
+
     clay_log_settings_debug("loaded persisted settings", settings);
     return settings;
 }
@@ -339,11 +373,10 @@ ClaySettings *clay_load_settings() {
 }
 
 ClaySettings *clay_save_settings(ClaySettings *settings) {
-    persist_delete(SETTINGS_KEY);
-    persist_delete(SETTINGS_VERSION_KEY);
     // save ClaySettings struct to persistent storage
     persist_write_int(SETTINGS_VERSION_KEY, SETTINGS_VERSION);
     persist_write_data(SETTINGS_KEY, settings, sizeof(ClaySettings));
+    persist_write_string(PERSIST_KEY_APP_VERSION, WF_APP_VERSION);
 
     return settings;
 }
