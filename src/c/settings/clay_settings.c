@@ -202,6 +202,15 @@ ClaySettings *clay_sanitize_settings(ClaySettings *settings) {
 // Initialize the default settings
 // Note: Defaults are also set in the configPage.json, keep them in sync!
 static ClaySettings *clay_reset_to_default_settings(ClaySettings *settings) {
+    // TODO: this method mixes what the user has set as a theme in the config and what the
+    //   default values are for each of the theme selection options (light, dark, custom).
+    //   We need separate default values for each of the theme selection options,
+    //   where light and dark don't use any colors except black and white, and
+    //   custom uses a colorful default with all the color options in the config available
+    //   to change by the user. Additionally, we also need to consider whether the current
+    //   hardware actually supports color, and set different defaults based on that. Although
+    //   I wonder how useful the weather forecast layer can be on a watch that doesn't support
+    //   color...
     const bool is_dark = strcmp(THEME_DEFAULT, THEME_DARK_STR) == 0;
     settings->BackgroundColor = is_dark ? GColorBlack : GColorWhite;
     GColor textColor = is_dark ? GColorWhite : GColorBlack;
