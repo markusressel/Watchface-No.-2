@@ -9,7 +9,7 @@
 # - Added cppcheck static analysis
 #
 
-import os.path
+import os
 import subprocess
 import shutil
 
@@ -75,10 +75,16 @@ def run_babel_transpilation(ctx):
     npm_bin = shutil.which('npm')
     if npm_bin is None:
         ctx.fatal("npm command not found. Please install Node.js and npm.")
-    subprocess.run([npm_bin, "run", "babel"], check=True)
+    env = os.environ.copy()
+    env.pop('PYTHONHOME', None)
+    env.pop('PYTHONPATH', None)
+    subprocess.run([npm_bin, "run", "babel"], env=env, check=True)
 
 def build(ctx):
-    subprocess.run(["just", "generate"], check=True)
+    env = os.environ.copy()
+    env.pop('PYTHONHOME', None)
+    env.pop('PYTHONPATH', None)
+    subprocess.run(["just", "generate"], env=env, check=True)
 
     run_cppcheck(ctx)
     run_lint_js(ctx)

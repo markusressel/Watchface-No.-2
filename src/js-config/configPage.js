@@ -4,6 +4,10 @@ export default [
         "defaultValue": "Watchface No. 2"
     },
     {
+        "type": "markdown",
+        "defaultValue": "<div style='text-align: center; margin: 0.5rem 0;'><img src='resource:2026-06-20-20-55-46.png' alt='Watchface Logo' style='max-width: 100%; height: auto;'></div>"
+    },
+    {
         "type": "section",
         "items": [
             {

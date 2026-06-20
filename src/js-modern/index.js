@@ -1,6 +1,6 @@
 import {logger} from './logger.js';
 import Clay from '@rebble/clay';
-import clayConfig from './config/configPage';
+import clayConfig from './generated/configPage';
 import customClay from './config/custom-clay';
 import * as config from './config/config';
 import * as weather from './weather/weather';

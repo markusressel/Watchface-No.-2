@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import base64
 import json
 import os.path
 import re
@@ -8,7 +9,7 @@ import time
 
 AUTO_GENERATED_HEADER = """// ==========================================================
 // AUTO-GENERATED FILE - DO NOT EDIT MANUALLY!
-// This file is generated during compile time from src/js-modern/configPage.js
+// This file is generated during compile time from src/js-config/configPage.js
 // =========================================================="""
 
 def extract_config_items(config):
@@ -24,9 +25,51 @@ def extract_config_items(config):
     return items
 
 
+def resolve_resource_placeholders(content):
+    pattern = r'resource:([a-zA-Z0-9_\-\./]+)'
+    
+    def replace_match(match):
+        rel_path = match.group(1)
+        possible_paths = [
+            os.path.join('src', 'js-resources', rel_path),
+            os.path.join(rel_path)
+        ]
+        
+        for p in possible_paths:
+            if os.path.exists(p):
+                ext = os.path.splitext(p)[1].lower()
+                mime = "image/png"
+                if ext in (".jpg", ".jpeg"):
+                    mime = "image/jpeg"
+                elif ext == ".gif":
+                    mime = "image/gif"
+                elif ext == ".svg":
+                    mime = "image/svg+xml"
+                
+                with open(p, 'rb') as img_f:
+                    b64_data = base64.b64encode(img_f.read()).decode('utf-8')
+                return f"data:{mime};base64,{b64_data}"
+                
+        print(f"Warning: Resource file '{rel_path}' not found!")
+        return match.group(0)
+        
+    return re.sub(pattern, replace_match, content)
+
+
 def read_and_parse_config():
-    with open('src/js-modern/config/configPage.js', 'r') as f:
+    with open('src/js-config/configPage.js', 'r') as f:
         content = f.read()
+
+    # Preprocess placeholders to inline base64 images
+    content = resolve_resource_placeholders(content)
+
+    # Write the fully resolved configPage.js file to the generated directory
+    out_dir = os.path.join('src', 'js-modern', 'generated')
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+
+    with open(os.path.join(out_dir, 'configPage.js'), 'w') as f:
+        f.write(AUTO_GENERATED_HEADER + "\n" + content)
 
     # Remove JavaScript module export to make it valid JSON
     json_content = content.replace('export default ', '').strip()
@@ -124,7 +167,7 @@ def write_settings_js(js_lines):
 
 
 def generate_settings_js():
-    print("Generating src/js-modern/generated/settings.js from src/js-modern/config/configPage.js...")
+    print("Generating src/js-modern/generated/settings.js from src/js-config/configPage.js...")
     config = read_and_parse_config()
     items = extract_config_items(config)
     js_lines = generate_js_content(items)
