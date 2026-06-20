@@ -175,13 +175,13 @@ ClaySettings *clay_sanitize_settings(ClaySettings *settings) {
 
     settings->LayoutRowCount = clamp_layout_row_count(settings->LayoutRowCount);
 
-    if (!is_row_widget_valid(settings->Row0Widget)) settings->Row0Widget = WIDGET_WEATHER;
-    if (!is_row_widget_valid(settings->Row1Widget)) settings->Row1Widget = WIDGET_DATE;
-    if (!is_row_widget_valid(settings->Row2Widget)) settings->Row2Widget = WIDGET_TIME;
-    if (!is_row_widget_valid(settings->Row3Widget)) settings->Row3Widget = WIDGET_STEPCOUNT;
-    if (!is_row_widget_valid(settings->Row4Widget)) settings->Row4Widget = WIDGET_BATTERY_BAR;
-    if (!is_row_widget_valid(settings->Row5Widget)) settings->Row5Widget = WIDGET_STEPCOUNT;
-    if (!is_row_widget_valid(settings->Row6Widget)) settings->Row6Widget = WIDGET_STEPCOUNT;
+    if (!is_row_widget_valid(settings->Row0Widget)) settings->Row0Widget = WIDGET_WEATHER_FORECAST;
+    if (!is_row_widget_valid(settings->Row1Widget)) settings->Row1Widget = WIDGET_WEATHER;
+    if (!is_row_widget_valid(settings->Row2Widget)) settings->Row2Widget = WIDGET_DATE;
+    if (!is_row_widget_valid(settings->Row3Widget)) settings->Row3Widget = WIDGET_TIME;
+    if (!is_row_widget_valid(settings->Row4Widget)) settings->Row4Widget = WIDGET_STEPCOUNT;
+    if (!is_row_widget_valid(settings->Row5Widget)) settings->Row5Widget = WIDGET_BATTERY_BAR;
+    if (!is_row_widget_valid(settings->Row6Widget)) settings->Row6Widget = WIDGET_HEARTRATE;
 
     settings->WeatherUseSimulation = settings->WeatherUseSimulation;
 
@@ -241,8 +241,8 @@ static ClaySettings *clay_reset_to_default_settings(ClaySettings *settings) {
     settings->WeatherIndicatorColor = GColorLightGray;
     settings->WeatherSeparatorColor = GColorLightGray;
 
-#if defined(PBL_COLOR)
     // Forecast Graph Colors
+#if defined(PBL_COLOR)
     settings->ForecastTempColorM10 = GColorBlueMoon;
     settings->ForecastTempColor0 = GColorPictonBlue;
     settings->ForecastTempColor10 = GColorGreen;
@@ -285,16 +285,16 @@ static ClaySettings *clay_reset_to_default_settings(ClaySettings *settings) {
     settings->DotScaleFactor = 1.0f;
     settings->DotAutoScale = true;
 
-    settings->LayoutRowCount = layout_row_count_max_for_platform() == 7 ? 7 : 5;
+    settings->LayoutRowCount = clamp_layout_row_count(6);
 
-    // Row layout defaults: Weather, Date, Time, Stepcount, Battery.
-    settings->Row0Widget = WIDGET_WEATHER;
-    settings->Row1Widget = WIDGET_DATE;
-    settings->Row2Widget = WIDGET_TIME;
-    settings->Row3Widget = WIDGET_STEPCOUNT;
-    settings->Row4Widget = WIDGET_BATTERY_BAR;
-    settings->Row5Widget = WIDGET_HEARTRATE;
-    settings->Row6Widget = WIDGET_WEATHER_FORECAST;
+    // Row layout defaults matching configPage.js:
+    settings->Row0Widget = WIDGET_WEATHER_FORECAST;
+    settings->Row1Widget = WIDGET_WEATHER;
+    settings->Row2Widget = WIDGET_DATE;
+    settings->Row3Widget = WIDGET_TIME;
+    settings->Row4Widget = WIDGET_STEPCOUNT;
+    settings->Row5Widget = WIDGET_BATTERY_BAR;
+    settings->Row6Widget = WIDGET_HEARTRATE;
 
 #ifdef WF_EMULATOR
     settings->WeatherUseSimulation = true;

@@ -6,8 +6,6 @@ A dot-styled, pixel-perfect, highly configurable watchface for the Pebble smartw
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
----
-
 ## Visual Showcase
 
 Watchface No. 2 is designed to look clean, modern, and highly styled across all Pebble generations.
@@ -15,8 +13,6 @@ Watchface No. 2 is designed to look clean, modern, and highly styled across all 
 | Time 2 (Emery / Basalt Color) | Core 2 Duo (Diorite Dark & Light) |
 |:---:|:---:|
 | <img src="/screenshots/framed_time_2_custom_scaled.png" width="240" alt="Emery color preview"> | <img src="/screenshots/framed_diorite_dark.png" width="180" alt="Diorite dark preview">&nbsp;&nbsp;<img src="/screenshots/framed_diorite_light.png" width="180" alt="Diorite light preview"> |
-
----
 
 ## The Core Concept: Dynamic Pixel Rendering
 
@@ -28,8 +24,6 @@ Unlike traditional watchfaces, Watchface No. 2 **does not use a pre-rendered fon
 
 Check out [dotted_text_layer.c](file:///home/markus/CLionProjects/Watchface-No.-2/src/c/ui/layer/dotted_text_layer.c) and [pixel_matrix_drawer.h](file:///home/markus/CLionProjects/Watchface-No.-2/src/c/ui/graphics/pixel_matrix_drawer.h) to see how it works under the hood.
 
----
-
 ## Layout Customization
 
 You have complete control over how many rows are shown and what each row contains.
@@ -37,16 +31,16 @@ You have complete control over how many rows are shown and what each row contain
 - **Row Count Selector**: Set the watchface to display **5, 6, or 7 rows**.
 - **Widget Routing**: Freely map any widget to any row.
 
-### Default Row Configuration (5-Row Mode)
+### Default Row Configuration (7-Row Mode)
 | Row | Default Widget | Description |
 |:---:|:---|:---|
-| **1** | Weather | Left/Middle/Right slots showing configurable temperatures |
-| **2** | Date | Customizable date representation with weekday |
-| **3** | Time | The clock display (supports 12h/24h) |
-| **4** | Stepcount | Daily steps indicator |
-| **5** | Battery Bar | Charge level bar with animations |
-
----
+| **1** | Weather Forecast | Displays the hourly forecast graph (temperature & rain) |
+| **2** | Weather | Left/Middle/Right slots showing configurable temperatures |
+| **3** | Date | Customizable date representation with weekday |
+| **4** | Time | The clock display (supports 12h/24h) |
+| **5** | Stepcount | Daily steps indicator |
+| **6** | Battery Bar | Charge level bar with animations |
+| **7** | Heartrate | Real-time heart rate bpm indicator |
 
 ## Feature-Rich Widgets
 
@@ -86,8 +80,6 @@ Every widget is highly configurable to suit your information needs:
 * Configurable **Low Battery Threshold** (0% to 30%) with a dedicated low-power color state.
 * **Custom Width**: A high-precision slider allows you to restrict the battery bar to any width from **1% to 100%** of the screen.
 
----
-
 ## Design, Themes & Fonts
 
 ### Auto-Scaling & Pixel-Perfect Modes
@@ -105,16 +97,12 @@ Fine-tune the character style:
 * **Dark Theme**: White dots on black background.
 * **Custom Theme**: Customize every single color element including background, text, separators, battery states, weather values, and forecast chart gradients. (Refer to [COLORS.md](file:///home/markus/CLionProjects/Watchface-No.-2/COLORS.md) for Pebble's supported color palette).
 
----
-
 ## Engineered for Pebble Hardware (Efficiency)
 
 Watchface No. 2 is designed to run smoothly on original Pebble hardware with strict limits:
 - **Deferred Weather Persistence**: To avoid wearing down the watch's flash storage, weather forecast data is kept in RAM and only written to flash memory during app de-initialization or when the watchface closes.
 - **Smart Data Caching**: Weather queries are cached locally to reduce API requests and phone-watch Bluetooth communications, saving battery on both devices.
 - **Dynamic Config Tracking**: Checks the code version to avoid redundant settings synchronization requests on watch startup.
-
----
 
 ## Supported Platforms
 
@@ -123,8 +111,6 @@ Built natively for Pebble SDK 3 / 4, targeting:
 * **diorite** (Pebble 2, Pebble 2 SE)
 * **flint** (Pebble Time Round)
 * **emery** (Pebble Time 2 / Emulator)
-
----
 
 ## Development
 
@@ -164,14 +150,10 @@ just test-js
 just coverage
 ```
 
----
-
 ## Attributions
 
 * **Inspiration**: Heavily inspired by the [TXTTMM](https://apps.repebble.com/684087b4212f070009e2488a) watchface. Please support the creators of TXTTMM for their design.
 * **Device Frame Generator**: Generated using [pebble-render](https://pebble-render.aru.dev/).
-
----
 
 ## License
 
