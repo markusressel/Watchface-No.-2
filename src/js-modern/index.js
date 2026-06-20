@@ -58,7 +58,8 @@ function sendAllSettings() {
     const settings = config.getClaySettings()
     const settingsJson = settings.toJSON();
     if (settingsJson) {
-        Pebble.sendAppMessage(settingsJson);
+        const dict = Clay.prepareSettingsForAppMessage(settingsJson);
+        Pebble.sendAppMessage(dict);
     }
 }
 
