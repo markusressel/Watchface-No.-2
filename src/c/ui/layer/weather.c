@@ -184,11 +184,56 @@ void weather_init_data() {
         const time_t max_valid_time = s_weather_data.ForecastStartTimestamp + (forecast_points * 15 * 60);
 
         if (time(NULL) > max_valid_time) {
-            APP_LOG(APP_LOG_LEVEL_INFO, "Restored weather data is expired. Fetching new.");
+            APP_LOG(APP_LOG_LEVEL_INFO, "Restored weather data is expired. Clearing.");
             weather_clear_data();
-            weather_request_update();
         }
     }
+}
+
+void weather_check_and_request_update() {
+    if (!phone_connection_is_connected()) {
+        APP_LOG(APP_LOG_LEVEL_INFO, "Skipping weather update check: Phone not connected.");
+        return;
+    }
+
+    if (clay_get_settings()->WeatherUseSimulation) {
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "Weather update skipped: simulation mode is active.");
+        return;
+    }
+
+    ClaySettings *settings = clay_get_settings();
+
+    // 1. If we don't have any data at all, request it.
+    if (s_weather_data.ForecastStartTimestamp <= 0) {
+        APP_LOG(APP_LOG_LEVEL_INFO, "No weather data available on launch. Requesting update.");
+        weather_request_update();
+        return;
+    }
+
+    // 2. If the data is expired, clear and request it.
+    const int forecast_points = settings->SliderWeatherForecastPreviewHoursCount * 4; // 15 min points
+    const time_t max_valid_time = s_weather_data.ForecastStartTimestamp + (forecast_points * 15 * 60);
+    if (time(NULL) > max_valid_time) {
+        APP_LOG(APP_LOG_LEVEL_INFO, "Restored weather data is expired. Fetching new.");
+        weather_clear_data();
+        weather_request_update();
+        return;
+    }
+
+    // 3. If the data is older than the threshold, request it (without clearing, so we still show old data).
+    int interval_mins = settings->WeatherUpdateIntervalMinutes;
+    if (interval_mins <= 0) {
+        interval_mins = 15;
+    }
+    const time_t threshold_time = s_weather_data.ForecastStartTimestamp + (interval_mins * 60);
+    if (time(NULL) > threshold_time) {
+        APP_LOG(APP_LOG_LEVEL_INFO, "Restored weather data is older than threshold. Requesting update.");
+        weather_request_update();
+        return;
+    }
+
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Weather data is fresh (age: %ld mins, threshold: %d mins). Skipping update.",
+            (long)((time(NULL) - s_weather_data.ForecastStartTimestamp) / 60), interval_mins);
 }
 
 void weather_delete_persisted_data() {

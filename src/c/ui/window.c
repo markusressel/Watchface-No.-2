@@ -8,6 +8,7 @@
 #include "../system/health_listener.h"
 #include "../system/phone_connection.h"
 #include "layer/status.h"
+#include "layer/weather.h"
 
 // loads components into the main window
 void window_load(Window *window) {
@@ -29,6 +30,9 @@ void window_load(Window *window) {
     // Register for phone connection updates
     register_phone_connection_listener();
     force_phone_connection_update();
+
+    // Check if weather update is needed on launch
+    weather_check_and_request_update();
 }
 
 // destroys all components of the main window

@@ -29,6 +29,8 @@ WeatherData *weather_get_data();
 
 void weather_init_data();
 
+void weather_check_and_request_update();
+
 void weather_request_update();
 
 void weather_tick_update();

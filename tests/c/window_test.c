@@ -33,6 +33,9 @@ void force_phone_connection_update() {}
 Layer *status_layer_create(Layer *parent) { return NULL; }
 void status_layer_destroy() {}
 
+#include "../../src/c/ui/layer/weather.h"
+void weather_check_and_request_update() {}
+
 #include "../../src/c/ui/window.c"
 
 void setUp(void) {}

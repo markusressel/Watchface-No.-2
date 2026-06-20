@@ -98,7 +98,7 @@ LayerBuilder layer_builder(Layer *parent, LayerLayout layout) {
     };
 }
 
-bool phone_connection_is_connected() { return true; }
+bool phone_connection_is_connected() { return s_mock_connected; }
 
 void update_weather_forecast() {
 }
@@ -111,6 +111,7 @@ void weather_forecast_tick_update() {
 
 void setUp(void) {
     s_mock_time = 1000000; // Arbitrary start time
+    s_mock_connected = true;
     memset(&s_settings, 0, sizeof(ClaySettings));
     s_settings.WeatherUpdateIntervalMinutes = 15;
     memset(&s_theme, 0, sizeof(Theme));
@@ -263,7 +264,6 @@ void test_weather_persistence_save_restore(void) {
 void test_weather_init_data_expired(void) {
     // 1. Setup expired data in mock storage
     s_settings.SliderWeatherForecastPreviewHoursCount = 6;
-    int forecast_points = 24; // 6 hours
     time_t start_time = s_mock_time - (7 * 3600); // 7 hours ago (expired)
 
     PersistedWeatherData persisted = {
@@ -278,9 +278,9 @@ void test_weather_init_data_expired(void) {
     s_app_message_outbox_send_count = 0;
     weather_init_data();
 
-    // 3. Verify: should be cleared and update requested
+    // 3. Verify: should be cleared, but NOT request update (which is done via window load now)
     TEST_ASSERT_EQUAL_INT(0, s_weather_data.CurrentTemperature);
-    TEST_ASSERT_EQUAL_INT(1, s_app_message_outbox_send_count);
+    TEST_ASSERT_EQUAL_INT(0, s_app_message_outbox_send_count);
 }
 
 void test_weather_init_data_valid(void) {
@@ -301,6 +301,74 @@ void test_weather_init_data_valid(void) {
     weather_init_data();
 
     // 3. Verify: should keep data and NOT request update immediately
+    TEST_ASSERT_EQUAL_INT(25, s_weather_data.CurrentTemperature);
+    TEST_ASSERT_EQUAL_INT(0, s_app_message_outbox_send_count);
+}
+
+void test_weather_check_and_request_update_disconnected(void) {
+    s_mock_connected = false;
+    s_app_message_outbox_send_count = 0;
+    weather_check_and_request_update();
+    TEST_ASSERT_EQUAL_INT(0, s_app_message_outbox_send_count);
+}
+
+void test_weather_check_and_request_update_simulation(void) {
+    s_mock_connected = true;
+    s_settings.WeatherUseSimulation = true;
+    s_app_message_outbox_send_count = 0;
+    weather_check_and_request_update();
+    TEST_ASSERT_EQUAL_INT(0, s_app_message_outbox_send_count);
+    s_settings.WeatherUseSimulation = false;
+}
+
+void test_weather_check_and_request_update_no_data(void) {
+    s_mock_connected = true;
+    s_weather_data.ForecastStartTimestamp = 0;
+    s_app_message_outbox_send_count = 0;
+    weather_check_and_request_update();
+    TEST_ASSERT_EQUAL_INT(1, s_app_message_outbox_send_count);
+}
+
+void test_weather_check_and_request_update_expired(void) {
+    s_mock_connected = true;
+    s_settings.SliderWeatherForecastPreviewHoursCount = 6;
+    s_weather_data.ForecastStartTimestamp = s_mock_time - (7 * 3600); // 7 hours ago
+    s_weather_data.CurrentTemperature = 10;
+    s_app_message_outbox_send_count = 0;
+    
+    weather_check_and_request_update();
+    
+    TEST_ASSERT_EQUAL_INT(0, s_weather_data.CurrentTemperature);
+    TEST_ASSERT_EQUAL_INT(0, s_weather_data.ForecastStartTimestamp);
+    TEST_ASSERT_EQUAL_INT(1, s_app_message_outbox_send_count);
+}
+
+void test_weather_check_and_request_update_older_than_threshold(void) {
+    s_mock_connected = true;
+    s_settings.SliderWeatherForecastPreviewHoursCount = 6;
+    s_settings.WeatherUpdateIntervalMinutes = 15;
+    s_weather_data.ForecastStartTimestamp = s_mock_time - (20 * 60); // 20 mins ago (older than 15 min threshold)
+    s_weather_data.CurrentTemperature = 25;
+    s_app_message_outbox_send_count = 0;
+    
+    weather_check_and_request_update();
+    
+    // Should NOT clear the current weather data, but SHOULD request update
+    TEST_ASSERT_EQUAL_INT(25, s_weather_data.CurrentTemperature);
+    TEST_ASSERT_EQUAL_INT(1, s_app_message_outbox_send_count);
+}
+
+void test_weather_check_and_request_update_fresh(void) {
+    s_mock_connected = true;
+    s_settings.SliderWeatherForecastPreviewHoursCount = 6;
+    s_settings.WeatherUpdateIntervalMinutes = 15;
+    s_weather_data.ForecastStartTimestamp = s_mock_time - (10 * 60); // 10 mins ago (fresher than 15 min threshold)
+    s_weather_data.CurrentTemperature = 25;
+    s_app_message_outbox_send_count = 0;
+    
+    weather_check_and_request_update();
+    
+    // Should NOT clear and should NOT request update
     TEST_ASSERT_EQUAL_INT(25, s_weather_data.CurrentTemperature);
     TEST_ASSERT_EQUAL_INT(0, s_app_message_outbox_send_count);
 }
@@ -433,6 +501,12 @@ int main() {
     RUN_TEST(test_weather_persistence_save_restore);
     RUN_TEST(test_weather_init_data_expired);
     RUN_TEST(test_weather_init_data_valid);
+    RUN_TEST(test_weather_check_and_request_update_disconnected);
+    RUN_TEST(test_weather_check_and_request_update_simulation);
+    RUN_TEST(test_weather_check_and_request_update_no_data);
+    RUN_TEST(test_weather_check_and_request_update_expired);
+    RUN_TEST(test_weather_check_and_request_update_older_than_threshold);
+    RUN_TEST(test_weather_check_and_request_update_fresh);
     RUN_TEST(test_weather_request_update);
     RUN_TEST(test_weather_tick_update_expired);
     RUN_TEST(test_weather_tick_update_valid);
