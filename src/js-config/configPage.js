@@ -250,9 +250,9 @@ export default [
             {
                 "type": "slider",
                 "messageKey": "WeatherUpdateIntervalMinutes",
-                "defaultValue": 15,
-                "label": "Weather Update Interval",
-                "description": "How often the new weather data should be fetched from the API (minutes)",
+                "defaultValue": 60,
+                "label": "Weather Data Lifetime",
+                "description": "The duration (in minutes) to keep weather data before it is considered outdated and a fresh fetch is attempted. If a fetch fails, a retry is made periodically, or immediately when the watchface restarts.",
                 "min": 15,
                 "max": 180,
                 "step": 15
