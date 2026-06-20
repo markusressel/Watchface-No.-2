@@ -201,9 +201,7 @@ ClaySettings *clay_sanitize_settings(ClaySettings *settings) {
 
 // Initialize the default settings
 // Note: Defaults are also set in the configPage.json, keep them in sync!
-static ClaySettings *clay_reset_to_default_settings() {
-    ClaySettings *settings = clay_get_settings();
-
+static ClaySettings *clay_reset_to_default_settings(ClaySettings *settings) {
     const bool is_dark = strcmp(THEME_DEFAULT, THEME_DARK_STR) == 0;
     settings->BackgroundColor = is_dark ? GColorBlack : GColorWhite;
     GColor textColor = is_dark ? GColorWhite : GColorBlack;
@@ -301,9 +299,17 @@ ClaySettings *clay_get_settings() {
     return &s_settings;
 }
 
+ClaySettings *clay_delete_saved_settings() {
+    persist_delete(SETTINGS_KEY);
+    persist_delete(SETTINGS_VERSION_KEY);
+    persist_delete(PERSIST_KEY_APP_VERSION);
+    return clay_reset_to_default_settings(clay_get_settings());
+}
+
 ClaySettings *internal_load_settings() {
-    // Load the default settings
-    ClaySettings *settings = clay_reset_to_default_settings();
+    // Start out with the default settings
+    ClaySettings *settings = clay_get_settings();
+    settings = clay_reset_to_default_settings(settings);
 
     // Migrate/reset settings when the struct layout changes across versions.
     if (!persist_exists(SETTINGS_VERSION_KEY) ||
@@ -313,18 +319,21 @@ ClaySettings *internal_load_settings() {
             "Settings version mismatch: %d != %d. Deleting old settings and requesting new ones.",
             persist_read_int(SETTINGS_VERSION_KEY), SETTINGS_VERSION
         );
+        clay_delete_saved_settings();
         return settings;
     }
 
+    // attempt to load the persisted data
     if (persist_exists(SETTINGS_KEY)) {
         const int bytes = persist_read_data(SETTINGS_KEY, settings, sizeof(*settings));
         if (bytes != sizeof(*settings)) {
             APP_LOG(APP_LOG_LEVEL_WARNING, "Could not read settings, using defaults.");
-            settings = clay_reset_to_default_settings();
+            clay_delete_saved_settings();
             return settings;
         }
     }
 
+    // settings now contains the persisted data
     settings = clay_sanitize_settings(settings);
 
     // Check if the watchface has been updated/rebuilt.
@@ -355,9 +364,7 @@ ClaySettings *clay_load_settings() {
 }
 
 ClaySettings *clay_save_settings(ClaySettings *settings) {
-    persist_delete(SETTINGS_KEY);
-    persist_delete(SETTINGS_VERSION_KEY);
-    persist_delete(PERSIST_KEY_APP_VERSION);
+    clay_delete_saved_settings();
     // save ClaySettings struct to persistent storage
     persist_write_int(SETTINGS_VERSION_KEY, SETTINGS_VERSION);
     persist_write_data(SETTINGS_KEY, settings, sizeof(ClaySettings));
