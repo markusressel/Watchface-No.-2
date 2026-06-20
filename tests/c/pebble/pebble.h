@@ -367,7 +367,7 @@ typedef int AppMessageResult;
 #define APP_MSG_INTERNAL_ERROR 1
 
 typedef struct Tuple {
-    uint32_t message_key;
+    uint32_t key;
     uint8_t type;
     uint16_t length;
 
@@ -381,6 +381,29 @@ typedef struct Tuple {
 #define TUPLE_INT 2
 
 typedef struct DictionaryIterator DictionaryIterator; // Opaque type
+
+#define MAX_TUPLES 100
+static Tuple s_mock_tuples[MAX_TUPLES];
+static int s_mock_tuple_count = 0;
+static int s_mock_dict_iter_index = 0;
+
+static inline Tuple *dict_read_first(DictionaryIterator *iter) {
+    (void)iter;
+    s_mock_dict_iter_index = 0;
+    if (s_mock_tuple_count > 0) {
+        return &s_mock_tuples[0];
+    }
+    return NULL;
+}
+
+static inline Tuple *dict_read_next(DictionaryIterator *iter) {
+    (void)iter;
+    s_mock_dict_iter_index++;
+    if (s_mock_dict_iter_index < s_mock_tuple_count) {
+        return &s_mock_tuples[s_mock_dict_iter_index];
+    }
+    return NULL;
+}
 
 typedef Tuple *(*DictFindFunc)(const DictionaryIterator *, uint32_t);
 
