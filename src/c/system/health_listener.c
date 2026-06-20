@@ -3,6 +3,7 @@
 #include "health_listener.h"
 #include "../ui/layer/stepcount.h"
 #include "../ui/layer/heartrate.h"
+#include "../settings/persist_keys.h"
 
 static bool registered = false;
 
@@ -12,7 +13,10 @@ static void health_handler(HealthEventType event, void *context) {
     switch (event) {
         case HealthEventSignificantUpdate:
             APP_LOG(APP_LOG_LEVEL_INFO, "New HealthService HealthEventSignificantUpdate event");
-            s_heartrate_bpm = health_service_peek_current_value(HealthMetricHeartRateBPM);
+            int hr_sig = health_service_peek_current_value(HealthMetricHeartRateBPM);
+            if (hr_sig > 0) {
+                s_heartrate_bpm = hr_sig;
+            }
             s_step_count = health_service_sum_today(HealthMetricStepCount);
 
             APP_LOG(APP_LOG_LEVEL_DEBUG, "stepcount: %d", s_step_count);
@@ -34,11 +38,14 @@ static void health_handler(HealthEventType event, void *context) {
             break;
         case HealthEventHeartRateUpdate:
             APP_LOG(APP_LOG_LEVEL_INFO, "New HealthService HealthEventHeartRateUpdate event");
-            s_heartrate_bpm = health_service_peek_current_value(HealthMetricHeartRateBPM);
+            int hr_val = health_service_peek_current_value(HealthMetricHeartRateBPM);
+            if (hr_val > 0) {
+                s_heartrate_bpm = hr_val;
 
-            APP_LOG(APP_LOG_LEVEL_DEBUG, "heartrate: %d", s_heartrate_bpm);
+                APP_LOG(APP_LOG_LEVEL_DEBUG, "heartrate: %d", s_heartrate_bpm);
 
-            update_heartrate();
+                update_heartrate();
+            }
             break;
         case HealthEventMetricAlert:
             APP_LOG(APP_LOG_LEVEL_INFO, "New HealthService HealthEventMetricAlert event");
@@ -65,7 +72,18 @@ void register_health_event_listener() {
         APP_LOG(APP_LOG_LEVEL_ERROR, "Health not available!");
     }
     APP_LOG(APP_LOG_LEVEL_DEBUG, "registering health listener");
-    s_heartrate_bpm = health_service_peek_current_value(HealthMetricHeartRateBPM);
+
+    if (persist_exists(PERSIST_KEY_LAST_HEARTRATE)) {
+        s_heartrate_bpm = persist_read_int(PERSIST_KEY_LAST_HEARTRATE);
+    } else {
+        s_heartrate_bpm = 0;
+    }
+
+    int current_hr = health_service_peek_current_value(HealthMetricHeartRateBPM);
+    if (current_hr > 0) {
+        s_heartrate_bpm = current_hr;
+    }
+
     s_step_count = health_service_peek_current_value(HealthMetricStepCount);
 
     APP_LOG(APP_LOG_LEVEL_DEBUG, "stepcount: %d", s_step_count);
@@ -82,6 +100,9 @@ void unregister_health_event_listener() {
 
 #if defined(PBL_HEALTH)
     health_service_events_unsubscribe();
+    if (s_heartrate_bpm > 0) {
+        persist_write_int(PERSIST_KEY_LAST_HEARTRATE, s_heartrate_bpm);
+    }
 #endif
     registered = false;
 }
