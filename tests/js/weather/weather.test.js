@@ -429,4 +429,49 @@ describe('weather.js', () => {
         });
         expect(weather.isAnyWeatherWidgetActive()).toBe(false);
     });
+
+    test('getWeather returns early if no weather widget is active', () => {
+        mockConfig.getClaySettings.mockReturnValue({
+            Row0Widget: "1", // Date (no weather)
+            LayoutRowCount: 1,
+        });
+        const spyLog = jest.spyOn(require('../../../src/js-modern/logger').logger, 'info');
+        weather.getWeather();
+        expect(spyLog).toHaveBeenCalledWith('No weather widgets active, skipping weather data fetch.');
+        spyLog.mockRestore();
+    });
+
+    test('getWeather error callback for getCurrentPosition', () => {
+        mockConfig.getClaySettings.mockReturnValue({
+            Row0Widget: "0", // Weather active
+            LayoutRowCount: 1,
+        });
+        mockGeolocation.getCurrentPosition.mockImplementationOnce((success, error, options) => {
+            error({ message: 'Location error' });
+        });
+        const spyErrorLog = jest.spyOn(require('../../../src/js-modern/logger').logger, 'error');
+        weather.getWeather();
+        expect(spyErrorLog).toHaveBeenCalledWith('Error requesting location!');
+        spyErrorLog.mockRestore();
+    });
+
+    test('getWeather catch block for fetchWeatherData rejection', async () => {
+        mockConfig.getClaySettings.mockReturnValue({
+            Row0Widget: "0", // Weather active
+            LayoutRowCount: 1,
+        });
+        mockGeolocation.getCurrentPosition.mockImplementationOnce((success, error, options) => {
+            success({ coords: { latitude: 12.34, longitude: 56.78 } });
+        });
+        mockOpenMeteo.fetchWeatherData.mockRejectedValueOnce(new Error('Network failure'));
+        const spyErrorLog = jest.spyOn(require('../../../src/js-modern/logger').logger, 'error');
+        
+        weather.getWeather();
+        
+        // Wait for promise to resolve
+        await new Promise(process.nextTick);
+        
+        expect(spyErrorLog).toHaveBeenCalledWith('Error during API weather request or processing: Error: Network failure');
+        spyErrorLog.mockRestore();
+    });
 });

@@ -183,7 +183,7 @@ static bool is_weather_widget_active() {
     int row_count = settings->LayoutRowCount;
     
     for (int i = 0; i < row_count; i++) {
-        int widget = 0;
+        int widget = -1;
         switch (i) {
             case 0: widget = settings->Row0Widget; break;
             case 1: widget = settings->Row1Widget; break;

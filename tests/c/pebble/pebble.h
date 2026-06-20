@@ -475,9 +475,10 @@ static inline Tuple *dict_find(const DictionaryIterator *iter, uint32_t key) {
     return NULL;
 }
 
+static AppMessageResult s_mock_app_message_outbox_begin_result = APP_MSG_OK;
 static inline AppMessageResult app_message_outbox_begin(DictionaryIterator **iter) {
     if (iter) *iter = (DictionaryIterator *) 1;
-    return APP_MSG_OK;
+    return s_mock_app_message_outbox_begin_result;
 }
 
 static inline void dict_write_int(DictionaryIterator *iter, uint32_t key, const void *value, size_t size, bool signed_val) {
@@ -495,10 +496,11 @@ static inline void dict_write_end(DictionaryIterator *iter) {
 }
 
 static int s_app_message_outbox_send_count = 0;
+static AppMessageResult s_mock_app_message_outbox_send_result = APP_MSG_OK;
 
 static inline AppMessageResult app_message_outbox_send() {
     s_app_message_outbox_send_count++;
-    return APP_MSG_OK;
+    return s_mock_app_message_outbox_send_result;
 }
 
 // Tick Timer Service mocks
@@ -594,10 +596,13 @@ typedef void (*HealthEventHandler)(HealthEventType event, void *context);
 static HealthEventHandler s_health_handler = NULL;
 static int s_mock_step_count = 0;
 static int s_mock_heart_rate = 0;
-
+static bool s_mock_health_subscribe_success = true;
 static inline bool health_service_events_subscribe(HealthEventHandler handler, void *context) {
-    s_health_handler = handler;
-    return true;
+    if (s_mock_health_subscribe_success) {
+        s_health_handler = handler;
+        return true;
+    }
+    return false;
 }
 
 static inline void health_service_events_unsubscribe() {

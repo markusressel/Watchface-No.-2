@@ -98,11 +98,20 @@ void test_update_heartrate_triggers_from_ui_state(void) {
     destroy_heartrate_layer(layer);
 }
 
+void test_heartrate_layer_auto_scale(void) {
+    s_settings.DotAutoScale = true;
+    LayerBuilder builder = { .bounds = GRect(0, 0, 144, 30) };
+    Layer *layer = create_heartrate_layer(builder);
+    TEST_ASSERT_NOT_NULL(layer);
+    destroy_heartrate_layer(layer);
+}
+
 int main() {
     UNITY_BEGIN();
     RUN_TEST(test_heartrate_layer_create_destroy);
     RUN_TEST(test_update_heartrate_no_data);
     RUN_TEST(test_update_heartrate_with_data);
     RUN_TEST(test_update_heartrate_triggers_from_ui_state);
+    RUN_TEST(test_heartrate_layer_auto_scale);
     return UNITY_END();
 }

@@ -156,6 +156,92 @@ void test_health_listener_not_registered_if_inactive(void) {
     TEST_ASSERT_FALSE(registered);
 }
 
+void test_health_already_registered(void) {
+    register_health_event_listener();
+    TEST_ASSERT_TRUE(registered);
+    // Call again
+    register_health_event_listener();
+    TEST_ASSERT_TRUE(registered);
+}
+
+void test_health_unregister_not_registered(void) {
+    TEST_ASSERT_FALSE(registered);
+    unregister_health_event_listener();
+    TEST_ASSERT_FALSE(registered);
+}
+
+void test_health_subscribe_failure(void) {
+    s_mock_health_subscribe_success = false;
+    register_health_event_listener();
+    TEST_ASSERT_NULL(s_health_handler);
+    // Clean up
+    s_mock_health_subscribe_success = true;
+}
+
+void test_health_handler_unhandled_events(void) {
+    register_health_event_listener();
+    s_health_handler(HealthEventSleepUpdate, NULL);
+    s_health_handler(HealthEventMetricAlert, NULL);
+    s_health_handler((HealthEventType)999, NULL); // default case
+}
+
+void test_health_widget_active_other_rows(void) {
+    // Test row 1
+    memset(&s_settings, 0, sizeof(ClaySettings));
+    s_settings.LayoutRowCount = 2;
+    s_settings.Row0Widget = WIDGET_WEATHER;
+    s_settings.Row1Widget = WIDGET_STEPCOUNT;
+    register_health_event_listener();
+    TEST_ASSERT_TRUE(registered);
+    unregister_health_event_listener();
+
+    // Test row 2
+    memset(&s_settings, 0, sizeof(ClaySettings));
+    s_settings.LayoutRowCount = 3;
+    s_settings.Row2Widget = WIDGET_HEARTRATE;
+    register_health_event_listener();
+    TEST_ASSERT_TRUE(registered);
+    unregister_health_event_listener();
+
+    // Test row 3
+    memset(&s_settings, 0, sizeof(ClaySettings));
+    s_settings.LayoutRowCount = 4;
+    s_settings.Row3Widget = WIDGET_HEARTRATE;
+    register_health_event_listener();
+    TEST_ASSERT_TRUE(registered);
+    unregister_health_event_listener();
+
+    // Test row 4
+    memset(&s_settings, 0, sizeof(ClaySettings));
+    s_settings.LayoutRowCount = 5;
+    s_settings.Row4Widget = WIDGET_HEARTRATE;
+    register_health_event_listener();
+    TEST_ASSERT_TRUE(registered);
+    unregister_health_event_listener();
+
+    // Test row 5
+    memset(&s_settings, 0, sizeof(ClaySettings));
+    s_settings.LayoutRowCount = 6;
+    s_settings.Row5Widget = WIDGET_HEARTRATE;
+    register_health_event_listener();
+    TEST_ASSERT_TRUE(registered);
+    unregister_health_event_listener();
+
+    // Test row 6
+    memset(&s_settings, 0, sizeof(ClaySettings));
+    s_settings.LayoutRowCount = 7;
+    s_settings.Row6Widget = WIDGET_HEARTRATE;
+    register_health_event_listener();
+    TEST_ASSERT_TRUE(registered);
+    unregister_health_event_listener();
+
+    // Test out-of-bounds row (default case)
+    memset(&s_settings, 0, sizeof(ClaySettings));
+    s_settings.LayoutRowCount = 8;
+    register_health_event_listener();
+    TEST_ASSERT_FALSE(registered);
+}
+
 int main() {
     UNITY_BEGIN();
     RUN_TEST(test_register_health_event_listener);
@@ -169,5 +255,10 @@ int main() {
     RUN_TEST(test_health_save_to_persistence_on_unregister);
     RUN_TEST(test_health_does_not_save_zero_to_persistence_on_unregister);
     RUN_TEST(test_health_listener_not_registered_if_inactive);
+    RUN_TEST(test_health_already_registered);
+    RUN_TEST(test_health_unregister_not_registered);
+    RUN_TEST(test_health_subscribe_failure);
+    RUN_TEST(test_health_handler_unhandled_events);
+    RUN_TEST(test_health_widget_active_other_rows);
     return UNITY_END();
 }

@@ -45,9 +45,13 @@ ClaySettings *clay_get_settings() { return &s_settings; }
 Theme s_theme;
 Theme *theme_get_theme() { return &s_theme; }
 
-int ui_state_get_row_count() { return 0; }
-WidgetId ui_state_get_widget_id(int row) { return 0; }
-Layer *ui_state_get_layer(int row) { return NULL; }
+static int s_row_count = 0;
+static WidgetId s_mock_widgets[5];
+static Layer *s_mock_layers[5];
+
+int ui_state_get_row_count() { return s_row_count; }
+WidgetId ui_state_get_widget_id(int row) { return s_mock_widgets[row]; }
+Layer *ui_state_get_layer(int row) { return s_mock_layers[row]; }
 
 static int s_layer_data_size = 0;
 
@@ -118,6 +122,9 @@ void setUp(void) {
     s_settings.LayoutRowCount = 1;
     s_settings.Row0Widget = WIDGET_WEATHER;
     memset(&s_theme, 0, sizeof(Theme));
+    s_row_count = 0;
+    memset(s_mock_widgets, 0, sizeof(s_mock_widgets));
+    memset(s_mock_layers, 0, sizeof(s_mock_layers));
     mock_storage_reset();
 }
 
@@ -545,6 +552,204 @@ void test_weather_updates_ignored_if_inactive(void) {
     TEST_ASSERT_EQUAL_INT(0, s_app_message_outbox_send_count);
 }
 
+void test_weather_get_current_temp_null(void) {
+    TEST_ASSERT_EQUAL_INT(0, weather_get_current_temp(NULL));
+}
+
+void test_weather_deinit_not_initialized(void) {
+    s_weather_data_initialized = false;
+    deinit_weather_data(); // should return early
+}
+
+void test_weather_layer_update_proc_all_slots(void) {
+    // Configure settings for slot 1, 2, 3
+    s_settings.WeatherSlot1 = WEATHER_VALUE_TYPE_CURRENT;
+    s_settings.WeatherSlot2 = WEATHER_VALUE_TYPE_MAX;
+    s_settings.WeatherSlot3 = WEATHER_VALUE_TYPE_MIN;
+    
+    LayerBuilder builder = { .bounds = GRect(0, 0, 144, 40) };
+    Layer *layer = create_weather_layer(builder);
+    
+    // Call the update proc directly
+    weather_layer_update_proc(layer, NULL);
+    
+    // Setup for update_weather_ui
+    s_row_count = 1;
+    s_mock_widgets[0] = WIDGET_WEATHER;
+    s_mock_layers[0] = layer;
+    update_weather_ui();
+    
+    // Test with simulation mode
+    s_settings.WeatherUseSimulation = true;
+    update_weather_for_layer(layer);
+    s_settings.WeatherUseSimulation = false;
+    
+    destroy_weather_layer(layer);
+}
+
+void test_weather_layer_auto_scale(void) {
+    s_settings.DotAutoScale = true;
+    LayerBuilder builder = { .bounds = GRect(0, 0, 144, 40) };
+    Layer *layer = create_weather_layer(builder);
+    TEST_ASSERT_NOT_NULL(layer);
+    destroy_weather_layer(layer);
+}
+
+void test_on_scheduled_update_triggered(void) {
+    s_app_message_outbox_send_count = 0;
+    on_scheduled_update_triggered(NULL);
+    TEST_ASSERT_EQUAL_INT(1, s_app_message_outbox_send_count);
+}
+
+void test_weather_clamp_forecast_count(void) {
+    TEST_ASSERT_EQUAL_INT(0, clamp_forecast_count(-5));
+    TEST_ASSERT_EQUAL_INT(WEATHER_FORECAST_MAX_POINTS, clamp_forecast_count(9999));
+}
+
+void test_weather_sanitize_no_null_terminator(void) {
+    memset(s_weather_data.CurrentConditions, 'A', sizeof(s_weather_data.CurrentConditions));
+    sanitize_weather_data();
+    TEST_ASSERT_EQUAL_CHAR('\0', s_weather_data.CurrentConditions[0]);
+}
+
+void test_weather_widget_active_other_rows(void) {
+    // Clear s_settings widget row values first so they are 0
+    memset(&s_settings, 0, sizeof(ClaySettings));
+    
+    // Set each row to active weather one by one
+    s_settings.LayoutRowCount = 1;
+    s_settings.Row0Widget = WIDGET_WEATHER;
+    TEST_ASSERT_TRUE(is_weather_widget_active());
+
+    memset(&s_settings, 0, sizeof(ClaySettings));
+    s_settings.LayoutRowCount = 2;
+    s_settings.Row1Widget = WIDGET_WEATHER;
+    TEST_ASSERT_TRUE(is_weather_widget_active());
+
+    memset(&s_settings, 0, sizeof(ClaySettings));
+    s_settings.LayoutRowCount = 3;
+    s_settings.Row2Widget = WIDGET_WEATHER;
+    TEST_ASSERT_TRUE(is_weather_widget_active());
+
+    memset(&s_settings, 0, sizeof(ClaySettings));
+    s_settings.LayoutRowCount = 4;
+    s_settings.Row3Widget = WIDGET_WEATHER;
+    TEST_ASSERT_TRUE(is_weather_widget_active());
+
+    memset(&s_settings, 0, sizeof(ClaySettings));
+    s_settings.LayoutRowCount = 5;
+    s_settings.Row4Widget = WIDGET_WEATHER;
+    TEST_ASSERT_TRUE(is_weather_widget_active());
+
+    memset(&s_settings, 0, sizeof(ClaySettings));
+    s_settings.LayoutRowCount = 6;
+    s_settings.Row5Widget = WIDGET_WEATHER;
+    TEST_ASSERT_TRUE(is_weather_widget_active());
+
+    memset(&s_settings, 0, sizeof(ClaySettings));
+    s_settings.LayoutRowCount = 7;
+    s_settings.Row6Widget = WIDGET_WEATHER;
+    TEST_ASSERT_TRUE(is_weather_widget_active());
+
+    // Out of bounds row (default case)
+    memset(&s_settings, 0, sizeof(ClaySettings));
+    s_settings.LayoutRowCount = 8;
+    s_settings.Row0Widget = 1;
+    s_settings.Row1Widget = 1;
+    s_settings.Row2Widget = 1;
+    s_settings.Row3Widget = 1;
+    s_settings.Row4Widget = 1;
+    s_settings.Row5Widget = 1;
+    s_settings.Row6Widget = 1;
+    TEST_ASSERT_FALSE(is_weather_widget_active());
+}
+
+void test_weather_interval_less_than_zero(void) {
+    s_settings.WeatherUpdateIntervalMinutes = -5;
+    TEST_ASSERT_TRUE(compute_next_weather_update_request_ms() > 0);
+}
+
+void test_save_weather_simulation_or_null(void) {
+    s_settings.WeatherUseSimulation = true;
+    save_current_weather_data(&s_weather_data);
+    s_settings.WeatherUseSimulation = false;
+
+    save_current_weather_data(NULL);
+    
+    WeatherData empty = {0};
+    save_current_weather_data(&empty);
+}
+
+void test_weather_get_data_already_initialized(void) {
+    s_weather_data_initialized = true;
+    WeatherData *data = weather_get_data();
+    TEST_ASSERT_NOT_NULL(data);
+}
+
+void test_weather_save_restore_large_rain_forecast(void) {
+    WeatherData data = {
+        .CurrentTemperature = 22,
+        .MaxTemperature = 28,
+        .MinTemperature = 15,
+        .RainNextHourMmX10 = 12,
+        .RainPopPercent = 40,
+        .ForecastStartTimestamp = s_mock_time - 3600,
+        .TemperatureForecastCount = 10,
+        .RainForecastMmX10Count = 70, // > 64
+        .CurrentConditions = "Rainy",
+        .is_dirty = true
+    };
+    int temp_forecast[10];
+    for (int i = 0; i < 10; i++) temp_forecast[i] = i;
+    data.TemperatureForecast = temp_forecast;
+
+    int rain_forecast[70];
+    for (int i = 0; i < 70; i++) rain_forecast[i] = i * 2;
+    data.RainForecastMmX10 = rain_forecast;
+
+    save_current_weather_data(&data);
+
+    memset(&s_weather_data, 0, sizeof(WeatherData));
+    s_weather_data_initialized = false;
+    ensure_runtime_forecast_storage();
+
+    restore_saved_weather_data();
+
+    TEST_ASSERT_EQUAL_INT(70, s_weather_data.RainForecastMmX10Count);
+    for (int i = 0; i < 70; i++) {
+        TEST_ASSERT_EQUAL_INT(i * 2, s_weather_data.RainForecastMmX10[i]);
+    }
+}
+
+void test_weather_cancel_timer(void) {
+    s_update_timer = (AppTimer *)1;
+    cancel_update_timer();
+    TEST_ASSERT_NULL(s_update_timer);
+}
+
+void test_weather_layer_update_proc_separators_null(void) {
+    s_settings.WeatherSlot1 = WEATHER_VALUE_TYPE_CURRENT;
+    s_settings.WeatherSlot2 = 0; // inactive
+    s_settings.WeatherSlot3 = WEATHER_VALUE_TYPE_MIN;
+    
+    LayerBuilder builder = { .bounds = GRect(0, 0, 144, 40) };
+    Layer *layer = create_weather_layer(builder);
+    
+    weather_layer_update_proc(layer, NULL);
+    
+    destroy_weather_layer(layer);
+}
+
+void test_weather_outbox_failure(void) {
+    s_mock_app_message_outbox_begin_result = APP_MSG_INTERNAL_ERROR;
+    weather_request_update();
+    s_mock_app_message_outbox_begin_result = APP_MSG_OK;
+
+    s_mock_app_message_outbox_send_result = APP_MSG_INTERNAL_ERROR;
+    weather_request_update();
+    s_mock_app_message_outbox_send_result = APP_MSG_OK;
+}
+
 int main() {
     UNITY_BEGIN();
     RUN_TEST(test_weather_get_current_temp_no_forecast);
@@ -575,5 +780,20 @@ int main() {
     RUN_TEST(test_weather_init_skipped_if_inactive);
     RUN_TEST(test_weather_get_data_loads_on_demand);
     RUN_TEST(test_weather_updates_ignored_if_inactive);
+    RUN_TEST(test_weather_get_current_temp_null);
+    RUN_TEST(test_weather_deinit_not_initialized);
+    RUN_TEST(test_weather_layer_update_proc_all_slots);
+    RUN_TEST(test_weather_layer_auto_scale);
+    RUN_TEST(test_on_scheduled_update_triggered);
+    RUN_TEST(test_weather_clamp_forecast_count);
+    RUN_TEST(test_weather_sanitize_no_null_terminator);
+    RUN_TEST(test_weather_widget_active_other_rows);
+    RUN_TEST(test_weather_interval_less_than_zero);
+    RUN_TEST(test_save_weather_simulation_or_null);
+    RUN_TEST(test_weather_get_data_already_initialized);
+    RUN_TEST(test_weather_save_restore_large_rain_forecast);
+    RUN_TEST(test_weather_cancel_timer);
+    RUN_TEST(test_weather_layer_update_proc_separators_null);
+    RUN_TEST(test_weather_outbox_failure);
     return UNITY_END();
 }
