@@ -7,6 +7,7 @@
 #include "weather_forecast.h"
 #include "../ui_state.h"
 #include "../../system/phone_connection.h"
+#include "widget.h"
 
 static char s_buffer[32];
 
@@ -101,6 +102,8 @@ static AppTimer *s_update_timer = NULL;
 static int s_active_weather_layers = 0;
 
 WeatherData *weather_get_data() {
+    weather_init_data();
+
     if (clay_get_settings()->WeatherUseSimulation) {
         memcpy(&s_mock_weather_data, &s_mock_weather_data_template, sizeof(WeatherData));
         // set timestamp to a fixed point in the past (e.g. start of current hour) for testing
@@ -175,7 +178,35 @@ static void restore_saved_weather_data() {
     s_weather_data_initialized = true;
 }
 
+static bool is_weather_widget_active() {
+    ClaySettings *settings = clay_get_settings();
+    int row_count = settings->LayoutRowCount;
+    
+    for (int i = 0; i < row_count; i++) {
+        int widget = 0;
+        switch (i) {
+            case 0: widget = settings->Row0Widget; break;
+            case 1: widget = settings->Row1Widget; break;
+            case 2: widget = settings->Row2Widget; break;
+            case 3: widget = settings->Row3Widget; break;
+            case 4: widget = settings->Row4Widget; break;
+            case 5: widget = settings->Row5Widget; break;
+            case 6: widget = settings->Row6Widget; break;
+            default: break;
+        }
+        if (widget == WIDGET_WEATHER || widget == WIDGET_WEATHER_FORECAST) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void weather_init_data() {
+    if (!is_weather_widget_active()) {
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "Weather init skipped: no weather widget active.");
+        return;
+    }
+
     restore_saved_weather_data();
 
     if (s_weather_data.ForecastStartTimestamp > 0) {
@@ -191,6 +222,11 @@ void weather_init_data() {
 }
 
 void weather_check_and_request_update() {
+    if (!is_weather_widget_active()) {
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "Skipping weather update check: no weather widget active.");
+        return;
+    }
+
     if (!phone_connection_is_connected()) {
         APP_LOG(APP_LOG_LEVEL_INFO, "Skipping weather update check: Phone not connected.");
         return;
@@ -347,6 +383,11 @@ static void save_current_weather_data(WeatherData *weather_data) {
 }
 
 void weather_request_update() {
+    if (!is_weather_widget_active()) {
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "Skipping weather update request: no weather widget active.");
+        return;
+    }
+
     if (!phone_connection_is_connected()) {
         APP_LOG(APP_LOG_LEVEL_INFO, "Skipping weather update: Phone not connected.");
         return;
@@ -708,6 +749,11 @@ void destroy_weather_layer(Layer *layer) {
 }
 
 void deinit_weather_data() {
+    if (!s_weather_data_initialized) {
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "deinit_weather_data: skipping save (not initialized)");
+        return;
+    }
+
     save_current_weather_data(&s_weather_data);
 
     if (s_weather_data.is_temp_forecast_dynamic_alloc && s_weather_data.TemperatureForecast) {

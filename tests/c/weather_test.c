@@ -31,6 +31,7 @@ uint32_t MESSAGE_KEY_WEATHER_FORECAST_START_TS = 1010;
 
 #include "../../src/c/settings/clay_settings.h"
 #include "../../src/c/ui/theme.h"
+#include "../../src/c/ui/layer/widget.h"
 #include "../../src/c/ui/ui_state.h"
 #include "../../src/c/ui/layer_factory.h"
 #include "../../src/c/ui/layer/dotted_text_layer.h"
@@ -114,6 +115,8 @@ void setUp(void) {
     s_mock_connected = true;
     memset(&s_settings, 0, sizeof(ClaySettings));
     s_settings.WeatherUpdateIntervalMinutes = 15;
+    s_settings.LayoutRowCount = 1;
+    s_settings.Row0Widget = WIDGET_WEATHER;
     memset(&s_theme, 0, sizeof(Theme));
     mock_storage_reset();
 }
@@ -489,6 +492,59 @@ void test_weather_simulation_mode(void) {
     s_settings.WeatherUseSimulation = false;
 }
 
+void test_weather_init_skipped_if_inactive(void) {
+    // 1. Setup valid weather data in storage
+    PersistedWeatherData persisted = {.Version = WEATHER_DATA_PERSIST_VERSION, .ForecastStartTimestamp = s_mock_time, .CurrentTemperature = 22};
+    persist_write_data(WEATHER_DATA_KEY, &persisted, sizeof(PersistedWeatherData));
+
+    // 2. Set widgets to inactive
+    s_settings.LayoutRowCount = 1;
+    s_settings.Row0Widget = WIDGET_WEATHER_FORECAST + 10; // some inactive widget
+
+    // 3. Initialize
+    s_weather_data_initialized = false;
+    memset(&s_weather_data, 0, sizeof(WeatherData));
+    weather_init_data();
+
+    // 4. Verify s_weather_data is NOT initialized
+    TEST_ASSERT_FALSE(s_weather_data_initialized);
+    TEST_ASSERT_EQUAL_INT(0, s_weather_data.CurrentTemperature);
+}
+
+void test_weather_get_data_loads_on_demand(void) {
+    // 1. Setup valid weather data in storage
+    PersistedWeatherData persisted = {.Version = WEATHER_DATA_PERSIST_VERSION, .ForecastStartTimestamp = s_mock_time, .CurrentTemperature = 22};
+    persist_write_data(WEATHER_DATA_KEY, &persisted, sizeof(PersistedWeatherData));
+
+    // 2. Set widget active, but don't call weather_init_data() yet (keep initialized = false)
+    s_settings.LayoutRowCount = 1;
+    s_settings.Row0Widget = WIDGET_WEATHER;
+    s_weather_data_initialized = false;
+    memset(&s_weather_data, 0, sizeof(WeatherData));
+
+    // 3. Call weather_get_data() (should trigger on-demand load)
+    WeatherData *data = weather_get_data();
+
+    // 4. Verify data is loaded
+    TEST_ASSERT_TRUE(s_weather_data_initialized);
+    TEST_ASSERT_EQUAL_INT(22, data->CurrentTemperature);
+}
+
+void test_weather_updates_ignored_if_inactive(void) {
+    // Set widget to inactive
+    s_settings.LayoutRowCount = 1;
+    s_settings.Row0Widget = WIDGET_WEATHER_FORECAST + 10; // inactive
+    s_app_message_outbox_send_count = 0;
+
+    // Call request update
+    weather_request_update();
+    TEST_ASSERT_EQUAL_INT(0, s_app_message_outbox_send_count);
+
+    // Call check and request update
+    weather_check_and_request_update();
+    TEST_ASSERT_EQUAL_INT(0, s_app_message_outbox_send_count);
+}
+
 int main() {
     UNITY_BEGIN();
     RUN_TEST(test_weather_get_current_temp_no_forecast);
@@ -516,5 +572,8 @@ int main() {
     RUN_TEST(test_weather_deinit_data);
     RUN_TEST(test_weather_deinit_data_not_dirty);
     RUN_TEST(test_weather_simulation_mode);
+    RUN_TEST(test_weather_init_skipped_if_inactive);
+    RUN_TEST(test_weather_get_data_loads_on_demand);
+    RUN_TEST(test_weather_updates_ignored_if_inactive);
     return UNITY_END();
 }
