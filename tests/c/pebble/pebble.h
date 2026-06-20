@@ -8,6 +8,67 @@
 #include <stdlib.h>
 typedef struct tm tm;
 
+// --- Memory Tracking Mocks ---
+typedef struct {
+    size_t size;
+    uint32_t magic;
+} MockAllocHeader;
+
+#define MOCK_ALLOC_MAGIC 0x1A2B3C4D
+
+static size_t s_mock_allocated_bytes = 0;
+static size_t s_mock_peak_allocated_bytes = 0;
+static int s_mock_alloc_count = 0;
+
+static inline void *mock_tracked_malloc(size_t size) {
+    if (size == 0) return NULL;
+    MockAllocHeader *header = (MockAllocHeader *) malloc(sizeof(MockAllocHeader) + size);
+    if (!header) return NULL;
+    header->size = size;
+    header->magic = MOCK_ALLOC_MAGIC;
+    s_mock_allocated_bytes += size;
+    if (s_mock_allocated_bytes > s_mock_peak_allocated_bytes) {
+        s_mock_peak_allocated_bytes = s_mock_allocated_bytes;
+    }
+    s_mock_alloc_count++;
+    return (void *)(header + 1);
+}
+
+static inline void mock_tracked_free(void *ptr) {
+    if (!ptr) return;
+    MockAllocHeader *header = (MockAllocHeader *)ptr - 1;
+    if (header->magic == MOCK_ALLOC_MAGIC) {
+        s_mock_allocated_bytes -= header->size;
+        s_mock_alloc_count--;
+        header->magic = 0;
+        free(header);
+    } else {
+        free(ptr);
+    }
+}
+
+#define malloc(s) mock_tracked_malloc(s)
+#define free(p) mock_tracked_free(p)
+
+static inline void mock_memory_reset() {
+    s_mock_allocated_bytes = 0;
+    s_mock_peak_allocated_bytes = 0;
+    s_mock_alloc_count = 0;
+}
+
+static inline size_t mock_memory_allocated_bytes() {
+    return s_mock_allocated_bytes;
+}
+
+static inline size_t mock_memory_peak_allocated_bytes() {
+    return s_mock_peak_allocated_bytes;
+}
+
+static inline int mock_memory_alloc_count() {
+    return s_mock_alloc_count;
+}
+// --- End Memory Tracking Mocks ---
+
 // Define PBL_COLOR for testing color-dependent functions
 #define PBL_COLOR
 

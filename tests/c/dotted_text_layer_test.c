@@ -100,6 +100,30 @@ void test_dotted_text_layer_update_proc(void) {
     dotted_text_layer_destroy(layer);
 }
 
+void test_dotted_text_layer_leak_checking(void) {
+    mock_memory_reset();
+    TEST_ASSERT_EQUAL_INT(0, mock_memory_allocated_bytes());
+
+    DottedTextLayer *layer = dotted_text_layer_create(GRect(0, 0, 144, 30));
+    TEST_ASSERT_NOT_NULL(layer);
+    
+    // Set some text (should allocate memory for the text)
+    dotted_text_layer_set_text(layer, "Leak Test Text");
+    TEST_ASSERT_TRUE(mock_memory_allocated_bytes() > 0);
+
+    // Set other text (should free old text and allocate new text)
+    dotted_text_layer_set_text(layer, "Different text");
+
+    // Set text to NULL (should free text memory)
+    dotted_text_layer_set_text(layer, NULL);
+
+    dotted_text_layer_destroy(layer);
+
+    // Verify all allocations are freed
+    TEST_ASSERT_EQUAL_INT(0, mock_memory_allocated_bytes());
+    TEST_ASSERT_EQUAL_INT(0, mock_memory_alloc_count());
+}
+
 int main() {
     UNITY_BEGIN();
     RUN_TEST(test_dotted_text_layer_create_destroy);
@@ -107,5 +131,6 @@ int main() {
     RUN_TEST(test_dotted_text_layer_setters);
     RUN_TEST(test_dotted_text_layer_get_content_width);
     RUN_TEST(test_dotted_text_layer_update_proc);
+    RUN_TEST(test_dotted_text_layer_leak_checking);
     return UNITY_END();
 }

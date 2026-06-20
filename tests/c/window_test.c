@@ -39,10 +39,24 @@ void setUp(void) {}
 void tearDown(void) {}
 
 void test_window_load_unload(void) {
+    mock_memory_reset();
+
+    // Assert start state
+    TEST_ASSERT_EQUAL_INT(0, mock_memory_allocated_bytes());
+
     Window *window = window_create();
     window_load(window);
+
+    // Assert that we have allocated memory on load
+    TEST_ASSERT_TRUE(mock_memory_peak_allocated_bytes() > 0);
+    TEST_ASSERT_TRUE(mock_memory_alloc_count() > 0);
+
     window_unload(window);
     window_destroy(window);
+
+    // Assert that everything is cleaned up and there are no memory leaks
+    TEST_ASSERT_EQUAL_INT(0, mock_memory_allocated_bytes());
+    TEST_ASSERT_EQUAL_INT(0, mock_memory_alloc_count());
 }
 
 int main() {
