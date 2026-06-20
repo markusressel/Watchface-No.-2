@@ -159,8 +159,8 @@ ClaySettings *clay_sanitize_settings(ClaySettings *settings) {
         settings->LowBatteryThreshold = 30;
     }
 
-    if (settings->BatteryWidth > 2) {
-        settings->BatteryWidth = 0;
+    if (settings->BatteryWidth < 1 || settings->BatteryWidth > 100) {
+        settings->BatteryWidth = 100;
     }
 
     if (settings->DotWidth < 1 || settings->DotWidth > 5) settings->DotWidth = 3;
@@ -276,7 +276,7 @@ static ClaySettings *clay_reset_to_default_settings(ClaySettings *settings) {
 
     settings->DigitWidth = 4;
     settings->LowBatteryThreshold = 30;
-    settings->BatteryWidth = 0;
+    settings->BatteryWidth = 100;
 
     settings->DotWidth = 3;
     settings->DotHeight = 3;

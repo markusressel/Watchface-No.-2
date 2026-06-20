@@ -136,27 +136,27 @@ void test_update_battery_bar_triggers_mark_dirty(void) {
 }
 
 void test_battery_bar_layer_bounds_by_width(void) {
-    LayerBuilder builder = { .bounds = GRect(0, 0, 144, 30) };
+    LayerBuilder builder = { .bounds = GRect(0, 0, 140, 30) };
     
-    // Default / Full (0)
-    s_settings.BatteryWidth = 0;
+    // Default / Full (100)
+    s_settings.BatteryWidth = 100;
     Layer *layer_full = create_battery_bar_layer(builder);
-    TEST_ASSERT_EQUAL_INT(144, s_last_builder_bounds.size.w);
+    TEST_ASSERT_EQUAL_INT(140, s_last_builder_bounds.size.w);
     TEST_ASSERT_EQUAL_INT(0, s_last_builder_bounds.origin.x);
     destroy_battery_bar_layer(layer_full);
 
-    // Half (1)
-    s_settings.BatteryWidth = 1;
+    // Half (50)
+    s_settings.BatteryWidth = 50;
     Layer *layer_half = create_battery_bar_layer(builder);
-    TEST_ASSERT_EQUAL_INT(72, s_last_builder_bounds.size.w);
-    TEST_ASSERT_EQUAL_INT(72, s_last_builder_bounds.origin.x);
+    TEST_ASSERT_EQUAL_INT(70, s_last_builder_bounds.size.w);
+    TEST_ASSERT_EQUAL_INT(70, s_last_builder_bounds.origin.x);
     destroy_battery_bar_layer(layer_half);
 
-    // Quarter (2)
-    s_settings.BatteryWidth = 2;
+    // Quarter (25)
+    s_settings.BatteryWidth = 25;
     Layer *layer_quarter = create_battery_bar_layer(builder);
-    TEST_ASSERT_EQUAL_INT(36, s_last_builder_bounds.size.w);
-    TEST_ASSERT_EQUAL_INT(108, s_last_builder_bounds.origin.x);
+    TEST_ASSERT_EQUAL_INT(35, s_last_builder_bounds.size.w);
+    TEST_ASSERT_EQUAL_INT(105, s_last_builder_bounds.origin.x);
     destroy_battery_bar_layer(layer_quarter);
 }
 

@@ -237,11 +237,9 @@ void update_battery_bar_layer(Layer *layer) {
 Layer *create_battery_bar_layer(LayerBuilder builder) {
     ClaySettings *settings = clay_get_settings();
     int original_width = builder.bounds.size.w;
-    int new_width = original_width;
-    if (settings->BatteryWidth == 1) { // Half
-        new_width = original_width / 2;
-    } else if (settings->BatteryWidth == 2) { // Quarter
-        new_width = original_width / 4;
+    int new_width = (original_width * settings->BatteryWidth) / 100;
+    if (new_width < 1) {
+        new_width = 1;
     }
 
     // Default alignment is HORIZONTAL_ALIGN_RIGHT, so shift x origin to right-align the frame.
