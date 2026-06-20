@@ -48,7 +48,7 @@ void test_clay_load_settings_with_valid_version(void) {
     // Arrange: Simulate current version data exists
     mock_storage_set_version(SETTINGS_VERSION);
 
-    ClaySettings *saved_settings = clay_reset_to_default_settings();
+    ClaySettings *saved_settings = clay_reset_to_default_settings(clay_get_settings());
     saved_settings->LayoutRowCount = layout_row_count_max_for_platform();
     saved_settings->ShowSeconds = true;
     clay_save_settings(saved_settings);
@@ -63,7 +63,7 @@ void test_clay_load_settings_with_valid_version(void) {
 
 void test_clay_battery_settings_defaults(void) {
     // Act
-    ClaySettings *settings = clay_reset_to_default_settings();
+    ClaySettings *settings = clay_reset_to_default_settings(clay_get_settings());
 
     // Assert
     TEST_ASSERT_EQUAL_INT(30, settings->LowBatteryThreshold);
@@ -88,7 +88,7 @@ void test_clay_battery_settings_defaults(void) {
 void test_clay_load_settings_detects_version_change_and_resets_sync(void) {
     mock_storage_set_version(SETTINGS_VERSION);
 
-    ClaySettings *saved_settings = clay_reset_to_default_settings();
+    ClaySettings *saved_settings = clay_reset_to_default_settings(clay_get_settings());
     saved_settings->InitialSyncDone = true;
     clay_save_settings(saved_settings);
 
@@ -109,7 +109,7 @@ void test_clay_load_settings_detects_version_change_and_resets_sync(void) {
 void test_clay_load_settings_retains_sync_when_version_is_same(void) {
     mock_storage_set_version(SETTINGS_VERSION);
 
-    ClaySettings *saved_settings = clay_reset_to_default_settings();
+    ClaySettings *saved_settings = clay_reset_to_default_settings(clay_get_settings());
     saved_settings->InitialSyncDone = true;
     clay_save_settings(saved_settings);
 
@@ -123,6 +123,28 @@ void test_clay_load_settings_retains_sync_when_version_is_same(void) {
     TEST_ASSERT_TRUE(loaded_settings->InitialSyncDone);
 }
 
+void test_clay_save_settings_does_not_reset_in_memory_settings(void) {
+    ClaySettings *settings = clay_get_settings();
+    clay_reset_to_default_settings(settings);
+
+    // Modify theme and a color to represent a custom theme transmission
+    strcpy(settings->ThemeValue, THEME_CUSTOM_STR);
+    settings->BackgroundColor = GColorRed;
+
+    // Save settings
+    clay_save_settings(settings);
+
+    // Assert: In-memory settings should retain the customized values
+    TEST_ASSERT_EQUAL_STRING(THEME_CUSTOM_STR, settings->ThemeValue);
+    TEST_ASSERT_EQUAL_UINT8(GColorRed.argb, settings->BackgroundColor.argb);
+
+    // Load settings from storage
+    ClaySettings *loaded = clay_load_settings();
+
+    // Assert: Loaded settings should also contain the customized values
+    TEST_ASSERT_EQUAL_STRING(THEME_CUSTOM_STR, loaded->ThemeValue);
+    TEST_ASSERT_EQUAL_UINT8(GColorRed.argb, loaded->BackgroundColor.argb);
+}
 
 int main() {
     UNITY_BEGIN();
@@ -131,5 +153,6 @@ int main() {
     RUN_TEST(test_clay_battery_settings_defaults);
     RUN_TEST(test_clay_load_settings_detects_version_change_and_resets_sync);
     RUN_TEST(test_clay_load_settings_retains_sync_when_version_is_same);
+    RUN_TEST(test_clay_save_settings_does_not_reset_in_memory_settings);
     return UNITY_END();
 }

@@ -373,7 +373,6 @@ ClaySettings *clay_load_settings() {
 }
 
 ClaySettings *clay_save_settings(ClaySettings *settings) {
-    clay_delete_saved_settings();
     // save ClaySettings struct to persistent storage
     persist_write_int(SETTINGS_VERSION_KEY, SETTINGS_VERSION);
     persist_write_data(SETTINGS_KEY, settings, sizeof(ClaySettings));
