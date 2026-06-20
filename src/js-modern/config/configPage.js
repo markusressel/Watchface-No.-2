@@ -439,7 +439,7 @@ export default [
             {
                 "type": "color",
                 "messageKey": "WeekdayTextColor",
-                "defaultValue": "0xFFFFFF",
+                "defaultValue": "0xFFAA55",
                 "label": "Weekday"
             },
             {
@@ -461,7 +461,7 @@ export default [
             {
                 "type": "color",
                 "messageKey": "BatteryFillColor",
-                "defaultValue": "0xFFFFFF",
+                "defaultValue": "0xFFFFAA",
                 "label": "Bar"
             },
             {
@@ -609,7 +609,7 @@ export default [
             {
                 "type": "color",
                 "messageKey": "StepcountTextColor",
-                "defaultValue": "0xFFFFFF",
+                "defaultValue": "0xAAFFAA",
                 "label": "Text"
             },
             {
@@ -619,7 +619,7 @@ export default [
             {
                 "type": "color",
                 "messageKey": "HeartrateTextColor",
-                "defaultValue": "0xFFFFFF",
+                "defaultValue": "0xFF55AA",
                 "label": "Text"
             }
         ]

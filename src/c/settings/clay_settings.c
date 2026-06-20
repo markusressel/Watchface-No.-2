@@ -206,19 +206,18 @@ static ClaySettings *clay_reset_to_default_settings() {
 
     const bool is_dark = strcmp(THEME_DEFAULT, THEME_DARK_STR) == 0;
     settings->BackgroundColor = is_dark ? GColorBlack : GColorWhite;
-    GColor foregroundColor = is_dark ? GColorWhite : GColorBlack;
     GColor textColor = is_dark ? GColorWhite : GColorBlack;
 
     // Time Layer
     settings->TimeTextColor = textColor;
     // Date Layer
-    settings->DateTextColor = textColor;
-    settings->WeekdayTextColor = textColor;
-    settings->DateSeparatorColor = textColor;
+    settings->DateTextColor = GColorWhite;
+    settings->WeekdayTextColor = GColorRajah;
+    settings->DateSeparatorColor = GColorLightGray;
 
     // Battery Bar Layer
-    settings->BatteryFrameColor = foregroundColor;
-    settings->BatteryFillColor = foregroundColor;
+    settings->BatteryFrameColor = textColor;
+    settings->BatteryFillColor = GColorPastelYellow;
     settings->BatteryLowColor = GColorRed;
 
     // Weather Layer
@@ -251,10 +250,10 @@ static ClaySettings *clay_reset_to_default_settings() {
     settings->WeatherSlot3 = 3; // Min
 
     // Stepcount layer
-    settings->StepcountTextColor = textColor;
+    settings->StepcountTextColor = GColorMintGreen;
 
     // Heartrate layer
-    settings->HeartrateTextColor = textColor;
+    settings->HeartrateTextColor = GColorBrilliantRose;
 
     settings->ShowYear = false;
     settings->ShowSeconds = false;
