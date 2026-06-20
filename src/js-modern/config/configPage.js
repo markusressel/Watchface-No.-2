@@ -17,7 +17,7 @@ export default [
             {
                 "type": "slider",
                 "messageKey": "LayoutRowCount",
-                "defaultValue": 5,
+                "defaultValue": 6,
                 "label": "Row Count",
                 "description": "Total visible rows",
                 "min": 5,
@@ -31,7 +31,7 @@ export default [
             {
                 "type": "select",
                 "messageKey": "Row0Widget",
-                "defaultValue": 0,
+                "defaultValue": 6,
                 "label": "Row 1",
                 "options": [
                     {"label": "Weather", "value": 0},
@@ -46,7 +46,7 @@ export default [
             {
                 "type": "select",
                 "messageKey": "Row1Widget",
-                "defaultValue": 1,
+                "defaultValue": 0,
                 "label": "Row 2",
                 "options": [
                     {"label": "Weather", "value": 0},
@@ -61,7 +61,7 @@ export default [
             {
                 "type": "select",
                 "messageKey": "Row2Widget",
-                "defaultValue": 2,
+                "defaultValue": 1,
                 "label": "Row 3",
                 "options": [
                     {"label": "Weather", "value": 0},
@@ -76,7 +76,7 @@ export default [
             {
                 "type": "select",
                 "messageKey": "Row3Widget",
-                "defaultValue": 3,
+                "defaultValue": 2,
                 "label": "Row 4",
                 "options": [
                     {"label": "Weather", "value": 0},
@@ -91,7 +91,7 @@ export default [
             {
                 "type": "select",
                 "messageKey": "Row4Widget",
-                "defaultValue": 4,
+                "defaultValue": 3,
                 "label": "Row 5",
                 "options": [
                     {"label": "Weather", "value": 0},
@@ -106,7 +106,7 @@ export default [
             {
                 "type": "select",
                 "messageKey": "Row5Widget",
-                "defaultValue": 3,
+                "defaultValue": 4,
                 "label": "Row 6",
                 "options": [
                     {"label": "Weather", "value": 0},
@@ -121,7 +121,7 @@ export default [
             {
                 "type": "select",
                 "messageKey": "Row6Widget",
-                "defaultValue": 3,
+                "defaultValue": 5,
                 "label": "Row 7",
                 "options": [
                     {"label": "Weather", "value": 0},
