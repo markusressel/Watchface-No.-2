@@ -63,8 +63,10 @@ just test-js
 Modifying settings is a multi-step process:
 
 1. **Define Key**: Add entry to `pebble.messageKeys` in `package.json`.
-2. **UI & Default**: Add item to `src/js-modern/config/configPage.js`.
-3. **Generate Helper**: Run `just generate` (or `just build`) to update `src/js-modern/generated/settings.js`.
+2. **UI & Default**: Add item to `src/js-config/configPage.js`.
+3. **Generate Helper**: Run `just generate` (or `just build`) to update 
+    * `src/js-modern/generated/settings.js` and
+    * `src/js-modern/generated/configPage.js`
 4. **C Receipt**: Update `src/c/app_messaging/app_messaging.c` to handle the new key.
 5. **C Storage**: Update `src/c/settings/clay_settings.c` and `persist_keys.h` for persistence.
 
