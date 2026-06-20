@@ -7,10 +7,7 @@ import * as weather from './weather/weather';
 
 const clay = new Clay(clayConfig, customClay);
 
-/**
- * Indicated whether the Watch app is ready to receive data, aka. we have received an "AppReady" message from it.
- */
-let isPebbleReady = false;
+
 
 // When the config page is closed, Clay saves settings to 'clay-settings' in
 // localStorage (and sends watch-bound keys to the watch). We add our own
@@ -21,21 +18,19 @@ Pebble.addEventListener('webviewclosed', function (e) {
     }
 
     // Refresh weather
-    if (isPebbleReady) {
-        // Clay has already saved the new settings to LocalStorage, 
-        // but we want to intercept that to apply our own logic,
-        // like clearing weather data
-        const settingsJson = JSON.parse(e.response);
-        const settings = new config.getClaySettings().constructor(settingsJson);
-        config.saveClaySettings(settings);
+    // Clay has already saved the new settings to LocalStorage, 
+    // but we want to intercept that to apply our own logic,
+    // like clearing weather data
+    const settingsJson = JSON.parse(e.response);
+    const settings = new config.getClaySettings().constructor(settingsJson);
+    config.saveClaySettings(settings);
 
-        if (settingsJson.ClearWeatherCache) {
-            logger.info("ClearWeatherCache flag detected, clearing weather data.");
-            weather.clearWeatherData();
-        }
-
-        weather.getWeather(true);
+    if (settingsJson.ClearWeatherCache) {
+        logger.info("ClearWeatherCache flag detected, clearing weather data.");
+        weather.clearWeatherData();
     }
+
+    weather.getWeather(true);
 });
 
 // Listen for when the watchface is opened
@@ -86,17 +81,12 @@ Pebble.addEventListener('appmessage',
 
 function onAppReady() {
     logger.info("Watchface is ready!");
-    isPebbleReady = true;
 }
 
 function onRequestWeatherData() {
-    if (isPebbleReady) {
-        weather.getWeather(true);
-    }
+    weather.getWeather(true);
 }
 
 function onRequestSettings() {
-    if (isPebbleReady) {
-        sendAllSettings();
-    }
+    sendAllSettings();
 }

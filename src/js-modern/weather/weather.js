@@ -379,7 +379,7 @@ export function buildCondensedSeries(entries, extractor, maxCount) {
 async function fetchWeatherData(latitude, longitude) {
     try {
         const claySettings = config.getClaySettings();
-        const forecast_hours = claySettings.SliderWeatherForecastPreviewHoursCount
+        const forecast_hours = parseInt(claySettings.SliderWeatherForecastPreviewHoursCount, 10) || 6;
         const json = await openmeteo.fetchWeatherData(latitude, longitude, forecast_hours);
         return processOpenMeteoPayload(json, 'api/openmeteo');
     } catch (error) {
@@ -435,6 +435,38 @@ export function isAnyWeatherWidgetActive() {
 }
 
 /**
+ * Helper to fetch, cache, and send weather data for specified coordinates.
+ * @param {number} latitude
+ * @param {number} longitude
+ * @param {boolean} isFallback
+ */
+function fetchAndSendWeather(latitude, longitude, isFallback) {
+    fetchWeatherData(latitude, longitude)
+        .then(weatherData => {
+            logger.info('Weather fetch process completed.');
+            if (weatherData) {
+                cacheWeatherData(weatherData);
+                sendWeatherToWatch(
+                    weatherData,
+                    isFallback ? 'Weather data sent to Pebble successfully (fallback location)!' : 'Weather data sent to Pebble successfully!',
+                    'Error sending weather data to Pebble!'
+                );
+            }
+        })
+        .catch(e => {
+            logger.error((isFallback ? 'Error in weather fetch process (fallback location): ' : 'Error in weather fetch process: ') + e);
+        });
+}
+
+/**
+ * Checks if the runtime is the Pebble emulator (running locally under Node.js).
+ * @returns {boolean}
+ */
+function isRunningInEmulator() {
+    return typeof process !== 'undefined' && process.versions && process.versions.node;
+}
+
+/**
  * Returns the currently most up-to-date weather data.
  * Data is either served from cache, if the data is still new enough.
  * Otherwise latest data is fetched, either from the selected API, or "timeline.json" file if simulation mode is enabled.
@@ -470,26 +502,27 @@ export function getWeather(force = false) {
         }
     }
 
+    if (!navigator.geolocation) {
+        if (isRunningInEmulator()) {
+            logger.warn('navigator.geolocation is not available. Using fallback coordinates (Berlin).');
+            fetchAndSendWeather(52.5200, 13.4050, true);
+        } else {
+            logger.error('navigator.geolocation is not available.');
+        }
+        return;
+    }
+
     navigator.geolocation.getCurrentPosition(
         function (pos) {
-            fetchWeatherData(pos.coords.latitude, pos.coords.longitude)
-                .then(weatherData => {
-                    logger.info('Weather fetch process completed.');
-                    if (weatherData) {
-                        cacheWeatherData(weatherData);
-                        sendWeatherToWatch(
-                            weatherData,
-                            'Weather data sent to Pebble successfully!',
-                            'Error sending weather data to Pebble!'
-                        );
-                    }
-                })
-                .catch(e => {
-                    logger.error('Error in weather fetch process: ' + e)
-                });
+            fetchAndSendWeather(pos.coords.latitude, pos.coords.longitude, false);
         },
         function (err) {
-            logger.error("Error requesting location!");
+            if (isRunningInEmulator()) {
+                logger.warn('Error requesting location: ' + (err ? err.message : 'unknown') + '. Using fallback coordinates (Berlin).');
+                fetchAndSendWeather(52.5200, 13.4050, true);
+            } else {
+                logger.error('Error requesting location: ' + (err ? err.message : 'unknown'));
+            }
         },
         {timeout: 15.0.seconds, maximumAge: 60.0.seconds}
     );

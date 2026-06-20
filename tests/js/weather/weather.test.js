@@ -449,10 +449,10 @@ describe('weather.js', () => {
         mockGeolocation.getCurrentPosition.mockImplementationOnce((success, error, options) => {
             error({ message: 'Location error' });
         });
-        const spyErrorLog = jest.spyOn(require('../../../src/js-modern/logger').logger, 'error');
+        const spyWarnLog = jest.spyOn(require('../../../src/js-modern/logger').logger, 'warn');
         weather.getWeather();
-        expect(spyErrorLog).toHaveBeenCalledWith('Error requesting location!');
-        spyErrorLog.mockRestore();
+        expect(spyWarnLog).toHaveBeenCalledWith('Error requesting location: Location error. Using fallback coordinates (Berlin).');
+        spyWarnLog.mockRestore();
     });
 
     test('getWeather catch block for fetchWeatherData rejection', async () => {
@@ -473,5 +473,22 @@ describe('weather.js', () => {
         
         expect(spyErrorLog).toHaveBeenCalledWith('Error during API weather request or processing: Error: Network failure');
         spyErrorLog.mockRestore();
+    });
+
+    test('getWeather when navigator.geolocation is not defined', () => {
+        mockConfig.getClaySettings.mockReturnValue({
+            Row0Widget: "0", // Weather active
+            LayoutRowCount: 1,
+        });
+        const originalGeolocation = global.navigator.geolocation;
+        delete global.navigator.geolocation;
+        
+        const spyWarnLog = jest.spyOn(require('../../../src/js-modern/logger').logger, 'warn');
+        weather.getWeather();
+        expect(spyWarnLog).toHaveBeenCalledWith('navigator.geolocation is not available. Using fallback coordinates (Berlin).');
+        spyWarnLog.mockRestore();
+        
+        // Restore geolocation
+        global.navigator.geolocation = originalGeolocation;
     });
 });
