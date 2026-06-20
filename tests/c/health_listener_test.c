@@ -7,6 +7,11 @@ int s_step_count;
 
 #include "../../src/c/system/health_listener.h"
 
+#include "../../src/c/settings/clay_settings.h"
+#include "../../src/c/ui/layer/widget.h"
+ClaySettings s_settings;
+ClaySettings *clay_get_settings() { return &s_settings; }
+
 // Mock dependencies
 void update_stepcount() {
 }
@@ -24,6 +29,11 @@ void setUp(void) {
     s_mock_heart_rate = 0;
     s_heartrate_bpm = 0;
     s_step_count = 0;
+
+    // By default, enable a health widget so tests register correctly
+    memset(&s_settings, 0, sizeof(ClaySettings));
+    s_settings.LayoutRowCount = 1;
+    s_settings.Row0Widget = WIDGET_HEARTRATE;
 }
 
 void tearDown(void) {
@@ -133,6 +143,19 @@ void test_health_does_not_save_zero_to_persistence_on_unregister(void) {
     TEST_ASSERT_FALSE(persist_exists(PERSIST_KEY_LAST_HEARTRATE));
 }
 
+void test_health_listener_not_registered_if_inactive(void) {
+    // 1. Configure settings to NOT have active health widgets
+    s_settings.LayoutRowCount = 1;
+    s_settings.Row0Widget = WIDGET_WEATHER;
+
+    // 2. Register
+    register_health_event_listener();
+
+    // 3. Verify it was NOT registered
+    TEST_ASSERT_NULL(s_health_handler);
+    TEST_ASSERT_FALSE(registered);
+}
+
 int main() {
     UNITY_BEGIN();
     RUN_TEST(test_register_health_event_listener);
@@ -145,5 +168,6 @@ int main() {
     RUN_TEST(test_health_ignore_zero_heartrate_significant);
     RUN_TEST(test_health_save_to_persistence_on_unregister);
     RUN_TEST(test_health_does_not_save_zero_to_persistence_on_unregister);
+    RUN_TEST(test_health_listener_not_registered_if_inactive);
     return UNITY_END();
 }
