@@ -7,7 +7,7 @@
 // Persistent storage key
 #define SETTINGS_KEY PERSIST_KEY_SETTINGS
 #define SETTINGS_VERSION_KEY PERSIST_KEY_SETTINGS_VERSION
-#define SETTINGS_VERSION 26
+#define SETTINGS_VERSION 27
 
 // Theme Values
 #define THEME_LIGHT_STR "LIGHT"
@@ -52,6 +52,7 @@ typedef struct ClaySettings {
     uint8_t WeatherSlot2;
     uint8_t WeatherSlot3;
     uint8_t LowBatteryThreshold;
+    uint8_t BatteryWidth;
     uint8_t DigitWidth;
     uint8_t DotWidth;
     uint8_t DotHeight;

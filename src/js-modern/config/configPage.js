@@ -266,6 +266,17 @@ export default [
                 "min": 0,
                 "max": 30,
                 "step": 5
+            },
+            {
+                "type": "select",
+                "messageKey": "BatteryWidth",
+                "defaultValue": 0,
+                "label": "Battery Widget Width",
+                "options": [
+                    {"label": "Full", "value": 0},
+                    {"label": "Half", "value": 1},
+                    {"label": "Quarter", "value": 2}
+                ]
             }
         ]
     },

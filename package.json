@@ -43,6 +43,7 @@
             "DateSeparatorColor",
             "BatteryFrameColor",
             "BatteryFillColor",
+            "BatteryWidth",
             "ShowSeconds",
             "Theme",
             "StepcountTextColor",
