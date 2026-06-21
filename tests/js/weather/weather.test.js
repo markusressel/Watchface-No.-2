@@ -173,7 +173,7 @@ describe('weather.js', () => {
         const expectedDictionary = {
             'WEATHER_TEMPERATURE_CURRENT': 7,
             'WEATHER_TEMPERATURE_MIN': 7,
-            'WEATHER_TEMPERATURE_MAX': 9,
+            'WEATHER_TEMPERATURE_MAX': 12,
             'WEATHER_CONDITION': '',
             'WEATHER_RAIN_NEXT_HOUR_MM_X10': 5, // 0.5 * 10
             'WEATHER_RAIN_POP_PERCENT': 0, // pop is 0 now

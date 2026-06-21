@@ -138,23 +138,25 @@ export function processOpenMeteoPayload(json, sourceLabel) {
         return null;
     }
 
-    // Determine min/max for the current local day
-    const timezoneOffsetSeconds = json.utc_offset_seconds || 0;
-    const referenceDay = Math.floor((dts[currentIndex] + timezoneOffsetSeconds) / 86400);
+    const forecastPointCount = (parseInt(claySettings.SliderWeatherForecastPreviewHoursCount, 10) || 6) * 4;
+    const limit = Math.min(dts.length, forecastPointCount);
 
-    let minTemp = data[tempField][currentIndex];
-    let maxTemp = data[tempField][currentIndex];
+    // Determine min/max over the forecast window
+    let minTemp = null;
+    let maxTemp = null;
 
-    for (let i = 0; i < dts.length; i++) {
-        const day = Math.floor((dts[i] + timezoneOffsetSeconds) / 86400);
-        if (day === referenceDay) {
-            const t = data[tempField][i];
-            if (typeof t === 'number') {
-                if (t < minTemp) minTemp = t;
-                if (t > maxTemp) maxTemp = t;
-            }
+    for (let i = 0; i < limit; i++) {
+        const t = data[tempField][i];
+        if (typeof t === 'number') {
+            if (minTemp === null || t < minTemp) minTemp = t;
+            if (maxTemp === null || t > maxTemp) maxTemp = t;
         }
     }
+
+    if (minTemp === null) minTemp = data[tempField][currentIndex] || 0;
+    if (maxTemp === null) maxTemp = data[tempField][currentIndex] || 0;
+
+    const timezoneOffsetSeconds = json.utc_offset_seconds || 0;
 
     const temperatureCurrent = Math.round(data[tempField][currentIndex]);
     const temperatureMin = Math.round(minTemp);
@@ -169,9 +171,6 @@ export function processOpenMeteoPayload(json, sourceLabel) {
     logger.info('Max Temperature is ' + temperatureMax);
     logger.info('Rain from selected entry (mm/h): ' + rainMm + ', pop (%): ' + popPercent);
 
-    const forecastPointCount = claySettings.SliderWeatherForecastPreviewHoursCount * 4;
-
-    const limit = Math.min(dts.length, forecastPointCount);
     const forecastStartTimestamp = limit > 0 ? dts[0] : 0;
 
     const temperatureForecastSeries = [];
