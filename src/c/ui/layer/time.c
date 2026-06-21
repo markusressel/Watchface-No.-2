@@ -1,4 +1,5 @@
 #include "time.h"
+#include "../../system/time.h"
 
 #include "dotted_text_layer.h"
 #include "../../ui/theme.h"
@@ -7,8 +8,8 @@
 #include "../ui_state.h"
 
 static void update_time_for_layer(DottedTextLayer *time_layer) {
-    const time_t temp = time(NULL);
-    struct tm *tick_time = localtime(&temp);
+    const time_t temp = custom_time(NULL);
+    struct tm *tick_time = custom_localtime(&temp);
 
     static char s_buffer[16];
     char time_format[16];

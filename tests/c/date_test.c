@@ -149,11 +149,11 @@ static struct tm *mock_localtime(const time_t *t) {
     return &s_mock_tm_val;
 }
 
-#define time mock_time
-#define localtime mock_localtime
+#define custom_time mock_time
+#define custom_localtime mock_localtime
 #include "../../src/c/ui/layer/date.c"
-#undef time
-#undef localtime
+#undef custom_time
+#undef custom_localtime
 
 void setUp(void) {
     memset(&s_settings, 0, sizeof(ClaySettings));

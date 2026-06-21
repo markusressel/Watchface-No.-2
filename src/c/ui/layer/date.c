@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include "../../system/time.h"
 
 #include "date.h"
 
@@ -109,8 +110,8 @@ static void update_date_for_layer(Layer *container_layer) {
     }
 
     // Get a tm structure
-    time_t temp = time(NULL);
-    struct tm *tick_time = localtime(&temp);
+    time_t temp = custom_time(NULL);
+    struct tm *tick_time = custom_localtime(&temp);
 
     ClaySettings *settings = clay_get_settings();
     Theme *theme = theme_get_theme();

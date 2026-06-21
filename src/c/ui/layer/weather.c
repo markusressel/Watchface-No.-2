@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include "../../system/time.h"
 #include "weather.h"
 #include "../../developer_options.h"
 #include "../../ui/theme.h"
@@ -108,8 +109,8 @@ WeatherData *weather_get_data() {
         memcpy(&s_mock_weather_data, &s_mock_weather_data_template, sizeof(WeatherData));
         // set timestamp to a fixed point in the past (e.g. start of current hour) for testing
         // this prevents the "treadmill" effect where the indicator never moves relative to now.
-        const time_t now = time(NULL);
-        const struct tm *t = localtime(&now);
+        const time_t now = custom_time(NULL);
+        const struct tm *t = custom_localtime(&now);
         struct tm start_of_hour = *t;
         start_of_hour.tm_min = 0;
         start_of_hour.tm_sec = 0;
@@ -214,7 +215,7 @@ void weather_init_data() {
         const int forecast_points = settings->SliderWeatherForecastPreviewHoursCount * 4; // 15 min points
         const time_t max_valid_time = s_weather_data.ForecastStartTimestamp + (forecast_points * 15 * 60);
 
-        if (time(NULL) > max_valid_time) {
+        if (custom_time(NULL) > max_valid_time) {
             APP_LOG(APP_LOG_LEVEL_INFO, "Restored weather data is expired. Clearing.");
             weather_clear_data();
         }
@@ -249,7 +250,7 @@ void weather_check_and_request_update() {
     // 2. If the data is expired, clear and request it.
     const int forecast_points = settings->SliderWeatherForecastPreviewHoursCount * 4; // 15 min points
     const time_t max_valid_time = s_weather_data.ForecastStartTimestamp + (forecast_points * 15 * 60);
-    if (time(NULL) > max_valid_time) {
+    if (custom_time(NULL) > max_valid_time) {
         APP_LOG(APP_LOG_LEVEL_INFO, "Restored weather data is expired. Fetching new.");
         weather_clear_data();
         weather_request_update();
@@ -262,14 +263,14 @@ void weather_check_and_request_update() {
         interval_mins = 15;
     }
     const time_t threshold_time = s_weather_data.ForecastStartTimestamp + (interval_mins * 60);
-    if (time(NULL) > threshold_time) {
+    if (custom_time(NULL) > threshold_time) {
         APP_LOG(APP_LOG_LEVEL_INFO, "Restored weather data is older than threshold. Requesting update.");
         weather_request_update();
         return;
     }
 
     APP_LOG(APP_LOG_LEVEL_DEBUG, "Weather data is fresh (age: %ld mins, threshold: %d mins). Skipping update.",
-            (long)((time(NULL) - s_weather_data.ForecastStartTimestamp) / 60), interval_mins);
+            (long)((custom_time(NULL) - s_weather_data.ForecastStartTimestamp) / 60), interval_mins);
 }
 
 void weather_delete_persisted_data() {
@@ -300,7 +301,7 @@ void weather_tick_update() {
     const int forecast_points = settings->SliderWeatherForecastPreviewHoursCount * 4; // 15 min points
     const time_t max_valid_time = s_weather_data.ForecastStartTimestamp + (forecast_points * 15 * 60);
 
-    if (time(NULL) > max_valid_time) {
+    if (custom_time(NULL) > max_valid_time) {
         APP_LOG(APP_LOG_LEVEL_INFO, "Weather data expired. Clearing.");
         weather_clear_data();
     } else {
@@ -443,8 +444,8 @@ static int compute_next_weather_update_request_ms() {
     if (interval_mins <= 0) {
         interval_mins = 15;
     }
-    const time_t now = time(NULL);
-    const struct tm *time_now = localtime(&now);
+    const time_t now = custom_time(NULL);
+    const struct tm *time_now = custom_localtime(&now);
 
     // Create a tm struct for the start of the current day
     struct tm day_start_tm = *time_now;
@@ -620,7 +621,7 @@ static int weather_get_current_temp(WeatherData *data) {
         return data->CurrentTemperature;
     }
 
-    const time_t now = time(NULL);
+    const time_t now = custom_time(NULL);
     const int interval = 15 * 60; // 15 minutes
 
     // Calculate how many intervals have passed since the forecast started

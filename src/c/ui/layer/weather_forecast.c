@@ -1,6 +1,7 @@
 #include "weather_forecast.h"
 
 #include <pebble.h>
+#include "../../system/time.h"
 #include <string.h>
 
 #include "../../ui/theme.h"
@@ -68,7 +69,7 @@ static void update_proc(Layer *layer, GContext *ctx) {
 
     // Update current time indicator
     if (weather_data->ForecastStartTimestamp > 0) {
-        const time_t now = time(NULL);
+        const time_t now = custom_time(NULL);
         const int diff_seconds = (int) (now - weather_data->ForecastStartTimestamp);
         // Each point is exactly 15 minutes (900 seconds)
         const float x_index = (float) diff_seconds / 900.0f;
@@ -114,7 +115,7 @@ void weather_forecast_tick_update() {
 
     ClaySettings *settings = clay_get_settings();
     const int max_forecast_points = settings->SliderWeatherForecastPreviewHoursCount * FORECAST_POINTS_PER_HOUR;
-    const time_t now = time(NULL);
+    const time_t now = custom_time(NULL);
     const int diff_seconds = (int) (now - weather_data->ForecastStartTimestamp);
     const float x_index = (float) diff_seconds / 900.0f;
 

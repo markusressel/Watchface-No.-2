@@ -5,6 +5,8 @@
 typedef struct DeveloperOptions {
     bool ShowLayerBounds;
     bool IsEmulator;
+    bool UseSimulatedTime;
+    const char *SimulatedTime;
 } DeveloperOptions;
 
 #ifdef WF_EMULATOR
@@ -18,6 +20,8 @@ typedef struct DeveloperOptions {
 static const DeveloperOptions DEV_OPTIONS __attribute__((unused)) = {
     .ShowLayerBounds = false,
     .IsEmulator = IS_EMULATOR_BUILD,
+    .UseSimulatedTime = false,
+    .SimulatedTime = NULL,
 };
 #else
 
@@ -25,6 +29,8 @@ static const DeveloperOptions DEV_OPTIONS __attribute__((unused)) = {
 static const DeveloperOptions DEV_OPTIONS __attribute__((unused)) = {
     .ShowLayerBounds = false,
     .IsEmulator = IS_EMULATOR_BUILD,
+    .UseSimulatedTime = false,
+    .SimulatedTime = "11:11:00",
 };
 
 #endif

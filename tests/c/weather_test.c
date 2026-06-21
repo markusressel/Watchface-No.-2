@@ -12,7 +12,7 @@ time_t mock_time(time_t *t) {
     return s_mock_time;
 }
 
-#define time mock_time
+
 
 // Mock dependencies for weather.c
 #include "pebble/pebble.h"
@@ -111,8 +111,9 @@ void update_weather_forecast() {
 void weather_forecast_tick_update() {
 }
 
-// Include the C file to test static functions
+#define custom_time mock_time
 #include "../../src/c/ui/layer/weather.c"
+#undef custom_time
 
 void setUp(void) {
     s_mock_time = 1000000; // Arbitrary start time

@@ -779,3 +779,15 @@ static inline void window_set_window_handlers(Window *window, WindowHandlers han
 static inline void app_event_loop() {}
 static inline void light_enable(bool enable) { (void)enable; }
 
+// Custom simulated time wrapper mocks
+#define MOCK_TIME
+static inline time_t custom_time(time_t *tloc) {
+    time_t t = time(NULL);
+    if (tloc) *tloc = t;
+    return t;
+}
+static inline struct tm *custom_localtime(const time_t *timep) {
+    return localtime(timep);
+}
+
+
