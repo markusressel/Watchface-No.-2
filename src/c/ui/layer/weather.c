@@ -12,7 +12,7 @@
 static char s_buffer[32];
 
 static WeatherData s_weather_data;
-static WeatherData s_mock_weather_data;
+// static WeatherData s_mock_weather_data;
 static int s_runtime_temp_forecast[WEATHER_FORECAST_MAX_POINTS];
 static int s_runtime_rain_forecast[WEATHER_FORECAST_MAX_POINTS];
 
@@ -31,33 +31,33 @@ typedef struct PersistedWeatherData {
     char CurrentConditions[48];
 } PersistedWeatherData;
 
-static int s_mock_temp_forecast[WEATHER_FORECAST_MAX_POINTS] = {
-    18, 20, 22, 24, 23, 21, 19, 17, 16, 15,
-    17, 20, 23, 26, 28, 30, 29, 27, 25, 24,
-    26, 28, 31, 33, 34, 32, 30, 28, 27, 25,
-    22, 19, 16, 13, 10, 8, 7, 6, 5, 4,
-    2, 0, -2, -4, -3, -1, 1, 3, 5, 7
-};
-static int s_mock_rain_forecast[WEATHER_FORECAST_MAX_POINTS] = {
-    0, 0, 0, 0, 0, 5, 10, 8, 3, 0,
-    0, 0, 0, 0, 0, 20, 50, 100, 30, 5,
-    0, 0, 0, 0, 0, 0, 10, 30, 80, 20,
-    0, 5, 15, 25, 20, 10, 5, 0, 0, 0,
-    0, 0, 0, 5, 10, 15, 10, 5, 0, 0
-};
-static const WeatherData s_mock_weather_data_template = {
-    .CurrentTemperature = 26,
-    .MaxTemperature = 27,
-    .MinTemperature = 19,
-    .RainNextHourMmX10 = 0,
-    .RainPopPercent = 0,
-    .TemperatureForecastCount = sizeof(s_mock_temp_forecast) / sizeof(s_mock_temp_forecast[0]),
-    .TemperatureForecast = s_mock_temp_forecast,
-    .RainForecastMmX10Count = sizeof(s_mock_rain_forecast) / sizeof(s_mock_rain_forecast[0]),
-    .RainForecastMmX10 = s_mock_rain_forecast,
-    .ForecastStartTimestamp = 0,
-    .CurrentConditions = "Mock",
-};
+// static int s_mock_temp_forecast[WEATHER_FORECAST_MAX_POINTS] = {
+//     18, 20, 22, 24, 23, 21, 19, 17, 16, 15,
+//     17, 20, 23, 26, 28, 30, 29, 27, 25, 24,
+//     26, 28, 31, 33, 34, 32, 30, 28, 27, 25,
+//     22, 19, 16, 13, 10, 8, 7, 6, 5, 4,
+//     2, 0, -2, -4, -3, -1, 1, 3, 5, 7
+// };
+// static int s_mock_rain_forecast[WEATHER_FORECAST_MAX_POINTS] = {
+//     0, 0, 0, 0, 0, 5, 10, 8, 3, 0,
+//     0, 0, 0, 0, 0, 20, 50, 100, 30, 5,
+//     0, 0, 0, 0, 0, 0, 10, 30, 80, 20,
+//     0, 5, 15, 25, 20, 10, 5, 0, 0, 0,
+//     0, 0, 0, 5, 10, 15, 10, 5, 0, 0
+// };
+// static const WeatherData s_mock_weather_data_template = {
+//     .CurrentTemperature = 26,
+//     .MaxTemperature = 27,
+//     .MinTemperature = 19,
+//     .RainNextHourMmX10 = 0,
+//     .RainPopPercent = 0,
+//     .TemperatureForecastCount = sizeof(s_mock_temp_forecast) / sizeof(s_mock_temp_forecast[0]),
+//     .TemperatureForecast = s_mock_temp_forecast,
+//     .RainForecastMmX10Count = sizeof(s_mock_rain_forecast) / sizeof(s_mock_rain_forecast[0]),
+//     .RainForecastMmX10 = s_mock_rain_forecast,
+//     .ForecastStartTimestamp = 0,
+//     .CurrentConditions = "Mock",
+// };
 
 static int weather_get_current_temp(WeatherData * data);
 
@@ -104,18 +104,18 @@ static int s_active_weather_layers = 0;
 WeatherData *weather_get_data() {
     weather_init_data();
 
-    if (clay_get_settings()->WeatherUseSimulation) {
-        memcpy(&s_mock_weather_data, &s_mock_weather_data_template, sizeof(WeatherData));
-        // set timestamp to a fixed point in the past (e.g. start of current hour) for testing
-        // this prevents the "treadmill" effect where the indicator never moves relative to now.
-        const time_t now = time(NULL);
-        const struct tm *t = localtime(&now);
-        struct tm start_of_hour = *t;
-        start_of_hour.tm_min = 0;
-        start_of_hour.tm_sec = 0;
-        s_mock_weather_data.ForecastStartTimestamp = mktime(&start_of_hour);
-        return &s_mock_weather_data;
-    }
+    // if (clay_get_settings()->WeatherUseSimulation) {
+    //     memcpy(&s_mock_weather_data, &s_mock_weather_data_template, sizeof(WeatherData));
+    //     // set timestamp to a fixed point in the past (e.g. start of current hour) for testing
+    //     // this prevents the "treadmill" effect where the indicator never moves relative to now.
+    //     const time_t now = time(NULL);
+    //     const struct tm *t = localtime(&now);
+    //     struct tm start_of_hour = *t;
+    //     start_of_hour.tm_min = 0;
+    //     start_of_hour.tm_sec = 0;
+    //     s_mock_weather_data.ForecastStartTimestamp = mktime(&start_of_hour);
+    //     return &s_mock_weather_data;
+    // }
 
     ensure_runtime_forecast_storage();
     return &s_weather_data;
@@ -229,11 +229,6 @@ void weather_check_and_request_update() {
 
     if (!phone_connection_is_connected()) {
         APP_LOG(APP_LOG_LEVEL_INFO, "Skipping weather update check: Phone not connected.");
-        return;
-    }
-
-    if (clay_get_settings()->WeatherUseSimulation) {
-        APP_LOG(APP_LOG_LEVEL_DEBUG, "Weather update skipped: simulation mode is active.");
         return;
     }
 

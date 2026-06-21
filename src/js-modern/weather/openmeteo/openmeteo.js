@@ -14,6 +14,7 @@ export async function fetchWeatherData(latitude, longitude, forecast_hours) {
         longitude: longitude,
         hourly: "temperature_2m,rain,precipitation,precipitation_probability,apparent_temperature",
         minutely_15: "temperature_2m,apparent_temperature,precipitation,rain",
+        models: "best_match",
         forecast_days: 1,
         forecast_minutely_15: 4 * forecast_hours,
         timezone: "auto"

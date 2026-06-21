@@ -296,11 +296,7 @@ static ClaySettings *clay_reset_to_default_settings(ClaySettings *settings) {
     settings->Row5Widget = WIDGET_BATTERY_BAR;
     settings->Row6Widget = WIDGET_HEARTRATE;
 
-#ifdef WF_EMULATOR
-    settings->WeatherUseSimulation = true;
-#else
     settings->WeatherUseSimulation = false;
-#endif
     settings->SliderWeatherForecastPreviewHoursCount = 6;
     settings->WeatherUpdateIntervalMinutes = 15;
 

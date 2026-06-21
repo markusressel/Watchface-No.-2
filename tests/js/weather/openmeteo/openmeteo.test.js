@@ -28,7 +28,7 @@ describe('openmeteo.js', () => {
         const latitude = 12.34;
         const longitude = 56.78;
         const forecastHours = 6;
-        const expectedUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m,rain,precipitation,precipitation_probability,apparent_temperature&minutely_15=temperature_2m,apparent_temperature,precipitation,rain&forecast_days=1&forecast_minutely_15=24&timezone=auto`;
+        const expectedUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m,rain,precipitation,precipitation_probability,apparent_temperature&minutely_15=temperature_2m,apparent_temperature,precipitation,rain&models=best_match&forecast_days=1&forecast_minutely_15=${4 * forecastHours}&timezone=auto`;
 
         await openmeteo.fetchWeatherData(latitude, longitude, forecastHours);
 

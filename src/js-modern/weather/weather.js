@@ -59,7 +59,10 @@ export class WeatherData {
 }
 
 export function requestSimulatedWeatherData() {
-    const weatherData = processTimelinePayload(timelineSimulation, 'simulation/timeline.json');
+    const weatherData = processOpenMeteoPayload(
+        timelineSimulation,
+        'simulation/timeline.json'
+    );
     cacheWeatherData(weatherData);
     sendWeatherToWatch(
         weatherData,
