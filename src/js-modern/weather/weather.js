@@ -150,7 +150,7 @@ export function processOpenMeteoPayload(json, sourceLabel) {
     const temperatureMax = Math.round(maxTemp);
 
     const conditions = ''; // Ignore for now
-    const rainMm = data.rain[currentIndex] || 0;
+    const rainMm = data.precipitation[currentIndex] || 0;
     const popPercent = 0; // Not available in minutely_15
 
     logger.info('Current Temperature is ' + temperatureCurrent);
@@ -169,7 +169,7 @@ export function processOpenMeteoPayload(json, sourceLabel) {
 
     for (let i = 0; i < limit; i++) {
         temperatureForecastSeries.push(Math.round(data.temperature_2m[i]));
-        rainForecastSeries.push(appMessaging.encodeDecimalAsInt(data.rain[i], 1));
+        rainForecastSeries.push(appMessaging.encodeDecimalAsInt(data.precipitation[i], 1));
     }
 
     logger.info('Temperature forecast series: ' + temperatureForecastSeries);

@@ -12,7 +12,7 @@ export async function fetchWeatherData(latitude, longitude, forecast_hours) {
     const queryParams = {
         latitude: latitude,
         longitude: longitude,
-        minutely_15: "temperature_2m,apparent_temperature,precipitation,rain",
+        minutely_15: "temperature_2m,apparent_temperature,precipitation",
         models: "best_match",
         forecast_days: 1,
         forecast_minutely_15: 4 * forecast_hours,

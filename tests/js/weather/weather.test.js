@@ -123,7 +123,7 @@ const mockOpenMeteo = {
         "minutely_15": {
             "time": ["2023-03-15T12:00:00Z", "2023-03-15T13:00:00Z"],
             "temperature_2m": [7, 8],
-            "rain": [0.5, 1.2]
+            "precipitation": [0.5, 1.2]
         },
         "utc_offset_seconds": 3600
     })
@@ -160,7 +160,7 @@ describe('weather.js', () => {
                     "2023-03-16T12:00:00Z"  // next day
                 ],
                 "temperature_2m": [7, 8, 9, 12],
-                "rain": [0.5, 1.2, 0.1, 0.0]
+                "precipitation": [0.5, 1.2, 0.1, 0.0]
             },
             "utc_offset_seconds": 3600
         };
