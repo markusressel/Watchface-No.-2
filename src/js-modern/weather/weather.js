@@ -129,7 +129,14 @@ export function processOpenMeteoPayload(json, sourceLabel) {
 
     const claySettings = config.getClaySettings();
     const useApparent = !!claySettings.WeatherUseApparentTemp;
-    const tempField = useApparent ? 'apparent_temperature' : 'temperature_2m';
+    let tempField = useApparent ? 'apparent_temperature' : 'temperature_2m';
+    if (!data[tempField]) {
+        tempField = 'temperature_2m';
+    }
+    if (!data[tempField]) {
+        logger.info('No temperature data available in ' + tempField + ' from ' + sourceLabel + '.');
+        return null;
+    }
 
     // Determine min/max for the current local day
     const timezoneOffsetSeconds = json.utc_offset_seconds || 0;

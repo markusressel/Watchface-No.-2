@@ -217,6 +217,28 @@ describe('weather.js', () => {
         expect(resultApparent.WEATHER_TEMPERATURE_CURRENT).toBe(10);
     });
 
+    test('processOpenMeteoPayload falls back to temperature_2m if apparent_temperature is missing', () => {
+        const mockOpenMeteoData = {
+            "minutely_15": {
+                "time": [
+                    "2023-03-15T12:00:00Z"
+                ],
+                "temperature_2m": [7],
+                "precipitation": [0.5]
+            },
+            "utc_offset_seconds": 3600
+        };
+
+        Date.now = jest.fn(() => 1678881600 * 1000); // 12:00:00 UTC
+
+        mockConfig.getClaySettings.mockReturnValueOnce({
+            SliderWeatherForecastPreviewHoursCount: 6,
+            WeatherUseApparentTemp: true
+        });
+        const result = weather.processOpenMeteoPayload(mockOpenMeteoData, 'test_source');
+        expect(result.WEATHER_TEMPERATURE_CURRENT).toBe(7);
+    });
+
 
     test('sendWeatherToWatch', () => {
         const exampleData = new WeatherData(
