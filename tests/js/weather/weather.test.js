@@ -62,7 +62,7 @@ const mockConfig = {
         Row4Widget: "4", // Battery
         LayoutRowCount: 5,
         SliderWeatherForecastPreviewHoursCount: 6,
-        WeatherUseApparentTemp: false,
+        WeatherUseApparentTemp: true,
     })),
 };
 jest.mock('../../../src/js-modern/config/config', () => ({

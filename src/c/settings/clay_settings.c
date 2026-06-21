@@ -298,7 +298,7 @@ static ClaySettings *clay_reset_to_default_settings(ClaySettings *settings) {
     settings->Row6Widget = WIDGET_HEARTRATE;
 
     settings->WeatherUseSimulation = false;
-    settings->WeatherUseApparentTemp = false;
+    settings->WeatherUseApparentTemp = true;
     settings->SliderWeatherForecastPreviewHoursCount = 6;
     settings->WeatherUpdateIntervalMinutes = 15;
 
