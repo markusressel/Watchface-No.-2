@@ -88,69 +88,93 @@ export function cacheWeatherData(weatherData) {
 }
 
 /**
- *
+ * Processes OpenMeteo API payload and returns WeatherData.
  * @param json {object}
  * @param sourceLabel {string}
+ * @returns {WeatherData|null}
  */
-export function processTimelinePayload(json, sourceLabel) {
-    if (!json || !json.data || json.data.length === 0) {
+export function processOpenMeteoPayload(json, sourceLabel) {
+    if (!json || !json.minutely_15) {
         logger.info('No timeline data available from ' + sourceLabel + '.');
-        return;
+        return null;
     }
 
     logger.info('Weather source: ' + sourceLabel);
     logger.info('JSON response is: ' + JSON.stringify(json));
 
-    const timeline = json.data || [];
-    const current = pickClosestEntryToNow(timeline) || timeline[0] || {};
-    const minMax = dayMinMaxFromTimeline(timeline, current, json.timezone_offset || 0);
-    const minKelvin = minMax.minKelvin;
-    const maxKelvin = minMax.maxKelvin;
+    const data = json.minutely_15;
+    const times = data.time || [];
+    if (times.length === 0) {
+        logger.info('No timeline data available from ' + sourceLabel + '.');
+        return null;
+    }
 
-    // Temperature in Kelvin requires adjustment
-    const temperatureCurrent = kelvinToCelsius(current.temp);
+    // Convert ISO time strings to UTC timestamps (seconds)
+    const dts = [];
+    for (let i = 0; i < times.length; i++) {
+        dts.push(Math.floor(new Date(times[i]).getTime() / 1000));
+    }
+
+    const nowUtc = Math.floor(Date.now() / 1000);
+    let currentIndex = 0;
+    let bestDistance = Math.abs(dts[0] - nowUtc);
+
+    for (let i = 1; i < dts.length; i++) {
+        const distance = Math.abs(dts[i] - nowUtc);
+        if (distance < bestDistance) {
+            currentIndex = i;
+            bestDistance = distance;
+        }
+    }
+
+    // Determine min/max for the current local day
+    const timezoneOffsetSeconds = json.utc_offset_seconds || 0;
+    const referenceDay = Math.floor((dts[currentIndex] + timezoneOffsetSeconds) / 86400);
+
+    let minTemp = data.temperature_2m[currentIndex];
+    let maxTemp = data.temperature_2m[currentIndex];
+
+    for (let i = 0; i < dts.length; i++) {
+        const day = Math.floor((dts[i] + timezoneOffsetSeconds) / 86400);
+        if (day === referenceDay) {
+            const t = data.temperature_2m[i];
+            if (typeof t === 'number') {
+                if (t < minTemp) minTemp = t;
+                if (t > maxTemp) maxTemp = t;
+            }
+        }
+    }
+
+    const temperatureCurrent = Math.round(data.temperature_2m[currentIndex]);
+    const temperatureMin = Math.round(minTemp);
+    const temperatureMax = Math.round(maxTemp);
+
+    const conditions = ''; // Ignore for now
+    const rainMm = data.rain[currentIndex] || 0;
+    const popPercent = 0; // Not available in minutely_15
+
     logger.info('Current Temperature is ' + temperatureCurrent);
-    const temperatureMin = kelvinToCelsius(minKelvin);
     logger.info('Min Temperature is ' + temperatureMin);
-    const temperatureMax = kelvinToCelsius(maxKelvin);
     logger.info('Max Temperature is ' + temperatureMax);
-
-    // Conditions
-    // Ignore for now
-    const conditions = ''
-
-    // Rain forecast based on selected 15-minute entry
-    const rainMm = (current.rain !== null) ? current.rain : 0;
-    const popPercent = typeof current.pop === 'number' ? Math.round(current.pop * 100) : 0;
     logger.info('Rain from selected entry (mm/h): ' + rainMm + ', pop (%): ' + popPercent);
 
     const claySettings = config.getClaySettings();
     const forecastPointCount = claySettings.SliderWeatherForecastPreviewHoursCount * 4;
 
-    const timelineSized = timeline.slice(0, forecastPointCount);
-    const forecastStartTimestamp = timelineSized.length > 0 ? (timelineSized[0].dt || 0) : 0;
+    const limit = Math.min(dts.length, forecastPointCount);
+    const forecastStartTimestamp = limit > 0 ? dts[0] : 0;
 
-    const temperatureForecastSeries = buildCondensedSeries(
-        timelineSized,
-        function (entry) {
-            return kelvinToCelsius(entry.temp);
-        },
-        forecastPointCount
-    );
+    const temperatureForecastSeries = [];
+    const rainForecastSeries = [];
 
-    const rainForecastSeries = buildCondensedSeries(
-        timelineSized,
-        function (entry) {
-            const rain = entry.rain;
-            return appMessaging.encodeDecimalAsInt(rain, 1);
-        },
-        forecastPointCount
-    );
+    for (let i = 0; i < limit; i++) {
+        temperatureForecastSeries.push(Math.round(data.temperature_2m[i]));
+        rainForecastSeries.push(appMessaging.encodeDecimalAsInt(data.rain[i], 1));
+    }
 
     logger.info('Temperature forecast series: ' + temperatureForecastSeries);
     logger.info('Rain forecast series: ' + rainForecastSeries);
 
-    // Assemble a dictionary using our keys
     return new WeatherData(
         temperatureCurrent,
         temperatureMin,
@@ -162,78 +186,6 @@ export function processTimelinePayload(json, sourceLabel) {
         rainForecastSeries,
         forecastStartTimestamp
     );
-}
-
-function processOpenMeteoPayload(json, sourceLabel) {
-    if (!json || (!json.minutely_15 && !json.hourly)) {
-        logger.info('No timeline data available from ' + sourceLabel + '.');
-        return;
-    }
-
-    const timelineMap = {};
-
-    if (json.minutely_15) {
-        const data = json.minutely_15;
-        for (let i = 0; i < data.time.length; i++) {
-            const dt = Math.floor(new Date(data.time[i]).getTime() / 1000);
-            // Prioritize minutely_15 for temperature and rain, keep pop from hourly if it overlaps
-            timelineMap[dt] = {
-                dt: dt,
-                temp: data.temperature_2m[i] + 273.15, // Convert to Kelvin
-                rain: data.rain[i],
-                pop: timelineMap[dt] ? timelineMap[dt].pop : 0,
-                weather: [{main: ''}] // Not available
-            };
-        }
-    }
-
-    const timeline = Object.keys(timelineMap)
-        .map(function (key) {
-            return timelineMap[key];
-        })
-        .sort(function (a, b) {
-            return a.dt - b.dt;
-        });
-
-    return processTimelinePayload({data: timeline, timezone_offset: json.utc_offset_seconds}, sourceLabel);
-}
-
-/**
- * @param entries {object[]|null}
- * @return {*|null}
- */
-export function pickClosestEntryToNow(entries) {
-    if (!entries || entries.length === 0) {
-        return null;
-    }
-
-    const nowUtc = Math.floor(Date.now() / 1000);
-    let best = entries[0];
-    let bestDistance = Math.abs((best.dt || 0) - nowUtc);
-
-    for (let i = 1; i < entries.length; i++) {
-        const candidate = entries[i];
-        const distance = Math.abs((candidate.dt || 0) - nowUtc);
-        if (distance < bestDistance) {
-            best = candidate;
-            bestDistance = distance;
-        }
-    }
-
-    return best;
-}
-
-/**
- * Converts a temperature in Kelvin to Celsius.
- * @param kelvin {number}
- * @return {number}
- */
-export function kelvinToCelsius(kelvin) {
-    if (typeof kelvin !== 'number') {
-        return 0;
-    }
-
-    return Math.round(kelvin - 273.15);
 }
 
 function getCachedWeatherData() {
@@ -305,71 +257,6 @@ export function sendWeatherToWatch(weatherData, successMessage, errorMessage) {
         throw new Error('sendWeatherToWatch expects a WeatherData object');
     }
     appMessaging.sendDictToWatch(weatherData.toDict(), successMessage, errorMessage);
-}
-
-function localDayIndex(utcTimestamp, timezoneOffsetSeconds) {
-    return Math.floor((utcTimestamp + timezoneOffsetSeconds) / 86400);
-}
-
-export function dayMinMaxFromTimeline(entries, referenceEntry, timezoneOffsetSeconds) {
-    if (!entries || entries.length === 0) {
-        return {minKelvin: undefined, maxKelvin: undefined};
-    }
-
-    const reference = referenceEntry || entries[0];
-    const referenceDay = localDayIndex(reference.dt || 0, timezoneOffsetSeconds || 0);
-    let minKelvin = reference.temp;
-    let maxKelvin = reference.temp;
-
-    for (let i = 0; i < entries.length; i++) {
-        const entry = entries[i];
-        const t = entry && entry.temp;
-        if (typeof t !== 'number') {
-            continue;
-        }
-
-        if (localDayIndex(entry.dt || 0, timezoneOffsetSeconds || 0) !== referenceDay) {
-            continue;
-        }
-
-        if (typeof minKelvin !== 'number' || t < minKelvin) {
-            minKelvin = t;
-        }
-        if (typeof maxKelvin !== 'number' || t > maxKelvin) {
-            maxKelvin = t;
-        }
-    }
-
-    if (typeof minKelvin !== 'number' || typeof maxKelvin !== 'number') {
-        for (let j = 0; j < entries.length; j++) {
-            const fallbackTemp = entries[j] && entries[j].temp;
-            if (typeof fallbackTemp !== 'number') {
-                continue;
-            }
-            if (typeof minKelvin !== 'number' || fallbackTemp < minKelvin) {
-                minKelvin = fallbackTemp;
-            }
-            if (typeof maxKelvin !== 'number' || fallbackTemp > maxKelvin) {
-                maxKelvin = fallbackTemp;
-            }
-        }
-    }
-
-    return {minKelvin: minKelvin, maxKelvin: maxKelvin};
-}
-
-export function buildCondensedSeries(entries, extractor, maxCount) {
-    const samples = [];
-    if (!entries || entries.length === 0) {
-        return samples;
-    }
-
-    // Now we just map the entries directly, assuming they are already sized.
-    for (let i = 0; i < entries.length; i++) {
-        samples.push(extractor(entries[i]));
-    }
-
-    return samples;
 }
 
 

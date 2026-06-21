@@ -149,76 +149,36 @@ describe('weather.js', () => {
         Date.now = originalDateNow; // Restore Date.now
     });
 
-    // Test kelvinToCelsius
-    test('kelvinToCelsius converts Kelvin to Celsius correctly', () => {
-        expect(weather.kelvinToCelsius(273.15)).toBe(0);
-        expect(weather.kelvinToCelsius(280.15)).toBe(7);
-        expect(weather.kelvinToCelsius(263.15)).toBe(-10);
-        expect(weather.kelvinToCelsius(null)).toBe(0);
-        expect(weather.kelvinToCelsius(undefined)).toBe(0);
-        expect(weather.kelvinToCelsius('abc')).toBe(0);
-    });
-
-    // Test oneDecimalToInt
-    test('oneDecimalToInt converts one decimal to integer correctly', () => {
-        expect(weather.oneDecimalToInt(0.5)).toBe(5);
-        expect(weather.oneDecimalToInt(1.2)).toBe(12);
-        expect(weather.oneDecimalToInt(0)).toBe(0);
-        expect(weather.oneDecimalToInt(null)).toBe(0);
-        expect(weather.oneDecimalToInt(undefined)).toBe(0);
-        expect(weather.oneDecimalToInt('abc')).toBe(0);
-    });
-
-    // Test processTimelinePayload
-    test('processTimelinePayload creates the correct dictionary data', () => {
-        const mockTimelineData = {
-            "data": [
-                {
-                    "dt": 1678886400, // March 15, 2023 12:00:00 PM UTC
-                    "temp": 280.15, // 7 C
-                    "weather": [{"main": "Clouds"}],
-                    "rain": 0.5, // Changed to number format matching OpenMeteo
-                    "pop": 0.2
-                },
-                {
-                    "dt": 1678890000, // March 15, 2023 1:00:00 PM UTC
-                    "temp": 281.15, // 8 C
-                    "weather": [{"main": "Rain"}],
-                    "rain": 1.2,
-                    "pop": 0.7
-                },
-                {
-                    "dt": 1678893600, // March 15, 2023 2:00:00 PM UTC
-                    "temp": 282.15, // 9 C
-                    "weather": [{"main": "Clear"}],
-                    "rain": 0.1,
-                    "pop": 0.1
-                },
-                {
-                    "dt": 1678972800, // March 16, 2023 12:00:00 PM UTC (next day)
-                    "temp": 285.15, // 12 C
-                    "weather": [{"main": "Clear"}],
-                    "rain": 0.0,
-                    "pop": 0.0
-                }
-            ],
-            "timezone_offset": 3600 // +1 hour
+    // Test processOpenMeteoPayload
+    test('processOpenMeteoPayload creates the correct dictionary data', () => {
+        const mockOpenMeteoData = {
+            "minutely_15": {
+                "time": [
+                    "2023-03-15T12:00:00Z", // March 15, 2023 12:00:00 PM UTC
+                    "2023-03-15T13:00:00Z", // 1:00:00 PM UTC
+                    "2023-03-15T14:00:00Z", // 2:00:00 PM UTC
+                    "2023-03-16T12:00:00Z"  // next day
+                ],
+                "temperature_2m": [7, 8, 9, 12],
+                "rain": [0.5, 1.2, 0.1, 0.0]
+            },
+            "utc_offset_seconds": 3600
         };
 
-        Date.now = jest.fn(() => 1678886400 * 1000); // Set current time to 12:00:00 PM UTC
+        Date.now = jest.fn(() => 1678881600 * 1000); // Set current time (12:00:00 UTC)
 
-        const result = weather.processTimelinePayload(mockTimelineData, 'test_source');
+        const result = weather.processOpenMeteoPayload(mockOpenMeteoData, 'test_source');
 
         const expectedDictionary = {
             'WEATHER_TEMPERATURE_CURRENT': 7,
-            'WEATHER_TEMPERATURE_MIN': 7, // Min for the day (15th March)
-            'WEATHER_TEMPERATURE_MAX': 9, // Max for the day (15th March)
+            'WEATHER_TEMPERATURE_MIN': 7,
+            'WEATHER_TEMPERATURE_MAX': 9,
             'WEATHER_CONDITION': '',
             'WEATHER_RAIN_NEXT_HOUR_MM_X10': 5, // 0.5 * 10
-            'WEATHER_RAIN_POP_PERCENT': 20, // 0.2 * 100
+            'WEATHER_RAIN_POP_PERCENT': 0, // pop is 0 now
             'WEATHER_TEMP_FORECAST_ENCODED': '7,8,9,12',
             'WEATHER_RAIN_FORECAST_MM_X10_ENCODED': '5,12,1,0',
-            'WEATHER_FORECAST_START_TS': 1678886400
+            'WEATHER_FORECAST_START_TS': 1678881600 // 12:00:00 PM UTC
         };
 
         expect(result.toDict()).toEqual(expectedDictionary);
