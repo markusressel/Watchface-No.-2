@@ -10,6 +10,11 @@ void status_layer_update() {
 void weather_request_update() {
 }
 
+static int s_weather_check_request_update_calls = 0;
+void weather_check_and_request_update() {
+    s_weather_check_request_update_calls++;
+}
+
 #include "../../src/c/system/phone_connection.c"
 
 void setUp(void) {
@@ -17,6 +22,7 @@ void setUp(void) {
     s_is_connected = false;
     s_connection_handler = NULL;
     s_mock_connected = true;
+    s_weather_check_request_update_calls = 0;
 }
 
 void tearDown(void) {
@@ -50,14 +56,17 @@ void test_unregister_phone_connection_listener(void) {
 
 void test_connection_handler_callback(void) {
     register_phone_connection_listener();
+    s_weather_check_request_update_calls = 0;
 
     // Simulate disconnect
     s_connection_handler(false);
     TEST_ASSERT_FALSE(phone_connection_is_connected());
+    TEST_ASSERT_EQUAL(0, s_weather_check_request_update_calls);
 
     // Simulate reconnect
     s_connection_handler(true);
     TEST_ASSERT_TRUE(phone_connection_is_connected());
+    TEST_ASSERT_EQUAL(1, s_weather_check_request_update_calls);
 }
 
 void test_force_phone_connection_update(void) {

@@ -12,7 +12,7 @@ static void connection_handler(bool connected) {
         status_layer_update();
 
         if (connected) {
-            weather_request_update();
+            weather_check_and_request_update();
         }
     }
 }
