@@ -54,6 +54,7 @@ uint32_t MESSAGE_KEY_ShowSeconds = 41;
 uint32_t MESSAGE_KEY_ShowWeekdayAbbreviation = 42;
 uint32_t MESSAGE_KEY_WeekdayAbbreviationUppercase = 43;
 uint32_t MESSAGE_KEY_WeatherUseSimulation = 44;
+uint32_t MESSAGE_KEY_WeatherUseApparentTemp = 56;
 uint32_t MESSAGE_KEY_SliderWeatherForecastPreviewHoursCount = 45;
 uint32_t MESSAGE_KEY_WeatherUpdateIntervalMinutes = 46;
 uint32_t MESSAGE_KEY_Row0Widget = 47;

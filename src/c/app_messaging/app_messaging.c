@@ -432,6 +432,9 @@ static void handle_settings_message(DictionaryIterator *iterator) {
         } else if (key == MESSAGE_KEY_WeatherUseSimulation) {
             settings->WeatherUseSimulation = (tuple_to_int(t) == 1);
             has_settings_update = true;
+        } else if (key == MESSAGE_KEY_WeatherUseApparentTemp) {
+            settings->WeatherUseApparentTemp = (tuple_to_int(t) == 1);
+            has_settings_update = true;
         } else if (key == MESSAGE_KEY_SliderWeatherForecastPreviewHoursCount) {
             settings->SliderWeatherForecastPreviewHoursCount = tuple_to_int(t);
             has_settings_update = true;

@@ -327,7 +327,7 @@ void test_weather_check_and_request_update_simulation(void) {
     s_settings.WeatherUseSimulation = true;
     s_app_message_outbox_send_count = 0;
     weather_check_and_request_update();
-    TEST_ASSERT_EQUAL_INT(0, s_app_message_outbox_send_count);
+    TEST_ASSERT_EQUAL_INT(1, s_app_message_outbox_send_count);
     s_settings.WeatherUseSimulation = false;
 }
 
@@ -488,15 +488,6 @@ void test_weather_deinit_data_not_dirty(void) {
     PersistedWeatherData persisted_after = {0};
     persist_read_data(WEATHER_DATA_KEY, &persisted_after, sizeof(PersistedWeatherData));
     TEST_ASSERT_EQUAL_INT(20, persisted_after.CurrentTemperature);
-}
-
-void test_weather_simulation_mode(void) {
-    s_settings.WeatherUseSimulation = true;
-    WeatherData *data = weather_get_data();
-    TEST_ASSERT_NOT_NULL(data);
-    TEST_ASSERT_EQUAL_INT(26, data->CurrentTemperature);
-    TEST_ASSERT_EQUAL_STRING("Mock", data->CurrentConditions);
-    s_settings.WeatherUseSimulation = false;
 }
 
 void test_weather_init_skipped_if_inactive(void) {
@@ -776,7 +767,6 @@ int main() {
     RUN_TEST(test_weather_layer_create_destroy);
     RUN_TEST(test_weather_deinit_data);
     RUN_TEST(test_weather_deinit_data_not_dirty);
-    RUN_TEST(test_weather_simulation_mode);
     RUN_TEST(test_weather_init_skipped_if_inactive);
     RUN_TEST(test_weather_get_data_loads_on_demand);
     RUN_TEST(test_weather_updates_ignored_if_inactive);

@@ -198,6 +198,13 @@ export default [
                 "defaultValue": "This watchface uses https://open-meteo.com/"
             },
             {
+                "type": "toggle",
+                "messageKey": "WeatherUseApparentTemp",
+                "label": "Use Apparent Temperature",
+                "description": "Show apparent temperature (feels like) instead of actual temperature.",
+                "defaultValue": true
+            },
+            {
                 "type": "select",
                 "messageKey": "WeatherSlot1",
                 "defaultValue": 2,

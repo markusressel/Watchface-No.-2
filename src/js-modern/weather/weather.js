@@ -127,17 +127,21 @@ export function processOpenMeteoPayload(json, sourceLabel) {
         }
     }
 
+    const claySettings = config.getClaySettings();
+    const useApparent = !!claySettings.WeatherUseApparentTemp;
+    const tempField = useApparent ? 'apparent_temperature' : 'temperature_2m';
+
     // Determine min/max for the current local day
     const timezoneOffsetSeconds = json.utc_offset_seconds || 0;
     const referenceDay = Math.floor((dts[currentIndex] + timezoneOffsetSeconds) / 86400);
 
-    let minTemp = data.temperature_2m[currentIndex];
-    let maxTemp = data.temperature_2m[currentIndex];
+    let minTemp = data[tempField][currentIndex];
+    let maxTemp = data[tempField][currentIndex];
 
     for (let i = 0; i < dts.length; i++) {
         const day = Math.floor((dts[i] + timezoneOffsetSeconds) / 86400);
         if (day === referenceDay) {
-            const t = data.temperature_2m[i];
+            const t = data[tempField][i];
             if (typeof t === 'number') {
                 if (t < minTemp) minTemp = t;
                 if (t > maxTemp) maxTemp = t;
@@ -145,7 +149,7 @@ export function processOpenMeteoPayload(json, sourceLabel) {
         }
     }
 
-    const temperatureCurrent = Math.round(data.temperature_2m[currentIndex]);
+    const temperatureCurrent = Math.round(data[tempField][currentIndex]);
     const temperatureMin = Math.round(minTemp);
     const temperatureMax = Math.round(maxTemp);
 
@@ -158,7 +162,6 @@ export function processOpenMeteoPayload(json, sourceLabel) {
     logger.info('Max Temperature is ' + temperatureMax);
     logger.info('Rain from selected entry (mm/h): ' + rainMm + ', pop (%): ' + popPercent);
 
-    const claySettings = config.getClaySettings();
     const forecastPointCount = claySettings.SliderWeatherForecastPreviewHoursCount * 4;
 
     const limit = Math.min(dts.length, forecastPointCount);
@@ -168,7 +171,7 @@ export function processOpenMeteoPayload(json, sourceLabel) {
     const rainForecastSeries = [];
 
     for (let i = 0; i < limit; i++) {
-        temperatureForecastSeries.push(Math.round(data.temperature_2m[i]));
+        temperatureForecastSeries.push(Math.round(data[tempField][i]));
         rainForecastSeries.push(appMessaging.encodeDecimalAsInt(data.precipitation[i], 1));
     }
 

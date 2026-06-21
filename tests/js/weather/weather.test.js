@@ -62,6 +62,7 @@ const mockConfig = {
         Row4Widget: "4", // Battery
         LayoutRowCount: 5,
         SliderWeatherForecastPreviewHoursCount: 6,
+        WeatherUseApparentTemp: false,
     })),
 };
 jest.mock('../../../src/js-modern/config/config', () => ({
@@ -183,6 +184,39 @@ describe('weather.js', () => {
 
         expect(result.toDict()).toEqual(expectedDictionary);
     });
+
+    test('processOpenMeteoPayload uses apparent temperature when WeatherUseApparentTemp is true', () => {
+        const mockOpenMeteoData = {
+            "minutely_15": {
+                "time": [
+                    "2023-03-15T12:00:00Z"
+                ],
+                "temperature_2m": [7],
+                "apparent_temperature": [10],
+                "precipitation": [0.5]
+            },
+            "utc_offset_seconds": 3600
+        };
+
+        Date.now = jest.fn(() => 1678881600 * 1000); // 12:00:00 UTC
+
+        // When WeatherUseApparentTemp is false
+        mockConfig.getClaySettings.mockReturnValueOnce({
+            SliderWeatherForecastPreviewHoursCount: 6,
+            WeatherUseApparentTemp: false
+        });
+        const resultNormal = weather.processOpenMeteoPayload(mockOpenMeteoData, 'test_source');
+        expect(resultNormal.WEATHER_TEMPERATURE_CURRENT).toBe(7);
+
+        // When WeatherUseApparentTemp is true
+        mockConfig.getClaySettings.mockReturnValueOnce({
+            SliderWeatherForecastPreviewHoursCount: 6,
+            WeatherUseApparentTemp: true
+        });
+        const resultApparent = weather.processOpenMeteoPayload(mockOpenMeteoData, 'test_source');
+        expect(resultApparent.WEATHER_TEMPERATURE_CURRENT).toBe(10);
+    });
+
 
     test('sendWeatherToWatch', () => {
         const exampleData = new WeatherData(

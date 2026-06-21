@@ -84,7 +84,8 @@
             "ForecastRainColor3",
             "ForecastRainColor10",
             "ForecastRainColor50",
-            "ForecastRainColor100"
+            "ForecastRainColor100",
+            "WeatherUseApparentTemp"
         ],
         "projectType": "native",
         "resources": {

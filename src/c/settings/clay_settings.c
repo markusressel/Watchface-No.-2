@@ -116,9 +116,10 @@ void clay_log_settings_debug(const char *context_label, ClaySettings *settings) 
 
     APP_LOG(
         APP_LOG_LEVEL_DEBUG,
-        "%s weather_simulation=%d forecast_preview_hours=%d update_interval_mins=%d time_ratio=%.2f",
+        "%s weather_simulation=%d apparent_temp=%d forecast_preview_hours=%d update_interval_mins=%d time_ratio=%.2f",
         label,
         settings->WeatherUseSimulation,
+        settings->WeatherUseApparentTemp,
         settings->SliderWeatherForecastPreviewHoursCount,
         settings->WeatherUpdateIntervalMinutes,
         (double) settings->TimeRowRatio
@@ -297,6 +298,7 @@ static ClaySettings *clay_reset_to_default_settings(ClaySettings *settings) {
     settings->Row6Widget = WIDGET_HEARTRATE;
 
     settings->WeatherUseSimulation = false;
+    settings->WeatherUseApparentTemp = false;
     settings->SliderWeatherForecastPreviewHoursCount = 6;
     settings->WeatherUpdateIntervalMinutes = 15;
 
