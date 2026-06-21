@@ -59,7 +59,7 @@ typedef struct PersistedWeatherData {
 //     .CurrentConditions = "Mock",
 // };
 
-static int weather_get_current_temp(WeatherData * data);
+static int weather_get_current_temp(WeatherData *data);
 
 static void update_weather_ui();
 
@@ -181,17 +181,24 @@ static void restore_saved_weather_data() {
 static bool is_weather_widget_active() {
     ClaySettings *settings = clay_get_settings();
     int row_count = settings->LayoutRowCount;
-    
+
     for (int i = 0; i < row_count; i++) {
         int widget = -1;
         switch (i) {
-            case 0: widget = settings->Row0Widget; break;
-            case 1: widget = settings->Row1Widget; break;
-            case 2: widget = settings->Row2Widget; break;
-            case 3: widget = settings->Row3Widget; break;
-            case 4: widget = settings->Row4Widget; break;
-            case 5: widget = settings->Row5Widget; break;
-            case 6: widget = settings->Row6Widget; break;
+            case 0: widget = settings->Row0Widget;
+                break;
+            case 1: widget = settings->Row1Widget;
+                break;
+            case 2: widget = settings->Row2Widget;
+                break;
+            case 3: widget = settings->Row3Widget;
+                break;
+            case 4: widget = settings->Row4Widget;
+                break;
+            case 5: widget = settings->Row5Widget;
+                break;
+            case 6: widget = settings->Row6Widget;
+                break;
             default: break;
         }
         if (widget == WIDGET_WEATHER || widget == WIDGET_WEATHER_FORECAST) {
@@ -214,6 +221,10 @@ void weather_init_data() {
         const int forecast_points = settings->SliderWeatherForecastPreviewHoursCount * 4; // 15 min points
         const time_t max_valid_time = s_weather_data.ForecastStartTimestamp + (forecast_points * 15 * 60);
 
+        if (settings->WeatherUseSimulation) {
+            APP_LOG(APP_LOG_LEVEL_DEBUG, "skipping weather data initialization in simulation mode");
+            return;
+        }
         if (time(NULL) > max_valid_time) {
             APP_LOG(APP_LOG_LEVEL_INFO, "Restored weather data is expired. Clearing.");
             weather_clear_data();
@@ -295,6 +306,11 @@ void weather_tick_update() {
     const int forecast_points = settings->SliderWeatherForecastPreviewHoursCount * 4; // 15 min points
     const time_t max_valid_time = s_weather_data.ForecastStartTimestamp + (forecast_points * 15 * 60);
 
+    if (settings->WeatherUseSimulation) {
+        APP_LOG(APP_LOG_LEVEL_DEBUG, "ignoring expired weather data in simulation mode");
+        update_weather_ui();
+        return;
+    }
     if (time(NULL) > max_valid_time) {
         APP_LOG(APP_LOG_LEVEL_INFO, "Weather data expired. Clearing.");
         weather_clear_data();
